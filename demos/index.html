@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Activate — Demos para validar</title>
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --surface: #fff;
+      --text: #2C2A28;
+      --muted: #7A756E;
+      --accent: #2F6F6A;
+      --border: #E5DFD6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: #FFFFFF;
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .wrap { max-width: 520px; width: 100%; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; letter-spacing: 0.04em; }
+    p { color: var(--muted); line-height: 1.5; margin: 0 0 24px; }
+    .cards { display: grid; gap: 14px; }
+    a.card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: transform .15s, box-shadow .15s;
+    }
+    a.card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px #2c2a2814;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: #E4F0EE;
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    a.card h2 { margin: 0 0 6px; font-size: 1.15rem; }
+    a.card p { margin: 0; font-size: .92rem; }
+    .note {
+      margin-top: 28px;
+      font-size: 13px;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="wrap">
+    <h1>ACTIVATE</h1>
+    <p>Demos clickeables para validar con la cliente antes de construir. Mobile-first, sin backend.</p>
+    <div class="cards">
+      <a class="card" href="cliente.html">
+        <span class="tag">Compradora</span>
+        <h2>Demo tienda</h2>
+        <p>Home → producto → carrito → pago por transferencia → pedido recibido → seguimiento.</p>
+      </a>
+      <a class="card" href="admin.html">
+        <span class="tag">Administración</span>
+        <h2>Demo panel</h2>
+        <p>Inicio → pedidos pendientes → detalle con comprobante → confirmar pago.</p>
+      </a>
+    </div>
+    <p class="note">Abrí cada link en el celular o en el modo responsive del navegador (≈390px). Los datos son de ejemplo.</p>
+  </div>
+</body>
+</html>

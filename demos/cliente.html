@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Activate — Demo tienda</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --surface: #fff;
+      --soft: #F5F5F5;
+      --text: #2C2A28;
+      --muted: #7A756E;
+      --accent: #2F6F6A;
+      --accent-soft: #E8F3F1;
+      --promo: #C45C4A;
+      --border: #E8E8E8;
+      --bar: #2F6F6A;
+      --ok: #3D7A5A;
+      --wa: #25D366;
+      --radius: 12px;
+      --pill: 999px;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: #F0F0F0;
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+    }
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100dvh;
+      background: var(--bg);
+      position: relative;
+      box-shadow: 0 0 0 1px #0001, 0 20px 60px #0002;
+      display: flex;
+      flex-direction: column;
+    }
+    .screen { display: none; flex: 1; flex-direction: column; min-height: 0; }
+    .screen.active { display: flex; }
+    .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .promo-bar {
+      background: var(--bar);
+      color: #fff;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      padding: 10px 16px;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .top h1, .top .title { font-size: 16px; font-weight: 700; }
+    .logo { font-size: 18px; font-weight: 700; letter-spacing: .12em; }
+    .season { font-size: 10px; color: var(--muted); margin-top: 2px; }
+    .icon-btn {
+      width: 40px; height: 40px;
+      border: 0; background: transparent;
+      display: grid; place-items: center;
+      cursor: pointer; color: var(--text); font-size: 18px;
+    }
+    .badge {
+      position: absolute; top: 6px; right: 4px;
+      background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700;
+      width: 16px; height: 16px; border-radius: 50%;
+      display: grid; place-items: center;
+    }
+    .rel { position: relative; }
+    .hero {
+      height: 280px;
+      background: linear-gradient(180deg, transparent 40%, #2c2a28cc),
+        url("https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80") center/cover;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 24px 20px;
+      gap: 8px;
+    }
+    .hero .kicker { font-size: 12px; letter-spacing: .14em; font-weight: 600; opacity: .9; }
+    .hero h2 { font-size: 28px; line-height: 1.15; max-width: 14ch; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: 0; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 14px;
+      border-radius: var(--pill); padding: 0 20px; height: 48px;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; height: 52px; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); width: 100%; height: 48px; }
+    .btn-ghost { background: var(--surface); color: var(--text); height: 42px; align-self: flex-start; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .section { padding: 20px 16px; }
+    .section h3 { font-size: 18px; margin-bottom: 12px; }
+    .cat {
+      height: 100px; border-radius: var(--radius); overflow: hidden;
+      margin-bottom: 10px; position: relative; cursor: pointer;
+      background: var(--soft) center/cover;
+    }
+    .cat span {
+      position: absolute; inset: 0;
+      background: #2c2a2866; color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; font-size: 20px; font-weight: 700;
+    }
+    .benefits {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .benefit {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+    }
+    .benefit strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .benefit span { font-size: 11px; color: var(--muted); }
+    .footer {
+      background: var(--soft); padding: 28px 16px 40px;
+      font-size: 13px; color: var(--muted);
+    }
+    .footer a { color: var(--muted); text-decoration: none; display: block; margin: 8px 0; }
+    .wa {
+      position: fixed; right: max(16px, calc(50% - 195px + 16px)); bottom: 20px;
+      width: 52px; height: 52px; border-radius: 50%; background: var(--wa);
+      border: 0; color: #fff; font-size: 22px; cursor: pointer;
+      box-shadow: 0 4px 12px #0003; z-index: 50;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 16px; }
+    .product-card { cursor: pointer; }
+    .product-card .img {
+      aspect-ratio: 3/4; border-radius: var(--radius); background: var(--soft) center/cover;
+      margin-bottom: 8px;
+    }
+    .product-card .name { font-size: 13px; font-weight: 600; }
+    .product-card .price { font-size: 13px; font-weight: 700; margin-top: 2px; }
+    .chips { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; background: var(--surface); }
+    .chip {
+      flex: 0 0 auto; padding: 8px 12px; border-radius: var(--pill);
+      background: var(--soft); font-size: 12px; font-weight: 600; border: 0; cursor: pointer;
+    }
+    .chip.on { background: var(--accent); color: #fff; }
+    .gallery {
+      height: 360px; background: var(--soft) center/cover; position: relative;
+    }
+    .gallery .zoom {
+      position: absolute; right: 12px; bottom: 12px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #fffc; border: 0; cursor: pointer;
+    }
+    .info { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+    .prices { display: flex; align-items: center; gap: 10px; }
+    .old { color: var(--muted); text-decoration: line-through; font-size: 14px; }
+    .new { color: var(--promo); font-size: 20px; font-weight: 700; }
+    .label { font-size: 13px; font-weight: 600; }
+    .swatches, .sizes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .swatch {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .swatch.on { border-color: var(--text); box-shadow: 0 0 0 2px #fff inset; }
+    .size {
+      width: 48px; height: 40px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface);
+      font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .size.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .size:disabled { opacity: .4; }
+    .meta { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+    .sticky {
+      padding: 12px 16px 20px; background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+    .line {
+      display: flex; gap: 12px; padding: 12px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px;
+    }
+    .line .thumb { width: 72px; height: 72px; border-radius: 8px; background: var(--soft) center/cover; flex: 0 0 auto; }
+    .line .col { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .line .name { font-size: 14px; font-weight: 600; }
+    .line .var { font-size: 12px; color: var(--muted); }
+    .qty {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--soft); border-radius: 8px; padding: 4px 8px;
+    }
+    .qty button { border: 0; background: transparent; font-size: 16px; cursor: pointer; width: 24px; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 12px;
+    }
+    .card h4 { font-size: 14px; margin-bottom: 10px; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .field input, .field select {
+      width: 100%; padding: 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg);
+      font: inherit; color: var(--text);
+    }
+    .field input:focus, .field select:focus { outline: 2px solid var(--accent); border-color: transparent; }
+    .opt {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; border-radius: 8px; border: 1.5px solid var(--border);
+      background: var(--bg); margin-bottom: 8px; cursor: pointer; gap: 10px;
+    }
+    .opt.on { border-color: var(--accent); background: var(--accent-soft); }
+    .opt.disabled { opacity: .5; pointer-events: none; }
+    .opt .l { font-size: 13px; font-weight: 600; }
+    .opt .r { font-size: 12px; font-weight: 600; color: var(--accent); }
+    .opt small { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+    .row { display: flex; justify-content: space-between; font-size: 13px; margin: 6px 0; color: var(--muted); }
+    .row strong { color: var(--text); }
+    .row.total { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 10px; }
+    .row .disc { color: var(--promo); }
+    .alias {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: var(--bg); border-radius: 8px; margin: 10px 0;
+    }
+    .alias code { font-weight: 700; font-size: 15px; }
+    .copy {
+      background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+      padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit;
+    }
+    .upload {
+      border: 1px dashed var(--border); border-radius: 8px; padding: 16px;
+      text-align: center; font-size: 12px; color: var(--muted); cursor: pointer;
+      background: var(--bg);
+    }
+    .upload input { display: none; }
+    .center {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; padding: 32px 24px; gap: 12px;
+    }
+    .circle {
+      width: 72px; height: 72px; border-radius: 50%; background: var(--accent-soft);
+      display: grid; place-items: center; font-size: 28px; color: var(--accent);
+    }
+    .code-card {
+      width: 100%; max-width: 300px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px; text-align: center;
+    }
+    .code-card .code { font-size: 22px; font-weight: 700; letter-spacing: .08em; margin: 6px 0; }
+    .code-card .st { font-size: 12px; font-weight: 600; color: var(--accent); }
+    .timeline { list-style: none; padding: 0; }
+    .timeline li {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 8px 0; font-size: 13px; color: var(--muted);
+    }
+    .timeline li.done { color: var(--text); font-weight: 500; }
+    .timeline li.current { font-weight: 700; color: var(--text); }
+    .dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--soft); flex: 0 0 auto; margin-top: 2px;
+    }
+    .timeline li.done .dot, .timeline li.current .dot {
+      background: var(--accent); border-color: var(--accent);
+    }
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 88px; background: var(--text); color: #fff;
+      padding: 10px 16px; border-radius: var(--pill); font-size: 13px;
+      opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 60;
+      max-width: 340px; text-align: center;
+    }
+    .toast.show { opacity: 1; }
+    .hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 8px; }
+    .link { color: var(--accent); font-weight: 600; font-size: 12px; text-decoration: underline; cursor: pointer; background: none; border: 0; font-family: inherit; }
+
+    .icon { display:inline-flex; align-items:center; justify-content:center; line-height:0; color:inherit; }
+    .icon svg { display:block; }
+    .icon-btn .icon, .nav .icon { color: inherit; }
+    .wa .icon { color:#fff; }
+    .circle .icon { color: var(--accent); }
+    .action .ic .icon { color: var(--accent); }
+    .alert .icon { color: var(--promo); flex:0 0 auto; margin-top:1px; }
+    .receipt .icon { color: var(--muted); margin-bottom:6px; }
+    .empty .icon { color: var(--muted); margin-bottom:12px; }
+    .upload .icon { color: var(--accent); margin-bottom:6px; }
+    .copy .icon { margin-right:4px; }
+
+
+    .sheet-backdrop {
+      position: absolute; inset: 0; background: #2c2a2899;
+      display: none; z-index: 70; align-items: flex-end; justify-content: center;
+    }
+    .sheet-backdrop.open { display: flex; }
+    .sheet {
+      width: 100%; max-height: 85%; background: var(--surface);
+      border-radius: 20px 20px 0 0; padding: 12px 20px 28px;
+      display: flex; flex-direction: column; gap: 12px;
+      animation: sheetUp .25s ease;
+    }
+    @keyframes sheetUp {
+      from { transform: translateY(40px); opacity: .6; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .sheet-handle {
+      width: 40px; height: 4px; border-radius: 2px; background: var(--border);
+      margin: 4px auto 8px;
+    }
+    .sheet-head {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .sheet-head h3 { font-size: 18px; font-weight: 700; }
+    .sheet table {
+      width: 100%; border-collapse: collapse; font-size: 12px;
+      border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+    }
+    .sheet th, .sheet td {
+      padding: 10px 6px; text-align: center; border-bottom: 1px solid var(--border);
+    }
+    .sheet th { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+    .sheet tr:nth-child(even) td { background: var(--bg); }
+    .sheet tr:last-child td { border-bottom: 0; }
+    .sheet .note { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    .demo-tag {
+      position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+      z-index: 100; background: #2c2a28ee; color: #fff;
+      font-size: 11px; padding: 4px 10px; border-radius: 999px;
+      max-width: 360px; text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-tag">Demo compradora · datos de ejemplo</div>
+  <div class="phone" id="app">
+
+    <!-- HOME -->
+    <section class="screen active" data-screen="home">
+      <div class="promo-bar">10% DE DESCUENTO CON TRANSFERENCIA</div>
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="menu" aria-label="Menú"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg></span></button>
+        <div>
+          <div class="logo">ACTIVATE</div>
+          <div class="season">Colección Primavera / Verano</div>
+        </div>
+        <button class="icon-btn rel" type="button" data-go="cart" aria-label="Carrito">
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="badge" id="cartBadge">0</span>
+        </button>
+      </div>
+      <div class="scroll">
+        <div class="hero">
+          <div class="kicker">PRIMAVERA / VERANO</div>
+          <h2>Movete a tu ritmo</h2>
+          <button class="btn btn-ghost" type="button" data-go="category">Ver colección</button>
+        </div>
+        <div class="section">
+          <h3>Comprá por categoría</h3>
+          <div class="cat" style="background-image:url('https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&q=80')" data-go="category">
+            <span>Mujer <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></span>
+          </div>
+          <div class="cat" style="background-image:url('https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80')" data-go="category">
+            <span>Hombre <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></span>
+          </div>
+          <div class="cat" style="background-image:url('https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80')" data-go="category">
+            <span>Accesorios <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></span>
+          </div>
+        </div>
+        <div class="section">
+          <div class="benefits">
+            <div class="benefit"><strong>10% off</strong><span>Transferencia o efectivo</span></div>
+            <div class="benefit"><strong>Envíos</strong><span>Andreani a todo el país</span></div>
+            <div class="benefit"><strong>Cambios</strong><span>Consultanos por WhatsApp</span></div>
+            <div class="benefit"><strong>Local</strong><span>Retiro en San Manuel</span></div>
+          </div>
+        </div>
+        <div class="footer">
+          <div class="logo" style="color:var(--text);margin-bottom:8px">ACTIVATE</div>
+          <a href="#">Instagram</a>
+          <a href="#">WhatsApp</a>
+          <a href="#">Envíos</a>
+          <a href="#">Cambios y devoluciones</a>
+          <p style="margin-top:16px;font-size:11px">© Activate Moda Deportiva · San Manuel</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATEGORY -->
+    <section class="screen" data-screen="category">
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="home"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span></button>
+        <div class="title">Mujer · Calzas</div>
+        <button class="icon-btn rel" type="button" data-go="cart"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="badge" id="cartBadge2">0</span></button>
+      </div>
+      <div class="chips">
+        <button class="chip on" type="button">Todas</button>
+        <button class="chip" type="button">Calzas</button>
+        <button class="chip" type="button">Tops</button>
+        <button class="chip" type="button">Remeras</button>
+      </div>
+      <div class="scroll">
+        <div class="grid">
+          <div class="product-card" data-go="pdp">
+            <div class="img" style="background-image:url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&q=80')"></div>
+            <div class="name">Calza seamless</div>
+            <div class="price">$ 24.500</div>
+          </div>
+          <div class="product-card" data-go="pdp">
+            <div class="img" style="background-image:url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=80')"></div>
+            <div class="name">Calza classic</div>
+            <div class="price">$ 22.900</div>
+          </div>
+          <div class="product-card" data-go="pdp">
+            <div class="img" style="background-image:url('https://images.unsplash.com/photo-1550345332-09e3ac987658?w=400&q=80')"></div>
+            <div class="name">Calza mesh</div>
+            <div class="price">$ 26.200</div>
+          </div>
+          <div class="product-card" data-go="pdp">
+            <div class="img" style="background-image:url('https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=400&q=80')"></div>
+            <div class="name">Conjunto calza</div>
+            <div class="price">$ 31.000</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PDP -->
+    <section class="screen" data-screen="pdp">
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="category"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span></button>
+        <div class="title">Producto</div>
+        <button class="icon-btn rel" type="button" data-go="cart"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><span class="badge" id="cartBadge3">0</span></button>
+      </div>
+      <div class="scroll">
+        <div class="gallery" style="background-image:url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80')">
+          <button class="zoom" type="button" title="Zoom"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></span></button>
+        </div>
+        <div class="info">
+          <div style="font-size:22px;font-weight:700">Calza larga seamless</div>
+          <div class="prices"><span class="old">$ 28.900,00</span><span class="new">$ 24.500,00</span></div>
+          <div>
+            <div class="label" style="margin-bottom:8px">Color</div>
+            <div class="swatches">
+              <button class="swatch on" type="button" style="background:#2F6F6A" data-color="Verde"></button>
+              <button class="swatch" type="button" style="background:#C45C4A" data-color="Terracota"></button>
+              <button class="swatch" type="button" style="background:#E8DFD4" data-color="Arena"></button>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span class="label">Talle</span>
+              <button class="link" type="button" id="sizeGuideBtn">Guía de talles</button>
+            </div>
+            <div class="sizes">
+              <button class="size" type="button" data-size="S">S</button>
+              <button class="size on" type="button" data-size="M">M</button>
+              <button class="size" type="button" data-size="L">L</button>
+              <button class="size" type="button" data-size="XL">XL</button>
+            </div>
+          </div>
+          <p style="font-size:13px;color:var(--muted);line-height:1.4">Tiro alto y costuras planas. Ideal para running y training.</p>
+          <div class="meta">
+            <span>10% off transferencia o efectivo</span>
+            <span>Envío Andreani o retiro en San Manuel</span>
+            <span>Cambios por WhatsApp o en el local</span>
+          </div>
+        </div>
+      </div>
+      <div class="sticky">
+        <button class="btn btn-primary" type="button" id="addBtn">Sumar al carrito</button>
+      </div>
+    </section>
+
+    <!-- CART -->
+    <section class="screen" data-screen="cart">
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="pdp"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span></button>
+        <div class="title" id="cartTitle">Carrito</div>
+        <div style="width:40px"></div>
+      </div>
+      <div class="scroll" style="padding:16px" id="cartLines"></div>
+      <div class="sticky" id="cartFooter" style="display:none">
+        <div class="row"><span>Subtotal</span><strong id="cartSub">$ 0</strong></div>
+        <div class="row"><span>Envío</span><span>Se calcula al pagar</span></div>
+        <button class="btn btn-primary" type="button" data-go="checkout" style="margin-top:12px">Continuar</button>
+      </div>
+      <div class="center" id="cartEmpty">
+        <div class="circle"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span></div>
+        <h2 style="font-size:18px">Tu carrito está vacío</h2>
+        <p style="color:var(--muted);font-size:13px;max-width:26ch">Cuando veas algo que te guste, sumalo acá.</p>
+        <button class="btn btn-primary" type="button" data-go="category" style="max-width:240px">Ver colección</button>
+      </div>
+    </section>
+
+    <!-- CHECKOUT -->
+    <section class="screen" data-screen="checkout">
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="cart"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span></button>
+        <div class="title">Tu compra</div>
+        <div style="width:40px"></div>
+      </div>
+      <div class="scroll" style="padding:16px">
+        <div class="card">
+          <h4>Tus datos</h4>
+          <div class="field"><label>Nombre y apellido</label><input id="name" value="María Gómez" /></div>
+          <div class="field"><label>Teléfono</label><input id="phone" value="2281 55-1234" /></div>
+          <div class="field"><label>Email</label><input id="email" type="email" value="maria@email.com" /></div>
+        </div>
+        <div class="card">
+          <h4>Envío</h4>
+          <div class="opt" data-ship="retiro" id="optRetiro">
+            <div><div class="l">Retiro en local · San Manuel</div></div>
+            <div class="r">Gratis</div>
+          </div>
+          <div class="opt on" data-ship="andreani" id="optAndreani">
+            <div><div class="l">Andreani a domicilio</div></div>
+            <div class="r" id="shipPriceLabel">$ 4.500</div>
+          </div>
+          <div class="opt" data-ship="sucursal" id="optSucursal">
+            <div>
+              <div class="l">Andreani a sucursal</div>
+              <small style="display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:2px">Retirás en una sucursal Andreani</small>
+            </div>
+            <div class="r" id="shipSucursalLabel">$ 3.200</div>
+          </div>
+          <div class="field" id="addrField">
+            <label>Dirección</label>
+            <input id="addr" value="Av. San Martín 450, San Manuel" placeholder="Empezá a escribir tu dirección" />
+          </div>
+          <div class="field" id="branchField" style="display:none">
+            <label>Sucursal Andreani</label>
+            <select id="branch">
+              <option value="">Elegí una sucursal…</option>
+              <option value="rauch">Rauch · Belgrano 512</option>
+              <option value="tandil">Tandil · San Martín 980</option>
+              <option value="azul">Azul · Colón 210</option>
+              <option value="olavarria" selected>Olavarría · Rivadavia 1550</option>
+            </select>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Medio de pago</h4>
+          <div class="opt on" data-pay="transfer" id="optTransfer">
+            <div>
+              <div class="l">Transferencia</div>
+              <small>10% off · te damos el alias al pagar</small>
+            </div>
+          </div>
+          <div class="opt" data-pay="cash" id="optCash">
+            <div>
+              <div class="l">Efectivo</div>
+              <small id="cashHint">10% off · solo con retiro en el local</small>
+            </div>
+          </div>
+          <div id="transferBox">
+            <div class="alias">
+              <div>
+                <div style="font-size:11px;color:var(--muted);font-weight:600">Alias / CBU</div>
+                <code id="alias">activate.moda.mp</code>
+              </div>
+              <button class="copy" type="button" id="copyAlias"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></span> Copiar</button>
+            </div>
+            <label class="upload">
+              <input type="file" accept="image/*,.pdf" id="receipt" />
+              <div id="receiptLabel"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg></span><div style="margin-top:6px">Subir comprobante</div><span style="font-size:11px">Opcional: también lo podés subir después (tenés 24 h)</span></div>
+            </label>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Resumen</h4>
+          <div class="row"><span>Subtotal</span><strong id="sumSub">$ 0</strong></div>
+          <div class="row"><span id="discLabel">Descuento transferencia</span><span class="disc" id="sumDisc">− $ 0</span></div>
+          <div class="row"><span>Envío</span><strong id="sumShip">$ 0</strong></div>
+          <div class="row total"><span>Total</span><span id="sumTotal">$ 0</span></div>
+        </div>
+      </div>
+      <div class="sticky">
+        <button class="btn btn-primary" type="button" id="confirmBtn">Confirmar compra</button>
+        <p class="hint">Al confirmar te guardamos el pedido 24 h hasta el pago.</p>
+      </div>
+    </section>
+
+    <!-- SUCCESS -->
+    <section class="screen" data-screen="success">
+      <div class="center">
+        <div class="circle"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+        <h2 style="font-size:24px">¡Pedido recibido!</h2>
+        <p style="color:var(--muted);font-size:14px;max-width:30ch;line-height:1.4">
+          Te guardamos el pedido 24 h y te mandamos un email para seguirlo.
+        </p>
+        <div class="code-card">
+          <div style="font-size:12px;color:var(--muted)">Código de pedido</div>
+          <div class="code" id="orderCode">ACT-28491</div>
+          <div class="st">Pendiente de pago</div>
+        </div>
+        <div style="width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px;margin-top:8px">
+          <button class="btn btn-primary" type="button" data-go="track">Ver pedido</button>
+          <button class="btn btn-secondary" type="button" data-go="home">Seguir mirando</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);max-width:28ch" id="payTip">
+          Transferí a activate.moda.mp. El comprobante lo podés subir cuando quieras.
+        </p>
+      </div>
+    </section>
+
+    <!-- TRACK -->
+    <section class="screen" data-screen="track">
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="home"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span></button>
+        <div class="title">Mi pedido</div>
+        <div style="width:40px"></div>
+      </div>
+      <div class="scroll" style="padding:16px">
+        <div class="card">
+          <div style="font-size:18px;font-weight:700" id="trackCode">ACT-28491</div>
+          <div style="font-size:13px;font-weight:600;color:var(--accent);margin-top:4px" id="trackStatus">
+            Pendiente de pago · reserva 24 h
+          </div>
+        </div>
+        <div class="card">
+          <ul class="timeline" id="timeline">
+            <li class="done current"><span class="dot"></span>Pedido recibido</li>
+            <li><span class="dot"></span>Pago confirmado</li>
+            <li><span class="dot"></span>Preparando</li>
+            <li><span class="dot"></span>Enviado o listo</li>
+            <li><span class="dot"></span>Entregado</li>
+          </ul>
+        </div>
+        <div class="card" id="trackPayBox">
+          <h4>Pago por transferencia</h4>
+          <p style="font-size:13px;color:var(--muted);margin:8px 0">Alias: activate.moda.mp</p>
+          <label class="upload" style="display:block">
+            <input type="file" accept="image/*,.pdf" id="receipt2" />
+            <span id="receipt2Label">Subir comprobante</span>
+          </label>
+        </div>
+        <div class="card">
+          <h4>Productos</h4>
+          <div id="trackItems" style="font-size:12px;color:var(--muted);line-height:1.6"></div>
+          <div class="row total" style="margin-top:8px"><span>Total</span><span id="trackTotal">$ 0</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU simple -->
+    <section class="screen" data-screen="menu">
+      <div class="top">
+        <div class="logo">ACTIVATE</div>
+        <button class="icon-btn" type="button" data-go="home"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></button>
+      </div>
+      <div class="scroll" style="padding:16px">
+        <p class="season" style="margin-bottom:16px">Colección Primavera / Verano</p>
+        <button class="btn btn-secondary" type="button" data-go="category" style="margin-bottom:8px;justify-content:space-between">Mujer <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+        <button class="btn btn-secondary" type="button" data-go="category" style="margin-bottom:8px;justify-content:space-between">Hombre <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+        <button class="btn btn-secondary" type="button" data-go="category" style="margin-bottom:8px;justify-content:space-between">Accesorios <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span></button>
+        <p style="margin-top:24px;font-size:14px;color:var(--muted)">Quiénes somos · WhatsApp · Envíos</p>
+      </div>
+    </section>
+
+    <button class="wa" type="button" title="WhatsApp" id="waBtn"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></span></button>
+  </div>
+  
+    <div class="sheet-backdrop" id="sizeGuide" role="dialog" aria-modal="true" aria-label="Guía de talles">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <h3>Guía de talles</h3>
+          <button class="icon-btn" type="button" id="sizeGuideClose" aria-label="Cerrar">
+            <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+          </button>
+        </div>
+        <div style="font-size:13px;color:var(--muted)">Magher · Mujer</div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>Talle</th><th>Busto</th><th>Cintura</th><th>Cadera</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>S</td><td>84-88</td><td>64-68</td><td>90-94</td></tr>
+              <tr><td>M</td><td>88-92</td><td>68-72</td><td>94-98</td></tr>
+              <tr><td>L</td><td>92-96</td><td>72-76</td><td>98-102</td></tr>
+              <tr><td>XL</td><td>96-100</td><td>76-80</td><td>102-106</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Medidas en cm. Si dudás entre dos, andá al más grande.</p>
+        <button class="btn btn-primary" type="button" id="sizeGuideDone">Entendido</button>
+      </div>
+    </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const money = n => n.toLocaleString("es-AR", { style: "currency", currency: "ARS" });
+    const SHIP_COST = 4500;
+    const SHIP_SUCURSAL = 3200;
+    const FREE_SHIP = 80000;
+    const DISCOUNT = 0.1;
+
+    const state = {
+      cart: [],
+      color: "Verde",
+      size: "M",
+      ship: "andreani",
+      pay: "transfer",
+      orderCode: "ACT-" + (28000 + Math.floor(Math.random() * 900)),
+      receiptName: null,
+      lastOrder: null
+    };
+
+    const product = {
+      id: "calza-seamless",
+      name: "Calza larga seamless",
+      price: 24500,
+      list: 28900,
+      img: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&q=80"
+    };
+
+    function go(name) {
+      if (name === "checkout" && !state.cart.length) {
+        toast("Sumá algo al carrito para continuar");
+        name = "cart";
+      }
+      document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.dataset.screen === name));
+      if (name === "cart") renderCart();
+      if (name === "checkout") renderCheckout();
+      if (name === "success") {
+        document.getElementById("orderCode").textContent = state.lastOrder?.code || state.orderCode;
+        const tip = document.getElementById("payTip");
+        if (state.lastOrder?.pay === "cash") {
+          tip.textContent = "Pagás en efectivo al retirar. El 10% ya está en el total.";
+          tip.style.display = "block";
+        } else {
+          tip.textContent = "Transferí a activate.moda.mp. El comprobante lo podés subir cuando quieras.";
+          tip.style.display = "block";
+        }
+      }
+      if (name === "track") renderTrack();
+      // scroll active screen top
+      const sc = document.querySelector('.screen.active .scroll');
+      if (sc) sc.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function cartCount() {
+      return state.cart.reduce((a, l) => a + l.qty, 0);
+    }
+
+    function cartSubtotal() {
+      return state.cart.reduce((a, l) => a + l.price * l.qty, 0);
+    }
+
+    function updateBadges() {
+      const c = cartCount();
+      document.querySelectorAll(".badge").forEach(b => {
+        b.textContent = c;
+        b.style.display = c ? "grid" : "none";
+      });
+    }
+
+    function renderCart() {
+      const lines = document.getElementById("cartLines");
+      const empty = document.getElementById("cartEmpty");
+      const foot = document.getElementById("cartFooter");
+      document.getElementById("cartTitle").textContent = cartCount() ? `Carrito (${cartCount()})` : "Carrito";
+      if (!state.cart.length) {
+        lines.innerHTML = "";
+        empty.style.display = "flex";
+        foot.style.display = "none";
+        return;
+      }
+      empty.style.display = "none";
+      foot.style.display = "block";
+      lines.innerHTML = state.cart.map((l, i) => `
+        <div class="line">
+          <div class="thumb" style="background-image:url('${l.img}')"></div>
+          <div class="col">
+            <div class="name">${l.name}</div>
+            <div class="var">${l.color} · ${l.size}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div class="qty">
+                <button type="button" data-qty="${i}" data-d="-1">−</button>
+                <span>${l.qty}</span>
+                <button type="button" data-qty="${i}" data-d="1">+</button>
+              </div>
+              <strong>${money(l.price * l.qty)}</strong>
+            </div>
+          </div>
+          <button type="button" data-del="${i}" style="border:0;background:0;cursor:pointer;color:var(--muted);display:inline-flex;padding:4px"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></span></button>
+        </div>
+      `).join("");
+      document.getElementById("cartSub").textContent = money(cartSubtotal());
+      lines.querySelectorAll("[data-qty]").forEach(btn => {
+        btn.onclick = () => {
+          const i = +btn.dataset.qty;
+          const d = +btn.dataset.d;
+          state.cart[i].qty = Math.max(1, Math.min(5, state.cart[i].qty + d));
+          updateBadges();
+          renderCart();
+        };
+      });
+      lines.querySelectorAll("[data-del]").forEach(btn => {
+        btn.onclick = () => {
+          state.cart.splice(+btn.dataset.del, 1);
+          updateBadges();
+          renderCart();
+        };
+      });
+    }
+
+    function shipCost() {
+      if (state.ship === "retiro") return 0;
+      const base = cartSubtotal() * (1 - (state.pay === "transfer" || state.pay === "cash" ? DISCOUNT : 0));
+      if (base >= FREE_SHIP) return 0;
+      if (state.ship === "sucursal") return SHIP_SUCURSAL;
+      return SHIP_COST; // andreani domicilio
+    }
+
+    function discountAmt() {
+      if (state.pay === "transfer" || state.pay === "cash") return cartSubtotal() * DISCOUNT;
+      return 0;
+    }
+
+    function total() {
+      return cartSubtotal() - discountAmt() + shipCost();
+    }
+
+    function renderCheckout() {
+      const sub = cartSubtotal();
+      document.getElementById("sumSub").textContent = money(sub);
+      document.getElementById("sumDisc").textContent = "− " + money(discountAmt());
+      document.getElementById("discLabel").textContent =
+        state.pay === "cash" ? "Descuento efectivo" : "Descuento transferencia";
+      const sc = shipCost();
+      const freeEligible = cartSubtotal() * (1 - DISCOUNT) >= FREE_SHIP;
+      document.getElementById("sumShip").textContent =
+        sc === 0
+          ? (state.ship === "retiro" ? "$ 0" : "Gratis")
+          : money(sc);
+      document.getElementById("shipPriceLabel").textContent = freeEligible ? "Gratis" : money(SHIP_COST);
+      document.getElementById("shipSucursalLabel").textContent = freeEligible ? "Gratis" : money(SHIP_SUCURSAL);
+      document.getElementById("sumTotal").textContent = money(total());
+
+      const needsAddr = state.ship === "andreani";
+      const needsBranch = state.ship === "sucursal";
+      document.getElementById("addrField").style.display = needsAddr ? "block" : "none";
+      document.getElementById("branchField").style.display = needsBranch ? "block" : "none";
+      document.getElementById("transferBox").style.display = state.pay === "transfer" ? "block" : "none";
+
+      const cash = document.getElementById("optCash");
+      const isAndreani = state.ship === "andreani" || state.ship === "sucursal";
+      if (isAndreani) {
+        cash.classList.add("disabled");
+        cash.classList.remove("on");
+        if (state.pay === "cash") {
+          state.pay = "transfer";
+        }
+        document.getElementById("cashHint").textContent = "Solo disponible si retirás en el local";
+      } else {
+        cash.classList.remove("disabled");
+        document.getElementById("cashHint").textContent = "10% off · pagás al retirar";
+      }
+      document.getElementById("optRetiro").classList.toggle("on", state.ship === "retiro");
+      document.getElementById("optAndreani").classList.toggle("on", state.ship === "andreani");
+      document.getElementById("optSucursal").classList.toggle("on", state.ship === "sucursal");
+      document.getElementById("optTransfer").classList.toggle("on", state.pay === "transfer");
+      document.getElementById("optCash").classList.toggle("on", state.pay === "cash");
+    }
+
+    function renderTrack() {
+      const o = state.lastOrder;
+      const code = o?.code || state.orderCode;
+      document.getElementById("trackCode").textContent = code;
+      document.getElementById("orderCode").textContent = code;
+      const items = o?.items || [];
+      document.getElementById("trackItems").innerHTML = items.length
+        ? items.map(l => `${l.name} · ${l.color} · ${l.size} ×${l.qty}`).join("<br>")
+        : "Todavía no hay un pedido en esta demo. Completá una compra.";
+      document.getElementById("trackTotal").textContent = money(o?.total ?? 0);
+      const pay = o?.pay || state.pay;
+      document.getElementById("trackPayBox").style.display = pay === "transfer" ? "block" : "none";
+      const ship = o?.ship || state.ship;
+      let shipNote = "";
+      if (ship === "retiro") shipNote = "retiro en local";
+      else if (ship === "sucursal") shipNote = "Andreani sucursal";
+      else if (ship === "andreani") shipNote = "Andreani domicilio";
+
+      if (pay === "cash") {
+        document.getElementById("trackStatus").textContent = "Pendiente de pago · retiro en local";
+        document.getElementById("payTip").textContent = "Pagás en efectivo al retirar. El 10% ya está en el total.";
+        document.getElementById("payTip").style.display = "block";
+      } else if (pay === "transfer") {
+        document.getElementById("trackStatus").textContent =
+          "Pendiente de pago · reserva 24 h" + (shipNote ? " · " + shipNote : "");
+        let tip = "Transferí a activate.moda.mp. El comprobante lo podés subir cuando quieras.";
+        if (o?.branch) tip += " Sucursal: " + o.branch + ".";
+        document.getElementById("payTip").textContent = tip;
+        document.getElementById("payTip").style.display = "block";
+      } else {
+        document.getElementById("trackStatus").textContent = "Sin pedido todavía";
+        document.getElementById("payTip").style.display = "none";
+      }
+    }
+
+    document.querySelectorAll("[data-go]").forEach(el => {
+      el.addEventListener("click", e => {
+        if (el.closest(".product-card") || el.hasAttribute("data-go")) {
+          const goTo = el.getAttribute("data-go") || el.closest("[data-go]")?.getAttribute("data-go");
+          if (goTo) go(goTo);
+        }
+      });
+    });
+
+    document.querySelectorAll(".swatch").forEach(s => {
+      s.onclick = () => {
+        document.querySelectorAll(".swatch").forEach(x => x.classList.remove("on"));
+        s.classList.add("on");
+        state.color = s.dataset.color;
+      };
+    });
+    document.querySelectorAll(".size").forEach(s => {
+      s.onclick = () => {
+        document.querySelectorAll(".size").forEach(x => x.classList.remove("on"));
+        s.classList.add("on");
+        state.size = s.dataset.size;
+      };
+    });
+
+    document.getElementById("addBtn").onclick = () => {
+      const existing = state.cart.find(l => l.color === state.color && l.size === state.size);
+      if (existing) existing.qty += 1;
+      else state.cart.push({ ...product, color: state.color, size: state.size, qty: 1 });
+      updateBadges();
+      toast("Sumado al carrito");
+      setTimeout(() => go("cart"), 400);
+    };
+
+    document.getElementById("optRetiro").onclick = () => { state.ship = "retiro"; renderCheckout(); };
+    document.getElementById("optAndreani").onclick = () => { state.ship = "andreani"; renderCheckout(); };
+    document.getElementById("optSucursal").onclick = () => { state.ship = "sucursal"; renderCheckout(); };
+    document.getElementById("optTransfer").onclick = () => { state.pay = "transfer"; renderCheckout(); };
+    document.getElementById("optCash").onclick = () => {
+      if (state.ship === "andreani" || state.ship === "sucursal") {
+        toast("Para efectivo, elegí retiro en el local");
+        return;
+      }
+      state.pay = "cash";
+      renderCheckout();
+    };
+
+    document.getElementById("copyAlias").onclick = async () => {
+      try {
+        await navigator.clipboard.writeText("activate.moda.mp");
+        toast("Alias copiado");
+      } catch {
+        toast("Alias: activate.moda.mp");
+      }
+    };
+
+    document.getElementById("receipt").onchange = e => {
+      const f = e.target.files?.[0];
+      if (f) {
+        state.receiptName = f.name;
+        document.getElementById("receiptLabel").innerHTML = `<span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span> ${f.name}<br><span style="font-size:11px">Tocá para cambiar</span>`;
+      }
+    };
+    document.getElementById("receipt2").onchange = e => {
+      const f = e.target.files?.[0];
+      if (f) {
+        document.getElementById("receipt2Label").innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px">' + '<span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>' + " " + f.name + " — ¡Listo! Te avisamos al confirmarlo.</span>";
+        toast("Comprobante subido");
+      }
+    };
+
+    document.getElementById("confirmBtn").onclick = () => {
+      if (!state.cart.length) {
+        toast("El carrito está vacío");
+        go("cart");
+        return;
+      }
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      if (!name || !phone || !email) {
+        toast("Completá tus datos");
+        return;
+      }
+      if (state.ship === "andreani" && !document.getElementById("addr").value.trim()) {
+        toast("Completá la dirección de envío");
+        return;
+      }
+      if (state.ship === "sucursal" && !document.getElementById("branch").value) {
+        toast("Elegí una sucursal Andreani");
+        return;
+      }
+      if ((state.ship === "andreani" || state.ship === "sucursal") && state.pay === "cash") {
+        toast("Efectivo solo con retiro en el local");
+        return;
+      }
+      state.orderCode = "ACT-" + (28000 + Math.floor(Math.random() * 900));
+      const branchEl = document.getElementById("branch");
+      const branchText = branchEl?.selectedOptions?.[0]?.text || "";
+      state.lastOrder = {
+        code: state.orderCode,
+        items: state.cart.map(l => ({ ...l })),
+        pay: state.pay,
+        ship: state.ship,
+        branch: state.ship === "sucursal" ? branchText : null,
+        address: state.ship === "andreani" ? document.getElementById("addr").value.trim() : null,
+        subtotal: cartSubtotal(),
+        discount: discountAmt(),
+        shipping: shipCost(),
+        total: total(),
+        receiptName: state.receiptName
+      };
+      state.cart = [];
+      updateBadges();
+      go("success");
+    };
+
+    document.getElementById("waBtn").onclick = () => toast("Acá se abre WhatsApp (demo)");
+
+    
+    function openSizeGuide() {
+      document.getElementById("sizeGuide").classList.add("open");
+    }
+    function closeSizeGuide() {
+      document.getElementById("sizeGuide").classList.remove("open");
+    }
+    document.getElementById("sizeGuideBtn").onclick = openSizeGuide;
+    document.getElementById("sizeGuideClose").onclick = closeSizeGuide;
+    document.getElementById("sizeGuideDone").onclick = closeSizeGuide;
+    document.getElementById("sizeGuide").addEventListener("click", e => {
+      if (e.target.id === "sizeGuide") closeSizeGuide();
+    });
+
+    updateBadges();
+  </script>
+</body>
+</html>

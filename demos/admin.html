@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Activate — Demo admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #FFFFFF;
+      --surface: #fff;
+      --soft: #F5F5F5;
+      --text: #2C2A28;
+      --muted: #7A756E;
+      --accent: #2F6F6A;
+      --accent-soft: #E8F3F1;
+      --promo: #C45C4A;
+      --border: #E8E8E8;
+      --ok: #3D7A5A;
+      --radius: 12px;
+      --pill: 999px;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: #F0F0F0;
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      justify-content: center;
+    }
+    .phone {
+      width: 100%;
+      max-width: 390px;
+      min-height: 100dvh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 0 1px #0001, 0 20px 60px #0002;
+      position: relative;
+    }
+    .screen { display: none; flex: 1; flex-direction: column; min-height: 0; }
+    .screen.active { display: flex; }
+    .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; background: var(--surface);
+      border-bottom: 1px solid var(--border); gap: 12px;
+    }
+    .top h1 { font-size: 18px; font-weight: 700; }
+    .top .sub { font-size: 12px; color: var(--muted); font-weight: 400; }
+    .icon-btn {
+      width: 40px; height: 40px; border: 0; background: transparent;
+      font-size: 18px; cursor: pointer; color: var(--text);
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      border: 0; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px;
+      border-radius: var(--pill); height: 48px; padding: 0 16px; width: 100%;
+    }
+    .btn-primary { background: var(--accent); color: #fff; height: 52px; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: var(--surface); color: var(--promo); border: 1px solid var(--border); }
+    .btn:disabled { opacity: .45; }
+    .pad { padding: 16px; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .metric {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+    }
+    .metric .n { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .metric .n.warn { color: var(--promo); }
+    .metric .l { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .alert {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #F8E8E6; border-radius: var(--radius); padding: 12px; margin-bottom: 14px;
+    }
+    .alert strong { display: block; font-size: 13px; }
+    .alert span { font-size: 12px; color: var(--muted); }
+    .h { font-size: 14px; font-weight: 700; margin: 8px 0 10px; }
+    .action, .order {
+      display: flex; gap: 12px; align-items: center;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 8px;
+      cursor: pointer; text-align: left; width: 100%; font-family: inherit; color: inherit;
+    }
+    .action .ic {
+      width: 40px; height: 40px; border-radius: 10px; background: var(--accent-soft);
+      display: grid; place-items: center; flex: 0 0 auto; font-size: 16px;
+    }
+    .action .col, .order .col { flex: 1; min-width: 0; }
+    .action .t { font-size: 14px; font-weight: 600; }
+    .action .d, .order .d { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .order .code { font-size: 13px; font-weight: 700; }
+    .order .amt { font-size: 13px; font-weight: 700; }
+    .nav {
+      display: flex; justify-content: space-around; align-items: center;
+      padding: 10px 8px 18px; background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+    .nav button {
+      border: 0; background: 0; font-family: inherit; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--muted); font-weight: 500; min-width: 56px;
+    }
+    .nav button.on { color: var(--accent); font-weight: 700; }
+    .nav .ico { font-size: 18px; }
+    .tabs {
+      display: flex; gap: 8px; padding: 12px 16px; background: var(--surface);
+      border-bottom: 1px solid var(--border); overflow-x: auto;
+    }
+    .tab {
+      flex: 0 0 auto; padding: 8px 12px; border-radius: var(--pill);
+      border: 0; background: var(--soft); font: inherit; font-size: 12px;
+      font-weight: 600; cursor: pointer; color: var(--text);
+    }
+    .tab.on { background: var(--accent); color: #fff; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+    }
+    .card h3 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+    .badge {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 4px 8px; border-radius: var(--pill); background: var(--accent-soft); color: var(--accent);
+    }
+    .badge.warn { background: #F8E8E6; color: var(--promo); }
+    .badge.ok { background: #e5f2ea; color: var(--ok); }
+    .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    .muted { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .stack { display: flex; flex-direction: column; gap: 8px; }
+    .login {
+      flex: 1; display: flex; flex-direction: column; justify-content: center;
+      padding: 24px; gap: 16px;
+    }
+    .login .brand { font-size: 22px; font-weight: 700; letter-spacing: .12em; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--surface); font: inherit; margin-bottom: 10px;
+    }
+    .receipt {
+      height: 140px; border-radius: 8px; background: var(--soft);
+      display: grid; place-items: center; color: var(--muted); font-size: 12px;
+      margin: 8px 0; cursor: pointer; border: 1px dashed var(--border);
+    }
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 88px; background: var(--text); color: #fff;
+      padding: 10px 16px; border-radius: var(--pill); font-size: 13px;
+      opacity: 0; transition: opacity .2s; z-index: 50; max-width: 340px; text-align: center;
+    }
+    .toast.show { opacity: 1; }
+
+    .icon { display:inline-flex; align-items:center; justify-content:center; line-height:0; color:inherit; }
+    .icon svg { display:block; }
+    .icon-btn .icon, .nav .icon { color: inherit; }
+    .wa .icon { color:#fff; }
+    .circle .icon { color: var(--accent); }
+    .action .ic .icon { color: var(--accent); }
+    .alert .icon { color: var(--promo); flex:0 0 auto; margin-top:1px; }
+    .receipt .icon { color: var(--muted); margin-bottom:6px; }
+    .empty .icon { color: var(--muted); margin-bottom:12px; }
+    .upload .icon { color: var(--accent); margin-bottom:6px; }
+    .copy .icon { margin-right:4px; }
+
+    .demo-tag {
+      position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+      z-index: 100; background: #2c2a28ee; color: #fff;
+      font-size: 11px; padding: 4px 10px; border-radius: 999px;
+    }
+    .empty {
+      text-align: center; padding: 48px 24px; color: var(--muted);
+    }
+    .empty .big { font-size: 40px; margin-bottom: 12px; }
+    .modal {
+      position: absolute; inset: 0; background: #2c2a28f2;
+      display: none; flex-direction: column; z-index: 40; color: #F7F4EF;
+    }
+    .modal.open { display: flex; }
+    .modal .mtop {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 16px;
+    }
+    .modal .paper {
+      margin: 16px; flex: 1; background: #F7F4EF; color: var(--text);
+      border-radius: 8px; padding: 20px; overflow: auto;
+    }
+    .modal .mactions { display: flex; gap: 10px; padding: 16px; }
+    .modal .mactions .btn-secondary {
+      background: transparent; color: #F7F4EF; border-color: #fff5;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-tag">Demo admin · datos de ejemplo</div>
+  <div class="phone">
+
+    <!-- LOGIN -->
+    <section class="screen active" data-screen="login">
+      <div class="login">
+        <div class="brand">ACTIVATE</div>
+        <div class="sub" style="color:var(--muted);margin-top:-8px">Ingreso al panel</div>
+        <div class="card" style="margin-top:8px">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" value="admin@activate.com" />
+          </div>
+          <div class="field">
+            <label>Contraseña</label>
+            <input type="password" value="••••••••" />
+          </div>
+          <button class="btn btn-primary" type="button" data-go="home">Entrar</button>
+        </div>
+        <p class="muted" style="text-align:center">Solo personal del local</p>
+      </div>
+    </section>
+
+    <!-- HOME -->
+    <section class="screen" data-screen="home">
+      <div class="top">
+        <div>
+          <h1>Hola, Activate</h1>
+          <div class="sub">Panel del local</div>
+        </div>
+        <button class="icon-btn" type="button" title="Avisos"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span></button>
+      </div>
+      <div class="scroll pad">
+        <div class="metrics">
+          <div class="metric"><div class="n" id="mPending">3</div><div class="l">Pendientes de pago</div></div>
+          <div class="metric"><div class="n" id="mProgress">5</div><div class="l">En curso</div></div>
+          <div class="metric"><div class="n warn">2</div><div class="l">Sin stock</div></div>
+          <div class="metric"><div class="n" style="color:var(--muted)">48</div><div class="l">Productos</div></div>
+        </div>
+        <div class="alert" data-go="orders">
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg></span>
+          <div>
+            <strong id="alertTitle">3 pedidos esperan confirmación</strong>
+            <span id="alertSub">Uno con comprobante listo para revisar</span>
+          </div>
+        </div>
+        <div class="h">Accesos rápidos</div>
+        <button class="action" type="button" data-go="orders">
+          <div class="ic"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></span></div>
+          <div class="col"><div class="t">Ver pedidos pendientes</div><div class="d">Confirmar pagos y avanzar estados</div></div>
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </button>
+        <button class="action" type="button" data-go="catalog">
+          <div class="ic"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg></span></div>
+          <div class="col"><div class="t">Catálogo</div><div class="d">Productos, talles y stock</div></div>
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </button>
+        <button class="action" type="button" data-go="config">
+          <div class="ic"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg></span></div>
+          <div class="col"><div class="t">Configuración</div><div class="d">Alias, envío, descuento, temporada</div></div>
+          <span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></span>
+        </button>
+        <div class="h">Últimos pedidos</div>
+        <div id="homeOrders"></div>
+      </div>
+      <nav class="nav" data-active="home"></nav>
+    </section>
+
+    <!-- ORDERS -->
+    <section class="screen" data-screen="orders">
+      <div class="top">
+        <h1>Pedidos</h1>
+        <button class="icon-btn" type="button" data-go="config"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg></span></button>
+      </div>
+      <div class="tabs">
+        <button class="tab on" type="button" data-filter="pending">Pendientes</button>
+        <button class="tab" type="button" data-filter="progress">En curso</button>
+        <button class="tab" type="button" data-filter="all">Todos</button>
+      </div>
+      <div class="scroll pad" id="orderList"></div>
+      <nav class="nav" data-active="orders"></nav>
+    </section>
+
+    <!-- ORDER DETAIL -->
+    <section class="screen" data-screen="detail">
+      <div class="top">
+        <button class="icon-btn" type="button" data-go="orders"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span></button>
+        <h1 id="detailCode">ACT-28488</h1>
+        <div style="width:40px"></div>
+      </div>
+      <div class="scroll pad">
+        <div class="card row">
+          <span class="badge" id="detailBadge">Pendiente de pago</span>
+          <span class="muted" id="detailTimer">Quedan 18 h de reserva</span>
+        </div>
+        <div class="card">
+          <h3>Cliente</h3>
+          <div style="font-weight:700;font-size:15px" id="detailName">Lucía Ríos</div>
+          <div class="muted" id="detailContact">lucia@email.com · 2281 44-9988</div>
+          <div class="muted" id="detailShip" style="margin-top:6px">Envío Andreani · Av. Mitre 1200</div>
+        </div>
+        <div class="card">
+          <h3>Productos</h3>
+          <div class="muted" id="detailItems"></div>
+          <div class="row" style="margin-top:10px;font-weight:700">
+            <span>Total</span><span id="detailTotal">$ 19.200</span>
+          </div>
+          <div class="muted" id="detailDisc" style="margin-top:4px">Con 10% off transferencia</div>
+        </div>
+        <div class="card" id="receiptCard">
+          <h3>Comprobante</h3>
+          <div class="receipt" id="openReceipt"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span><div style="margin-top:8px">comprobante_transfer.jpg</div><span style="color:var(--accent);font-weight:600">Ver archivo</span></div>
+        </div>
+        <div class="stack">
+          <button class="btn btn-primary" type="button" id="confirmPay">Confirmar pago</button>
+          <button class="btn btn-danger" type="button" id="cancelOrder">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATALOG -->
+    <section class="screen" data-screen="catalog">
+      <div class="top">
+        <h1>Catálogo</h1>
+        <button class="btn btn-primary" type="button" style="width:auto;height:36px;padding:0 12px;font-size:12px;gap:4px"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span> Nuevo</button>
+      </div>
+      <div class="scroll pad">
+        <input style="width:100%;padding:12px 14px;border-radius:999px;border:1px solid var(--border);background:var(--soft);font:inherit;margin-bottom:12px" placeholder="Buscar producto…" />
+        <div id="catalogList"></div>
+      </div>
+      <nav class="nav" data-active="catalog"></nav>
+    </section>
+
+    <!-- CONFIG -->
+    <section class="screen" data-screen="config">
+      <div class="top">
+        <h1>Configuración</h1>
+        <button type="button" style="border:0;background:0;color:var(--accent);font-weight:700;font-family:inherit;cursor:pointer" id="saveCfg">Guardar</button>
+      </div>
+      <div class="scroll pad">
+        <div class="card"><div class="muted" style="font-weight:600;margin-bottom:4px">Alias / CBU</div><div style="font-weight:700">activate.moda.mp</div></div>
+        <div class="card"><div class="muted" style="font-weight:600;margin-bottom:4px">% de descuento</div><div style="font-weight:700">10 %</div></div>
+        <div class="card"><div class="muted" style="font-weight:600;margin-bottom:4px">Costo Andreani</div><div style="font-weight:700">$ 4.500,00</div></div>
+        <div class="card"><div class="muted" style="font-weight:600;margin-bottom:4px">Monto para envío gratis</div><div style="font-weight:700">$ 80.000,00</div></div>
+        <div class="card"><div class="muted" style="font-weight:600;margin-bottom:4px">Temporada en el menú</div><div style="font-weight:700">Colección Primavera / Verano</div></div>
+        <div class="card"><div class="muted" style="font-weight:600;margin-bottom:4px">WhatsApp</div><div style="font-weight:700">+54 9 2281 ···-····</div></div>
+        <p class="muted" style="margin-top:8px">En la demo estos valores son solo lectura.</p>
+      </div>
+      <nav class="nav" data-active="config"></nav>
+    </section>
+
+    <!-- RECEIPT MODAL -->
+    <div class="modal" id="receiptModal">
+      <div class="mtop">
+        <button class="icon-btn" type="button" id="closeReceipt" style="color:#F7F4EF"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></button>
+        <span style="font-size:13px;font-weight:600">ACT-28488 · comprobante</span>
+        <button class="icon-btn" type="button" style="color:#F7F4EF"><span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg></span></button>
+      </div>
+      <div class="paper">
+        <strong>Comprobante de transferencia</strong>
+        <p class="muted" style="margin-top:12px;white-space:pre-line">Alias: activate.moda.mp
+Importe: $ 19.200,00
+Fecha: 28/09/2026
+Ref: demo banco</p>
+        <p class="muted" style="margin-top:16px">En producción se ve la imagen o PDF que subió la compradora.</p>
+      </div>
+      <div class="mactions">
+        <button class="btn btn-primary" type="button" id="confirmFromModal">Confirmar pago</button>
+        <button class="btn btn-secondary" type="button" id="closeReceipt2">Volver</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const money = n => n.toLocaleString("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+
+    let orders = [
+      { id: "ACT-28491", name: "María Gómez", total: 43560, status: "pending", pay: "Transferencia · falta comprobante", ship: "Andreani · Av. San Martín 450", contact: "maria@email.com · 2281 55-1234", items: "Calza seamless · Verde · M ×1\nTop rib · Arena · S ×1", hasReceipt: false, timer: "Quedan 22 h de reserva" },
+      { id: "ACT-28488", name: "Lucía Ríos", total: 19200, status: "pending", pay: "Transferencia · comprobante cargado", ship: "Envío Andreani · Av. Mitre 1200", contact: "lucia@email.com · 2281 44-9988", items: "Top rib · Arena · S ×1\nMedias Sox · Único ×2", hasReceipt: true, timer: "Quedan 18 h de reserva" },
+      { id: "ACT-28470", name: "Ana Pérez", total: 12400, status: "pending", pay: "Efectivo · retiro en local", ship: "Retiro en local · San Manuel", contact: "ana@email.com · 2281 11-2233", items: "Remera dry-fit · Negro · M ×1", hasReceipt: false, timer: "Quedan 10 h de reserva", cash: true },
+      { id: "ACT-28410", name: "María G.", total: 22050, status: "progress", pay: "Transferencia", ship: "Andreani", contact: "—", items: "Calza seamless · M ×1", step: "preparando" },
+      { id: "ACT-28405", name: "Lucía R.", total: 15600, status: "progress", pay: "Efectivo", ship: "Retiro", contact: "—", items: "Top mesh · S ×1", step: "listo" },
+    ];
+
+    let filter = "pending";
+    let currentId = null;
+
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function go(name) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.toggle("active", s.dataset.screen === name));
+      if (name === "home") renderHome();
+      if (name === "orders") renderOrders();
+      if (name === "catalog") renderCatalog();
+      document.querySelectorAll(".nav").forEach(buildNav);
+    }
+
+    function buildNav(nav) {
+      const active = nav.dataset.active;
+      const icons = {
+        home: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+        orders: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>`,
+        catalog: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>`,
+        config: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>`,
+      };
+      const items = [
+        ["home", "Inicio"],
+        ["orders", "Pedidos"],
+        ["catalog", "Catálogo"],
+        ["config", "Config"],
+      ];
+      nav.innerHTML = items.map(([id, lab]) =>
+        `<button type="button" class="${active === id ? "on" : ""}" data-go="${id}"><span class="icon">${icons[id]}</span>${lab}</button>`
+      ).join("");
+      nav.querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
+    }
+
+    function statusLabel(o) {
+      if (o.status === "pending") return "Pendiente de pago";
+      if (o.status === "cancelled") return "Cancelado";
+      if (o.step === "entregado" || o.status === "done") return "Entregado";
+      if (o.step === "enviado") return "Enviado";
+      if (o.step === "listo") return "Listo para retirar";
+      if (o.step === "preparando") return "Preparando";
+      if (o.status === "paid") return "Pago confirmado";
+      return "En curso";
+    }
+
+    function renderHome() {
+      const pending = orders.filter(o => o.status === "pending");
+      const progress = orders.filter(o => ["progress", "paid"].includes(o.status) && o.step !== "entregado");
+      document.getElementById("mPending").textContent = pending.length;
+      document.getElementById("mProgress").textContent = progress.length;
+      document.getElementById("alertTitle").textContent =
+        pending.length ? `${pending.length} pedido${pending.length > 1 ? "s" : ""} esperan confirmación` : "No hay pendientes";
+      document.getElementById("alertSub").textContent =
+        pending.some(o => o.hasReceipt) ? "Hay comprobantes listos para revisar" : "Cuando alguien compre, aparecen acá";
+      const recent = orders.slice(0, 3);
+      document.getElementById("homeOrders").innerHTML = recent.map(o => `
+        <button class="order" type="button" data-open="${o.id}">
+          <div class="col">
+            <div class="code">${o.id}</div>
+            <div class="d">${o.name} · ${statusLabel(o)}</div>
+          </div>
+          <div class="amt">${money(o.total)}</div>
+        </button>
+      `).join("");
+      document.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openDetail(b.dataset.open));
+    }
+
+    function renderOrders() {
+      let list = orders;
+      if (filter === "pending") list = orders.filter(o => o.status === "pending");
+      else if (filter === "progress") list = orders.filter(o =>
+        (o.status === "progress" || o.status === "paid") && !["entregado", "cancelled"].includes(o.step) && o.status !== "done" && o.status !== "cancelled"
+      );
+      else list = orders;
+      const el = document.getElementById("orderList");
+      if (!list.length) {
+        el.innerHTML = `<div class="empty"><div class="icon" style="transform:scale(1.8);margin-bottom:16px"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg></div><strong style="color:var(--text)">No hay pedidos acá</strong><p style="margin-top:8px">Cuando alguien compre, aparecen para gestionar.</p></div>`;
+        return;
+      }
+      el.innerHTML = list.map(o => `
+        <div class="card">
+          <div class="row" style="margin-bottom:8px">
+            <strong>${o.id}</strong>
+            <span class="badge ${o.status === "pending" || o.status === "cancelled" ? "warn" : (o.status === "paid" || o.step === "preparando" ? "ok" : "")}">${statusLabel(o)}</span>
+          </div>
+          <div class="muted">${o.name} · ${money(o.total)}</div>
+          <div class="muted" style="margin:4px 0 10px">${o.pay}</div>
+          <div class="stack">
+            ${o.status === "pending" ? `<button class="btn btn-primary" type="button" data-open="${o.id}" style="height:44px">Ver y confirmar</button>` : `<button class="btn btn-secondary" type="button" data-open="${o.id}" style="height:44px">Ver detalle</button>`}
+          </div>
+        </div>
+      `).join("");
+      el.querySelectorAll("[data-open]").forEach(b => b.onclick = () => openDetail(b.dataset.open));
+    }
+
+    function openDetail(id) {
+      const o = orders.find(x => x.id === id);
+      if (!o) return;
+      currentId = id;
+      document.getElementById("detailCode").textContent = o.id;
+      document.getElementById("detailBadge").textContent = statusLabel(o);
+      document.getElementById("detailTimer").textContent = o.timer || "";
+      document.getElementById("detailName").textContent = o.name;
+      document.getElementById("detailContact").textContent = o.contact;
+      document.getElementById("detailShip").textContent = o.ship;
+      document.getElementById("detailItems").innerHTML = o.items.replace(/\n/g, "<br>");
+      document.getElementById("detailTotal").textContent = money(o.total);
+      document.getElementById("detailDisc").textContent = o.cash ? "Con 10% off efectivo" : "Con 10% off transferencia";
+      document.getElementById("receiptCard").style.display = o.pay.includes("Transferencia") ? "block" : "none";
+      document.getElementById("openReceipt").innerHTML = o.hasReceipt
+        ? `<span class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></span><div style="margin-top:8px">comprobante_transfer.jpg</div><span style="color:var(--accent);font-weight:600">Ver archivo</span>`
+        : `Sin comprobante todavía<br><span class="muted">La compradora puede subirlo en las 24 h</span>`;
+      const conf = document.getElementById("confirmPay");
+      const can = document.getElementById("cancelOrder");
+      const oldAdv = document.getElementById("advanceBtn");
+      if (oldAdv) oldAdv.remove();
+      conf.style.display = "none";
+      conf.onclick = null;
+      can.style.display = "none";
+
+      const isPickup = (o.ship || "").toLowerCase().includes("retiro");
+      const terminal = o.status === "cancelled" || o.status === "done" || o.step === "entregado";
+
+      if (o.status === "pending") {
+        conf.style.display = "block";
+        conf.textContent = o.cash ? "Confirmar pago (cobrado en local)" : "Confirmar pago";
+        conf.disabled = false;
+        conf.onclick = confirmPay;
+        can.style.display = "block";
+      } else if (!terminal) {
+        // paid / in progress — advance fulfillment
+        const step = o.step || "preparando";
+        const adv = document.createElement("button");
+        adv.id = "advanceBtn";
+        adv.type = "button";
+        adv.className = "btn btn-primary";
+        if (step === "preparando" || o.status === "paid") {
+          adv.textContent = isPickup ? "Pasar a listo para retirar" : "Pasar a enviado";
+          adv.onclick = () => {
+            o.status = "progress";
+            o.step = isPickup ? "listo" : "enviado";
+            toast(isPickup
+              ? "Listo para retirar · avisamos a la compradora"
+              : "Marcado como enviado · avisamos a la compradora");
+            openDetail(o.id);
+            renderHome();
+            renderOrders();
+          };
+        } else if (step === "listo" || step === "enviado") {
+          adv.textContent = "Pasar a entregado";
+          adv.onclick = () => {
+            o.step = "entregado";
+            o.status = "done";
+            toast("Pedido entregado");
+            openDetail(o.id);
+            renderHome();
+            renderOrders();
+          };
+        }
+        if (adv.textContent) conf.parentElement.insertBefore(adv, conf);
+        can.style.display = "block"; // admin can still cancel before delivered
+      }
+      // badge colors
+      let bc = "";
+      if (o.status === "pending") bc = "warn";
+      else if (o.status === "paid" || o.step === "preparando") bc = "ok";
+      else if (o.status === "cancelled") bc = "warn";
+      document.getElementById("detailBadge").className = "badge " + bc;
+
+      go("detail");
+    }
+
+    function confirmPay() {
+      const o = orders.find(x => x.id === currentId);
+      if (!o || o.status !== "pending") return;
+      o.status = "paid";
+      o.step = "preparando";
+      o.timer = "";
+      o.pay = o.cash ? "Efectivo · cobrado" : "Transferencia · pago confirmado";
+      toast("Pago confirmado · avisamos a la compradora");
+      document.getElementById("receiptModal").classList.remove("open");
+      openDetail(o.id);
+      renderHome();
+      renderOrders();
+    }
+
+    function renderCatalog() {
+      const items = [
+        ["Calza seamless", "Mujer · Calzas", "12 u.", false],
+        ["Top rib", "Mujer · Tops", "Sin stock", true],
+        ["Remera dry-fit", "Hombre · Remeras", "8 u.", false],
+        ["Medias Sox", "Accesorios · Medias", "24 u.", false],
+      ];
+      document.getElementById("catalogList").innerHTML = items.map(([n, c, s, bad]) => `
+        <div class="card row">
+          <div style="width:48px;height:48px;border-radius:8px;background:var(--soft);flex:0 0 auto"></div>
+          <div class="col" style="flex:1">
+            <div style="font-weight:600;font-size:14px">${n}</div>
+            <div class="muted">${c}</div>
+          </div>
+          <strong style="color:${bad ? "var(--promo)" : "var(--accent)"};font-size:12px">${s}</strong>
+        </div>
+      `).join("");
+    }
+
+    document.querySelectorAll("[data-go]").forEach(el => {
+      el.addEventListener("click", () => {
+        const g = el.getAttribute("data-go");
+        if (g) go(g);
+      });
+    });
+
+    document.querySelectorAll(".tab").forEach(t => {
+      t.onclick = () => {
+        document.querySelectorAll(".tab").forEach(x => x.classList.remove("on"));
+        t.classList.add("on");
+        filter = t.dataset.filter;
+        renderOrders();
+      };
+    });
+
+    document.getElementById("confirmPay").onclick = confirmPay;
+    document.getElementById("confirmFromModal").onclick = confirmPay;
+    document.getElementById("cancelOrder").onclick = () => {
+      const o = orders.find(x => x.id === currentId);
+      if (!o) return;
+      if (o.status === "done" || o.step === "entregado") {
+        toast("No se puede cancelar un pedido entregado");
+        return;
+      }
+      if (!confirm("¿Cancelar este pedido y liberar el stock?")) return;
+      o.status = "cancelled";
+      o.step = undefined;
+      o.timer = "";
+      toast("Pedido cancelado · stock liberado");
+      go("orders");
+      renderHome();
+      renderOrders();
+    };
+
+    document.getElementById("openReceipt").onclick = () => {
+      const o = orders.find(x => x.id === currentId);
+      if (o && o.hasReceipt) document.getElementById("receiptModal").classList.add("open");
+      else toast("Todavía no hay comprobante");
+    };
+    document.getElementById("closeReceipt").onclick =
+    document.getElementById("closeReceipt2").onclick = () =>
+      document.getElementById("receiptModal").classList.remove("open");
+
+    document.getElementById("saveCfg").onclick = () => toast("Guardado (demo)");
+
+    document.querySelectorAll(".nav").forEach(buildNav);
+  </script>
+</body>
+</html>
