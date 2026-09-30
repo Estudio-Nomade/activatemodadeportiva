@@ -1,0 +1,123 @@
+# Backend for frontend (tRPC)
+
+## Install
+
+Same major versions as the app:
+
+- `@trpc/client`
+- `superjson`
+- (optional) `@trpc/react-query` if using React Query bindings
+
+Import the **type only** of the router:
+
+```ts
+import type { AppRouter } from "@/server/trpc/routers/app";
+// or from a published types package once split
+```
+
+## Client setup
+
+```ts
+import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import superjson from "superjson";
+import type { AppRouter } from "@/server/trpc/routers/app";
+
+export function createApiClient(opts?: { getAccessToken?: () => string | null }) {
+  return createTRPCProxyClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/api/trpc`,
+        transformer: superjson,
+        headers() {
+          const token = opts?.getAccessToken?.();
+          return token ? { Authorization: `Bearer ${token}` } : {};
+        },
+      }),
+    ],
+  });
+}
+```
+
+**Must** use `superjson` on both client and server (server already does in `src/server/trpc/init.ts`).
+
+## Admin auth
+
+1. Sign in with Supabase Auth (email/password or whatever is configured).
+2. Ensure `admin_profiles.user_id` contains that user.
+3. Pass the session **access_token** as `Authorization: Bearer <token>` on every admin procedure.
+
+Without a valid admin profile → tRPC `UNAUTHORIZED` or `FORBIDDEN`.
+
+## Examples
+
+### Quote
+
+```ts
+const quote = await client.checkout.quote.mutate({
+  lines: [{ variantId: "...", qty: 1 }],
+  shippingMethod: "pickup",
+  paymentMethod: "transfer",
+});
+// use quote.totalCents for display only
+```
+
+### Place order
+
+```ts
+const order = await client.checkout.placeOrder.mutate({
+  lines: [{ variantId: "...", qty: 1 }],
+  shippingMethod: "andreani",
+  paymentMethod: "transfer",
+  customerName: "Ana",
+  phone: "+54...",
+  email: "ana@example.com",
+  shippingAddress: { street: "...", city: "...", cp: "..." },
+});
+// persist order.code + order.access_token for order status page
+```
+
+### Public order lookup
+
+```ts
+const byCode = await client.orders.getByCode.query({ code: order.code });
+const byToken = await client.orders.getByToken.query({ token: order.access_token });
+```
+
+### Payment proof
+
+1. Obtain a signed upload URL (Storage port / future procedure) for bucket `payment-proofs`.
+2. PUT the file to the signed URL.
+3. Confirm:
+
+```ts
+await client.orders.uploadPaymentProof.mutate({
+  token: order.access_token,
+  storagePath: "proofs/<orderId>/<filename>",
+});
+```
+
+## Errors
+
+```ts
+try {
+  await client.checkout.placeOrder.mutate(...);
+} catch (e) {
+  // TRPCClientError
+  const domainCode = e.data?.domainCode as string | undefined;
+  // e.g. STOCK_INSUFFICIENT, INVALID_PAYMENT_SHIPPING_COMBO
+}
+```
+
+See `docs/contracts/domain-invariants.md` for codes.
+
+## Rules for UI
+
+1. **Never trust client totals** — always show server `quote` / order `*_cents`.
+2. Cart is **client-only**; there is no carts table. Re-quote before checkout.
+3. Cash + shipping other than pickup will fail server-side.
+4. After placeOrder, stock is reserved **24h**; show `reservation_expires_at`.
+5. Product image public URLs: bucket `product-images` (public). Proofs: `payment-proofs` (private, signed download).
+
+## Procedure catalog
+
+Full input/output list: `docs/contracts/procedure-map.md`.
