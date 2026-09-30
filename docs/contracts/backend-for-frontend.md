@@ -58,7 +58,7 @@ const quote = await client.checkout.quote.mutate({
   shippingMethod: "pickup",
   paymentMethod: "transfer",
 });
-// use quote.totalCents for display only
+// use quote.totalCents for display only — never send totals back to charge
 ```
 
 ### Place order
@@ -71,9 +71,24 @@ const order = await client.checkout.placeOrder.mutate({
   customerName: "Ana",
   phone: "+54...",
   email: "ana@example.com",
-  shippingAddress: { street: "...", city: "...", cp: "..." },
+  // required when shippingMethod === "andreani"
+  shippingAddress: { line1: "Calle 123", city: "La Plata", postalCode: "1900" },
 });
-// persist order.code + order.access_token for order status page
+// Keep order.access_token only from placeOrder / email magic link — never from getByCode
+```
+
+### Payment proof upload
+
+```ts
+const upload = await client.orders.createProofUploadUrl.mutate({
+  token: accessToken, // or code
+  fileName: "comprobante.jpg",
+});
+// PUT file to upload.signedUrl (Supabase signed upload)
+await client.orders.uploadPaymentProof.mutate({
+  token: accessToken,
+  storagePath: upload.path, // must be payment-proofs/{orderId}/...
+});
 ```
 
 ### Public order lookup

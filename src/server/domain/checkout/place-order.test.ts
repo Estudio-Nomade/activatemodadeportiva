@@ -34,7 +34,7 @@ describe("placeOrder", () => {
       { db, email: consoleEmail },
     );
 
-    expect(order.code).toMatch(/^ACT-\d{6}$/);
+    expect(order.code).toMatch(/^ACT-[A-Z0-9]{10}$/);
     expect(order.status).toBe("pendiente_pago");
     expect(order.total_cents).toBeGreaterThan(0);
 
@@ -55,5 +55,49 @@ describe("placeOrder", () => {
       code: "STOCK_INSUFFICIENT",
       name: "DomainError",
     } satisfies Partial<DomainError>);
+  });
+
+  it("rejects split lines that would oversell the same variant", async () => {
+    const db = createServiceClient();
+    await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("product_variants").update({ stock_on_hand: 5 }).eq("id", VARIANT_M);
+
+    await expect(
+      placeOrder(
+        {
+          customerName: "Split",
+          phone: "+54933333333",
+          email: "split@example.com",
+          shippingMethod: "pickup",
+          paymentMethod: "transfer",
+          shippingAddress: null,
+          lines: [
+            { variantId: VARIANT_M, qty: 3 },
+            { variantId: VARIANT_M, qty: 3 },
+          ],
+        },
+        { db, email: consoleEmail },
+      ),
+    ).rejects.toMatchObject({ code: "STOCK_INSUFFICIENT" });
+  });
+
+  it("requires address for andreani", async () => {
+    const db = createServiceClient();
+    await expect(
+      placeOrder(
+        {
+          customerName: "Ship",
+          phone: "+54933333333",
+          email: "ship@example.com",
+          shippingMethod: "andreani",
+          paymentMethod: "transfer",
+          shippingAddress: null,
+          lines: [{ variantId: VARIANT_M, qty: 1 }],
+        },
+        { db, email: consoleEmail },
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
   });
 });

@@ -1,10 +1,16 @@
 import { randomBytes } from "node:crypto";
 
+/** Human-facing code with enough entropy to resist casual enumeration. */
 export function generateOrderCode(): string {
-  const n = randomBytes(3).readUIntBE(0, 3) % 1_000_000;
-  return `ACT-${String(n).padStart(6, "0")}`;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(10);
+  let body = "";
+  for (let i = 0; i < 10; i++) {
+    body += alphabet[bytes[i]! % alphabet.length];
+  }
+  return `ACT-${body}`;
 }
 
 export function generateAccessToken(): string {
-  return randomBytes(24).toString("base64url");
+  return randomBytes(32).toString("base64url");
 }

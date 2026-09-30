@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { variantsWithAvailability } from "@/server/domain/catalog/availability";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 export const catalogRouter = createTRPCRouter({
@@ -32,7 +33,7 @@ export const catalogRouter = createTRPCRouter({
       let q = ctx.db
         .from("products")
         .select(
-          "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published",
+          "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published, product_images(id, storage_path, alt, sort_order)",
         )
         .eq("is_published", true)
         .order("name", { ascending: true });
@@ -63,7 +64,21 @@ export const catalogRouter = createTRPCRouter({
 
       if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
       if (!data) throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
-      return data;
+
+      const variants = await variantsWithAvailability(
+        ctx.db,
+        (data.product_variants ?? []) as {
+          id: string;
+          color: string;
+          size: string;
+          stock_on_hand: number;
+        }[],
+      );
+
+      return {
+        ...data,
+        product_variants: variants,
+      };
     }),
 
   search: publicProcedure

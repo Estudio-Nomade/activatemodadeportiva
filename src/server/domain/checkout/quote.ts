@@ -6,6 +6,8 @@ import {
   type ShippingMethod,
 } from "@/server/domain/pricing/calculate-totals";
 import { assertLinesInStock, availableStock } from "@/server/domain/stock/availability";
+import { assertShippingAddress } from "./address";
+import { mergeLinesByVariant } from "./merge-lines";
 
 export type QuoteLineInput = {
   variantId: string;
@@ -16,6 +18,7 @@ export type QuoteInput = {
   lines: QuoteLineInput[];
   paymentMethod: PaymentMethod;
   shippingMethod: ShippingMethod;
+  shippingAddress?: Record<string, unknown> | null;
 };
 
 export type QuoteLineResult = {
@@ -48,6 +51,7 @@ type VariantRow = {
     name: string;
     list_price_cents: number;
     promo_price_cents: number | null;
+    is_published: boolean;
   } | null;
 };
 
@@ -59,6 +63,10 @@ export async function quote(
     throw new DomainError("VALIDATION_ERROR", "At least one line is required");
   }
 
+  assertShippingAddress(input.shippingMethod, input.shippingAddress ?? null);
+
+  const lines = mergeLinesByVariant(input.lines);
+
   const { data: settings, error: settingsError } = await deps.db
     .from("store_settings")
     .select("*")
@@ -69,11 +77,11 @@ export async function quote(
     throw new DomainError("VALIDATION_ERROR", "Store settings not found");
   }
 
-  const variantIds = input.lines.map((l) => l.variantId);
+  const variantIds = lines.map((l) => l.variantId);
   const { data: variants, error: variantsError } = await deps.db
     .from("product_variants")
     .select(
-      "id, product_id, color, size, stock_on_hand, products(id, name, list_price_cents, promo_price_cents)",
+      "id, product_id, color, size, stock_on_hand, products(id, name, list_price_cents, promo_price_cents, is_published)",
     )
     .in("id", variantIds);
 
@@ -100,13 +108,13 @@ export async function quote(
   const quoteLines: QuoteLineResult[] = [];
   const stockCheck: { variantId: string; qty: number; available: number }[] = [];
 
-  for (const line of input.lines) {
+  for (const line of lines) {
     const variant = variantMap.get(line.variantId);
     if (!variant || !variant.products) {
       throw new DomainError("VALIDATION_ERROR", `Variant not found: ${line.variantId}`);
     }
-    if (line.qty <= 0) {
-      throw new DomainError("VALIDATION_ERROR", "Quantity must be positive");
+    if (!variant.products.is_published) {
+      throw new DomainError("VALIDATION_ERROR", `Product not available: ${line.variantId}`);
     }
 
     const reserved = reservedByVariant.get(line.variantId) ?? 0;

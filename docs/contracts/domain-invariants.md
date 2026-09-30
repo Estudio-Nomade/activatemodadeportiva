@@ -32,8 +32,22 @@ available = stock_on_hand - sum(active reservation qty for variant)
 ```
 
 - Reservations with `status = 'active'` count against availability.
+- Catalog `getProduct` exposes **`available`** per variant — use that for cart UI.
+- Duplicate `variantId` lines are **merged** (sum qty) before stock checks.
+- Only **published** products can be quoted/ordered.
 - `assertLinesInStock`: if any line `qty > available` → `STOCK_INSUFFICIENT`.
-- `placeOrder` reserves stock atomically (RPC); oversell races still fail with stock error.
+- `placeOrder` / `confirmPayment` / `cancelOrder` use atomic SQL RPCs (`place_order_tx`, `confirm_payment_tx`, `cancel_order_tx`).
+
+## Shipping address
+
+- `andreani` requires `shippingAddress` with at least `line1`, `city`, `postalCode`.
+- `pickup` does not require address.
+
+## Tracking secrets
+
+- `orders.getByCode` does **not** return `access_token`.
+- Magic link uses `access_token` via `getByToken` / email only.
+- Order codes are high-entropy (`ACT-` + 10 chars), not sequential 6-digit.
 
 ## Reservation window (24h)
 

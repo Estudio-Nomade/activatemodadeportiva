@@ -234,6 +234,12 @@ isOneToOne: false
             "place_order_tx":
 { Args: { "p": Json }; Returns: Json
                            }
+            "confirm_payment_tx":
+{ Args: { "p_order_id": string }; Returns: undefined
+                           }
+            "cancel_order_tx":
+{ Args: { "p_order_id": string, "p_reason": Database["public"]["Enums"]["cancel_reason"] }; Returns: undefined
+                           }
           }
           Enums: {
             "cancel_reason": "admin"|"expired","order_status": "pendiente_pago"|"pago_confirmado"|"preparando"|"listo_retiro"|"enviado"|"entregado"|"cancelado","payment_method": "transfer"|"cash","reservation_status": "active"|"consumed"|"released","shipping_method": "pickup"|"andreani"

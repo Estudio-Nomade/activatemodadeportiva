@@ -34,7 +34,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ categorySlug?: string }` |
-| Output | published products: `{ id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published }[]` |
+| Output | published products + `product_images` |
 
 ### `catalog.getProduct`
 
@@ -42,8 +42,9 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ slug: string }` |
-| Output | product + `product_variants(id, color, size, stock_on_hand)` + `product_images(id, storage_path, alt, sort_order)` |
+| Output | product + `product_variants(id, color, size, stock_on_hand, available)` + `product_images` |
 | Errors | `NOT_FOUND` if missing/unpublished |
+| Note | `available` = on_hand − active reservations (use this for add-to-cart, not raw on_hand alone) |
 
 ### `catalog.search`
 
@@ -74,18 +75,18 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "transfer" \| "cash" }` |
+| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "transfer" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null }` |
 | Output | `{ lines: { variantId, productId, productName, color, size, unitPriceCents, qty, available }[], subtotalCents, discountCents, shippingCents, totalCents }` |
-| Domain | stock + combo + pricing |
+| Domain | merges duplicate variant lines; published products only; andreani requires address; stock + combo + pricing |
 
 ### `checkout.placeOrder`
 
 | | |
 |--|--|
 | Type | mutation |
-| Input | quote fields + `{ customerName, phone, email, shippingAddress?: Record \| null }` |
-| Output | order row: `id, code, access_token, status, customer_*, shipping_method, payment_method, *_cents, shipping_address, reservation_expires_at, cancel_reason, created_at, updated_at, cancelled_at` |
-| Domain | reserves 24h, emails `order_created` |
+| Input | same as quote + `{ customerName, phone, email }` (andreani requires `shippingAddress` with `line1`, `city`, `postalCode`) |
+| Output | order row including `access_token` (only place this is returned to client besides email) |
+| Domain | merges lines; published only; atomic `place_order_tx`; 24h reserve; email `order_created` |
 
 ---
 
@@ -97,26 +98,32 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ code: string }` |
-| Output | order + `order_items` + `payment_proofs` (includes `access_token`) |
+| Output | order + items + proofs **without** `access_token` |
 
 ### `orders.getByToken`
 
 | | |
 |--|--|
 | Type | query |
-| Input | `{ token: string }` |
-| Output | same as `getByCode` |
+| Input | `{ token: string }` (magic link) |
+| Output | full order including `access_token` |
+
+### `orders.createProofUploadUrl`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ code? or token?, fileName }` |
+| Output | `{ bucket, path, signedUrl, token, orderId }` path under `payment-proofs/{orderId}/` |
 
 ### `orders.uploadPaymentProof`
 
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ code?: string, token?: string, storagePath: string }` (code or token required) |
+| Input | `{ code? or token?, storagePath }` — path must match `payment-proofs/{orderId}/...` |
 | Output | `{ id, order_id, storage_path, uploaded_at }` |
-| Domain | only when `status === pendiente_pago`; else `ORDER_NOT_PENDING` |
-
-Upload file first via Storage signed URL into bucket `payment-proofs`, then pass `storagePath`.
+| Domain | only `pendiente_pago` |
 
 ---
 

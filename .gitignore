@@ -47,3 +47,6 @@ next-env.d.ts
 
 # supabase status dump
 .env.local.supabase
+
+# local git worktrees
+.worktrees/

@@ -2,6 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
+import {
+  assertProofStoragePath,
+  toPublicOrderByCode,
+} from "@/server/domain/orders/public-order";
 import { createTRPCRouter, publicProcedure, rethrowDomain } from "../init";
 
 const orderSelect = `
@@ -37,7 +41,8 @@ export const ordersRouter = createTRPCRouter({
     .input(z.object({ code: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       try {
-        return await findOrderByCodeOrToken(ctx.db, { code: input.code });
+        const order = await findOrderByCodeOrToken(ctx.db, { code: input.code });
+        return toPublicOrderByCode(order as Record<string, unknown>);
       } catch (e) {
         rethrowDomain(e);
       }
@@ -48,6 +53,46 @@ export const ordersRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       try {
         return await findOrderByCodeOrToken(ctx.db, { token: input.token });
+      } catch (e) {
+        rethrowDomain(e);
+      }
+    }),
+
+  createProofUploadUrl: publicProcedure
+    .input(
+      z.object({
+        code: z.string().min(1).optional(),
+        token: z.string().min(1).optional(),
+        fileName: z.string().min(1).max(120),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const order = await findOrderByCodeOrToken(ctx.db, {
+          code: input.code,
+          token: input.token,
+        });
+
+        if (order.status !== "pendiente_pago") {
+          throw new DomainError(
+            "ORDER_NOT_PENDING",
+            "Payment proof only allowed while pending payment",
+          );
+        }
+
+        const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+        const path = `payment-proofs/${order.id}/${Date.now()}-${safeName}`;
+        const signed = await ctx.storage.createSignedUploadUrl({
+          bucket: "payment-proofs",
+          path,
+        });
+        return {
+          bucket: "payment-proofs",
+          path: signed.path || path,
+          signedUrl: signed.signedUrl,
+          token: signed.token,
+          orderId: order.id,
+        };
       } catch (e) {
         rethrowDomain(e);
       }
@@ -72,6 +117,15 @@ export const ordersRouter = createTRPCRouter({
           throw new DomainError(
             "ORDER_NOT_PENDING",
             "Payment proof only allowed while pending payment",
+          );
+        }
+
+        try {
+          assertProofStoragePath(order.id, input.storagePath);
+        } catch {
+          throw new DomainError(
+            "VALIDATION_ERROR",
+            "storagePath must be under payment-proofs/{orderId}/",
           );
         }
 

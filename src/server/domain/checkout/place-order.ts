@@ -3,7 +3,9 @@ import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
 import type { PaymentMethod, ShippingMethod } from "@/server/domain/pricing/calculate-totals";
 import type { EmailPort } from "@/server/email/port";
+import { assertShippingAddress } from "./address";
 import { generateAccessToken, generateOrderCode } from "./code";
+import { mergeLinesByVariant } from "./merge-lines";
 import { quote, type QuoteLineInput } from "./quote";
 
 export type PlaceOrderInput = {
@@ -44,6 +46,20 @@ export type PlaceOrderDeps = {
   now?: Date;
 };
 
+function mapRpcError(error: { message: string; code?: string; details?: string }): never {
+  const blob = `${error.message} ${error.details ?? ""} ${error.code ?? ""}`;
+  if (blob.includes("STOCK_INSUFFICIENT")) {
+    throw new DomainError("STOCK_INSUFFICIENT", "Insufficient stock");
+  }
+  if (blob.includes("INVALID_TRANSITION")) {
+    throw new DomainError("INVALID_TRANSITION", "Invalid order transition");
+  }
+  if (blob.includes("ORDER_NOT_FOUND")) {
+    throw new DomainError("ORDER_NOT_FOUND", "Order not found");
+  }
+  throw new DomainError("VALIDATION_ERROR", error.message);
+}
+
 export async function placeOrder(
   input: PlaceOrderInput,
   deps: PlaceOrderDeps,
@@ -52,11 +68,15 @@ export async function placeOrder(
     throw new DomainError("VALIDATION_ERROR", "Customer contact fields are required");
   }
 
+  assertShippingAddress(input.shippingMethod, input.shippingAddress);
+  const lines = mergeLinesByVariant(input.lines);
+
   const priced = await quote(
     {
-      lines: input.lines,
+      lines,
       paymentMethod: input.paymentMethod,
       shippingMethod: input.shippingMethod,
+      shippingAddress: input.shippingAddress,
     },
     { db: deps.db },
   );
@@ -78,7 +98,7 @@ export async function placeOrder(
     shipping_cents: priced.shippingCents,
     total_cents: priced.totalCents,
     reservation_expires_at: expiresAt.toISOString(),
-    lines: input.lines.map((l) => ({
+    lines: priced.lines.map((l) => ({
       variant_id: l.variantId,
       qty: l.qty,
     })),
@@ -96,22 +116,23 @@ export async function placeOrder(
     p: payload as unknown as Json,
   });
 
-  if (error) {
-    if (
-      error.message.includes("STOCK_INSUFFICIENT") ||
-      error.code === "P0001" ||
-      error.details?.includes("STOCK_INSUFFICIENT")
-    ) {
-      throw new DomainError("STOCK_INSUFFICIENT", "Insufficient stock");
-    }
-    throw new DomainError("VALIDATION_ERROR", error.message);
-  }
+  if (error) mapRpcError(error);
 
   if (!data || typeof data !== "object" || Array.isArray(data)) {
     throw new DomainError("VALIDATION_ERROR", "place_order_tx returned invalid payload");
   }
 
   const order = data as unknown as PlaceOrderResult;
+
+  let transferCbuAlias = "";
+  if (order.payment_method === "transfer") {
+    const { data: settings } = await deps.db
+      .from("store_settings")
+      .select("transfer_cbu_alias_text")
+      .eq("id", 1)
+      .maybeSingle();
+    transferCbuAlias = settings?.transfer_cbu_alias_text ?? "";
+  }
 
   try {
     await deps.email.send({
@@ -122,6 +143,9 @@ export async function placeOrder(
         code: order.code,
         accessToken: order.access_token,
         totalCents: order.total_cents,
+        paymentMethod: order.payment_method,
+        shippingMethod: order.shipping_method,
+        transferCbuAlias,
       },
     });
   } catch {

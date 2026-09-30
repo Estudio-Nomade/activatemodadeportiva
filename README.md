@@ -10,11 +10,17 @@ Next.js app with Supabase + tRPC backend for catalog, checkout, orders, admin, e
 4. `pnpm install && pnpm dev`
 5. `pnpm test`
 6. `pnpm jobs:expire` — cancel expired `pendiente_pago` reservations (CLI)
-7. Cron (Vercel): `GET|POST /api/cron/expire-reservations` with `Authorization: Bearer $CRON_SECRET` (see `vercel.json`, hourly)
+7. Cron (Vercel): set `CRON_SECRET` in the Vercel project. Cron hits `GET|POST /api/cron/expire-reservations` with `Authorization: Bearer $CRON_SECRET` (see `vercel.json`, hourly). If `CRON_SECRET` is missing, the route returns 401.
 
 Optional: set `RESEND_API_KEY` + `EMAIL_FROM` for real email; otherwise console logger.
 
 Optional: `NEXT_PUBLIC_APP_URL` for magic links in emails.
+
+## Hardening notes (stock / privacy)
+
+- Cart lines with the same `variantId` are merged before stock checks.
+- Andreani checkout requires a structured address.
+- Payment proofs must live under `payment-proofs/{orderId}/` (use `orders.createProofUploadUrl`).
 
 ## Contracts (UI team)
 
