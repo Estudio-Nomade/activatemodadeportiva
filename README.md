@@ -2,6 +2,9 @@
 
 Next.js app with Supabase + tRPC backend for catalog, checkout, orders, admin, email, storage, and reservation expiry.
 
+**Start here for humans + AI agents:** [`AGENTS.md`](./AGENTS.md)  
+**Team onboarding:** [`docs/ONBOARDING.md`](./docs/ONBOARDING.md)
+
 ## Backend dev
 
 1. `supabase start` (Docker required)

@@ -1,5 +1,7 @@
 # Backend for frontend (tRPC)
 
+Also read: [`AGENTS.md`](../../AGENTS.md) · [`domain-invariants.md`](./domain-invariants.md) · [`procedure-map.md`](./procedure-map.md)
+
 ## Install
 
 Same major versions as the app:
