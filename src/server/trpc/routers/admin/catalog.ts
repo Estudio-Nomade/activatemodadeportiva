@@ -1,7 +1,40 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
+import { withImageUrls } from "@/lib/media/product-image";
+import { PRODUCT_IMAGES_BUCKET } from "@/server/storage/port";
 import { adminProcedure, createTRPCRouter } from "../../init";
+
+function assertProductImagePath(productId: string, storagePath: string) {
+  const prefix = `products/${productId}/`;
+  const ok =
+    storagePath === prefix.slice(0, -1) ||
+    storagePath.startsWith(prefix) ||
+    // allow full path with bucket prefix stripped already
+    storagePath.startsWith(`${PRODUCT_IMAGES_BUCKET}/${prefix}`);
+  if (!ok) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `storagePath must be under products/{productId}/`,
+    });
+  }
+}
+
+function normalizeStorageKey(storagePath: string): string {
+  return storagePath.replace(new RegExp(`^${PRODUCT_IMAGES_BUCKET}/`), "");
+}
+
+function mapImages(
+  images: { id: string; storage_path: string; alt: string; sort_order: number }[] | null | undefined,
+) {
+  return withImageUrls(images ?? null).map((img) => ({
+    id: String(img.id ?? ""),
+    storage_path: img.storage_path,
+    alt: img.alt ?? "",
+    sort_order: img.sort_order ?? 0,
+    url: img.url,
+  }));
+}
 
 export const adminCatalogRouter = createTRPCRouter({
   createProduct: adminProcedure
@@ -161,13 +194,168 @@ export const adminCatalogRouter = createTRPCRouter({
       .select(
         `
         id, name, slug, description, list_price_cents, promo_price_cents,
-        category_id, is_published, created_at, updated_at,
-        product_variants(id, color, size, stock_on_hand)
+        category_id, is_published, created_at, updated_at, size_guide_id,
+        product_variants(id, color, size, stock_on_hand),
+        product_images(id, storage_path, alt, sort_order)
       `,
       )
       .order("updated_at", { ascending: false });
 
     if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+    return (data ?? []).map((p) => ({
+      ...p,
+      product_images: mapImages(p.product_images),
+    }));
+  }),
+
+  listSizeGuides: adminProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from("size_guides")
+      .select("id, name, storage_path")
+      .order("name", { ascending: true });
+    if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
     return data ?? [];
   }),
+
+  /** Signed upload URL for product gallery image under products/{productId}/… */
+  createImageUploadUrl: adminProcedure
+    .input(
+      z.object({
+        productId: z.string().uuid(),
+        fileName: z.string().min(1).max(120),
+        contentType: z.string().min(1).max(120).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { data: product, error } = await ctx.db
+        .from("products")
+        .select("id")
+        .eq("id", input.productId)
+        .maybeSingle();
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
+
+      const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+      const path = `products/${input.productId}/${Date.now()}-${safeName}`;
+      const signed = await ctx.storage.createSignedUploadUrl({
+        bucket: PRODUCT_IMAGES_BUCKET,
+        path,
+      });
+      return {
+        bucket: PRODUCT_IMAGES_BUCKET,
+        path: normalizeStorageKey(signed.path || path),
+        signedUrl: signed.signedUrl,
+        token: signed.token,
+        productId: input.productId,
+        publicUrl: ctx.storage.getPublicUrl({
+          bucket: PRODUCT_IMAGES_BUCKET,
+          path: normalizeStorageKey(signed.path || path),
+        }),
+      };
+    }),
+
+  /** Register an uploaded object in product_images (after client PUT to signed URL). */
+  attachProductImage: adminProcedure
+    .input(
+      z.object({
+        productId: z.string().uuid(),
+        storagePath: z.string().min(1),
+        alt: z.string().max(200).optional(),
+        sortOrder: z.number().int().nonnegative().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const key = normalizeStorageKey(input.storagePath);
+      assertProductImagePath(input.productId, key);
+
+      const { data: product, error: pErr } = await ctx.db
+        .from("products")
+        .select("id")
+        .eq("id", input.productId)
+        .maybeSingle();
+      if (pErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: pErr.message });
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
+
+      let sortOrder = input.sortOrder;
+      if (sortOrder === undefined) {
+        const { data: existing } = await ctx.db
+          .from("product_images")
+          .select("sort_order")
+          .eq("product_id", input.productId)
+          .order("sort_order", { ascending: false })
+          .limit(1);
+        sortOrder = (existing?.[0]?.sort_order ?? -1) + 1;
+      }
+
+      const { data, error } = await ctx.db
+        .from("product_images")
+        .insert({
+          product_id: input.productId,
+          storage_path: key,
+          alt: input.alt ?? "",
+          sort_order: sortOrder,
+        })
+        .select("id, product_id, storage_path, alt, sort_order")
+        .single();
+
+      if (error || !data) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error?.message ?? "Failed to attach image",
+        });
+      }
+
+      const [mapped] = mapImages([data]);
+      return mapped;
+    }),
+
+  removeProductImage: adminProcedure
+    .input(z.object({ imageId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: row, error: findErr } = await ctx.db
+        .from("product_images")
+        .select("id, storage_path")
+        .eq("id", input.imageId)
+        .maybeSingle();
+      if (findErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: findErr.message });
+      if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Image not found" });
+
+      const { error } = await ctx.db.from("product_images").delete().eq("id", input.imageId);
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+
+      const key = normalizeStorageKey(row.storage_path);
+      // Only remove storage objects we own under products/… (not external http URLs)
+      if (!/^https?:\/\//i.test(row.storage_path) && key.startsWith("products/")) {
+        try {
+          await ctx.storage.removeObjects?.({
+            bucket: PRODUCT_IMAGES_BUCKET,
+            paths: [key],
+          });
+        } catch {
+          /* DB row already gone; orphan file is acceptable */
+        }
+      }
+
+      return { ok: true as const };
+    }),
+
+  reorderProductImages: adminProcedure
+    .input(
+      z.object({
+        productId: z.string().uuid(),
+        orderedIds: z.array(z.string().uuid()).min(1),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      for (let i = 0; i < input.orderedIds.length; i++) {
+        const id = input.orderedIds[i]!;
+        const { error } = await ctx.db
+          .from("product_images")
+          .update({ sort_order: i })
+          .eq("id", id)
+          .eq("product_id", input.productId);
+        if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      }
+      return { ok: true as const };
+    }),
 });

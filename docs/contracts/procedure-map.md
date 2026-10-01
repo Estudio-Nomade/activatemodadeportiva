@@ -28,13 +28,21 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | none |
 | Output | `{ id, name, slug, parent_id, sort_order }[]` |
 
+### `catalog.listSizeGuides`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | `{ id, name, storage_path, url }[]` |
+
 ### `catalog.listProducts`
 
 | | |
 |--|--|
 | Type | query |
 | Input | `{ categorySlug?: string }` |
-| Output | published products + `product_images` |
+| Output | published products + `product_images` (with `url`) |
 
 ### `catalog.getProduct`
 
@@ -42,7 +50,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ slug: string }` |
-| Output | product + `product_variants(id, color, size, stock_on_hand, available)` + `product_images` |
+| Output | product + `product_variants(…, available)` + `product_images` + `size_guide?: { id, name, storage_path, url }` |
 | Errors | `NOT_FOUND` if missing/unpublished |
 | Note | `available` = on_hand − active reservations (use this for add-to-cart, not raw on_hand alone) |
 
@@ -52,7 +60,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ q: string }` (min 1) |
-| Output | published products matching name or category name (deduped) |
+| Output | published products matching name or category name (deduped) + `product_images` |
 
 ---
 
@@ -167,7 +175,50 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | none |
-| Output | all products + variants (published and draft) |
+| Output | all products + variants + `product_images` (with resolved `url` when mapped) |
+
+### `admin.catalog.listSizeGuides`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | `{ id, name, storage_path }[]` |
+
+### `admin.catalog.createImageUploadUrl`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, fileName, contentType? }` |
+| Output | `{ bucket: "product-images", path, signedUrl, token?, productId, publicUrl }` |
+| Notes | path is `products/{productId}/{ts}-{safeName}` |
+
+### `admin.catalog.attachProductImage`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, storagePath, alt?, sortOrder? }` |
+| Output | image row + `url` |
+| Domain | `storagePath` must be under `products/{productId}/` |
+
+### `admin.catalog.removeProductImage`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ imageId }` |
+| Output | `{ ok: true }` |
+| Notes | deletes DB row; best-effort remove of storage object if path is under `products/` |
+
+### `admin.catalog.reorderProductImages`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, orderedIds: uuid[] }` |
+| Output | `{ ok: true }` |
 
 ---
 

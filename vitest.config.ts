@@ -7,6 +7,8 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     passWithNoTests: true,
     setupFiles: ["./vitest.setup.ts"],
+    // Integration tests share seed stock/orders on local Supabase.
+    fileParallelism: false,
   },
   resolve: {
     alias: {

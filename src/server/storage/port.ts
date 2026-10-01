@@ -12,6 +12,9 @@ export type StoragePort = {
     path: string;
     expiresIn?: number;
   }): Promise<{ signedUrl: string }>;
+
+  /** Best-effort delete of object keys inside a bucket. */
+  removeObjects?(input: { bucket: string; paths: string[] }): Promise<void>;
 };
 
 export const PRODUCT_IMAGES_BUCKET = "product-images";

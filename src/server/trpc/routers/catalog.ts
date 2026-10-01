@@ -1,7 +1,34 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { variantsWithAvailability } from "@/server/domain/catalog/availability";
+import { withImageUrls } from "@/lib/media/product-image";
+import { mapSizeGuide } from "@/lib/media/size-guide";
 import { createTRPCRouter, publicProcedure } from "../init";
+
+const PRODUCT_LIST_SELECT =
+  "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published, product_images(id, storage_path, alt, sort_order)" as const;
+
+type DbImage = {
+  id: string;
+  storage_path: string;
+  alt: string;
+  sort_order: number;
+};
+
+function attachImageUrls<T extends { product_images?: DbImage[] | null }>(
+  row: T,
+): Omit<T, "product_images"> & {
+  product_images: Array<DbImage & { url: string }>;
+} {
+  const product_images = withImageUrls(row.product_images ?? null).map((img) => ({
+    id: String(img.id ?? ""),
+    storage_path: img.storage_path,
+    alt: img.alt ?? "",
+    sort_order: img.sort_order ?? 0,
+    url: img.url,
+  }));
+  return { ...row, product_images };
+}
 
 export const catalogRouter = createTRPCRouter({
   listCategories: publicProcedure.query(async ({ ctx }) => {
@@ -11,6 +38,15 @@ export const catalogRouter = createTRPCRouter({
       .order("sort_order", { ascending: true });
     if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
     return data ?? [];
+  }),
+
+  listSizeGuides: publicProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from("size_guides")
+      .select("id, name, storage_path")
+      .order("name", { ascending: true });
+    if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+    return (data ?? []).map(mapSizeGuide);
   }),
 
   listProducts: publicProcedure
@@ -32,9 +68,7 @@ export const catalogRouter = createTRPCRouter({
 
       let q = ctx.db
         .from("products")
-        .select(
-          "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published, product_images(id, storage_path, alt, sort_order)",
-        )
+        .select(PRODUCT_LIST_SELECT)
         .eq("is_published", true)
         .order("name", { ascending: true });
 
@@ -42,7 +76,7 @@ export const catalogRouter = createTRPCRouter({
 
       const { data, error } = await q;
       if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
-      return data ?? [];
+      return (data ?? []).map((row) => attachImageUrls(row));
     }),
 
   getProduct: publicProcedure
@@ -55,7 +89,8 @@ export const catalogRouter = createTRPCRouter({
           id, name, slug, description, list_price_cents, promo_price_cents,
           category_id, is_published, size_guide_id,
           product_variants(id, color, size, stock_on_hand),
-          product_images(id, storage_path, alt, sort_order)
+          product_images(id, storage_path, alt, sort_order),
+          size_guides(id, name, storage_path)
         `,
         )
         .eq("slug", input.slug)
@@ -75,9 +110,18 @@ export const catalogRouter = createTRPCRouter({
         }[],
       );
 
+      const mapped = attachImageUrls(data);
+      const guideRaw = (
+        data as {
+          size_guides?: { id: string; name: string; storage_path: string | null } | null;
+        }
+      ).size_guides;
+      const sizeGuide = guideRaw ? mapSizeGuide(guideRaw) : null;
+
       return {
-        ...data,
+        ...mapped,
         product_variants: variants,
+        size_guide: sizeGuide,
       };
     }),
 
@@ -88,9 +132,7 @@ export const catalogRouter = createTRPCRouter({
 
       const { data: byName, error: nameError } = await ctx.db
         .from("products")
-        .select(
-          "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published",
-        )
+        .select(PRODUCT_LIST_SELECT)
         .eq("is_published", true)
         .ilike("name", term);
 
@@ -107,14 +149,12 @@ export const catalogRouter = createTRPCRouter({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: catError.message });
       }
 
-      let byCategory: typeof byName = [];
+      let byCategory: NonNullable<typeof byName> = [];
       const catIds = (categories ?? []).map((c) => c.id);
       if (catIds.length) {
         const { data, error } = await ctx.db
           .from("products")
-          .select(
-            "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published",
-          )
+          .select(PRODUCT_LIST_SELECT)
           .eq("is_published", true)
           .in("category_id", catIds);
         if (error) {
@@ -123,10 +163,10 @@ export const catalogRouter = createTRPCRouter({
         byCategory = data ?? [];
       }
 
-      const map = new Map<string, (typeof byName)[number]>();
+      const map = new Map<string, NonNullable<typeof byName>[number]>();
       for (const p of [...(byName ?? []), ...byCategory]) {
         if (p) map.set(p.id, p);
       }
-      return Array.from(map.values());
+      return Array.from(map.values()).map((row) => attachImageUrls(row));
     }),
 });
