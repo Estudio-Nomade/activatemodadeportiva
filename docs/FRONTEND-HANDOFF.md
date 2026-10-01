@@ -221,6 +221,11 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 **Done:** cada status del enum se ve distinto y legible mobile 390. Lint/build OK.  
 **No:** recalcular totales; no inventar REST.
 
+- [x] `OrderTimeline` + `OrderStatusBanner` (`src/components/store/order-*.tsx`)
+- [x] `/pedido` banners, empty not-found, toast comprobante
+- [x] Unit: `order-timeline.test.ts`
+
+
 ---
 
 ### T2 — Home fidelidad Pencil (01 + 61)
