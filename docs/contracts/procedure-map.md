@@ -42,7 +42,8 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ categorySlug?: string }` |
-| Output | published products + `product_images` (with `url`) |
+| Output | published products + `product_images` (with `url`) + `is_sold_out: boolean` |
+| Note | If `categorySlug` is a root, includes products in that category **and descendants**. `is_sold_out` = no variants or all variants `available <= 0` (on_hand − active reservations). |
 
 ### `catalog.getProduct`
 
@@ -60,7 +61,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ q: string }` (min 1) |
-| Output | published products matching name or category name (deduped) + `product_images` |
+| Output | published products matching name or category name (deduped) + `product_images` + `is_sold_out: boolean` |
 
 ---
 

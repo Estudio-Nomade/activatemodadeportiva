@@ -33,6 +33,7 @@ available = stock_on_hand - sum(active reservation qty for variant)
 
 - Reservations with `status = 'active'` count against availability.
 - Catalog `getProduct` exposes **`available`** per variant — use that for cart UI.
+- Catalog `listProducts` / `search` expose **`is_sold_out`** (all variants `available <= 0`, or no variants) for grid badges.
 - Duplicate `variantId` lines are **merged** (sum qty) before stock checks.
 - Only **published** products can be quoted/ordered.
 - `assertLinesInStock`: if any line `qty > available` → `STOCK_INSUFFICIENT`.

@@ -1,12 +1,14 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { variantsWithAvailability } from "@/server/domain/catalog/availability";
+import { categoryIdsInSubtree } from "@/server/domain/catalog/category-tree";
+import { isProductSoldOut } from "@/server/domain/catalog/sold-out";
 import { withImageUrls } from "@/lib/media/product-image";
 import { mapSizeGuide } from "@/lib/media/size-guide";
 import { createTRPCRouter, publicProcedure } from "../init";
 
 const PRODUCT_LIST_SELECT =
-  "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published, product_images(id, storage_path, alt, sort_order)" as const;
+  "id, name, slug, description, list_price_cents, promo_price_cents, category_id, is_published, product_images(id, storage_path, alt, sort_order), product_variants(id, color, size, stock_on_hand)" as const;
 
 type DbImage = {
   id: string;
@@ -52,18 +54,18 @@ export const catalogRouter = createTRPCRouter({
   listProducts: publicProcedure
     .input(z.object({ categorySlug: z.string().optional() }))
     .query(async ({ ctx, input }) => {
-      let categoryId: string | undefined;
+      let categoryIds: string[] | undefined;
       if (input.categorySlug) {
-        const { data: cat, error: catError } = await ctx.db
+        const { data: allCats, error: catsError } = await ctx.db
           .from("categories")
-          .select("id")
-          .eq("slug", input.categorySlug)
-          .maybeSingle();
-        if (catError) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: catError.message });
+          .select("id, parent_id, slug");
+        if (catsError) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: catsError.message });
         }
+        const cat = (allCats ?? []).find((c) => c.slug === input.categorySlug);
         if (!cat) return [];
-        categoryId = cat.id;
+        categoryIds = categoryIdsInSubtree(allCats ?? [], cat.id);
+        if (!categoryIds.length) return [];
       }
 
       let q = ctx.db
@@ -72,11 +74,35 @@ export const catalogRouter = createTRPCRouter({
         .eq("is_published", true)
         .order("name", { ascending: true });
 
-      if (categoryId) q = q.eq("category_id", categoryId);
+      if (categoryIds) q = q.in("category_id", categoryIds);
 
       const { data, error } = await q;
       if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
-      return (data ?? []).map((row) => attachImageUrls(row));
+
+      const rows = data ?? [];
+      const withSoldOut = await Promise.all(
+        rows.map(async (row) => {
+          const variants = await variantsWithAvailability(
+            ctx.db,
+            ((row as { product_variants?: { id: string; color: string; size: string; stock_on_hand: number }[] })
+              .product_variants ?? []) as {
+              id: string;
+              color: string;
+              size: string;
+              stock_on_hand: number;
+            }[],
+          );
+          const { product_variants: _pv, ...rest } = row as typeof row & {
+            product_variants?: unknown;
+          };
+          void _pv;
+          return {
+            ...attachImageUrls(rest),
+            is_sold_out: isProductSoldOut(variants),
+          };
+        }),
+      );
+      return withSoldOut;
     }),
 
   getProduct: publicProcedure
@@ -167,6 +193,28 @@ export const catalogRouter = createTRPCRouter({
       for (const p of [...(byName ?? []), ...byCategory]) {
         if (p) map.set(p.id, p);
       }
-      return Array.from(map.values()).map((row) => attachImageUrls(row));
+      const rows = Array.from(map.values());
+      return Promise.all(
+        rows.map(async (row) => {
+          const variants = await variantsWithAvailability(
+            ctx.db,
+            ((row as { product_variants?: { id: string; color: string; size: string; stock_on_hand: number }[] })
+              .product_variants ?? []) as {
+              id: string;
+              color: string;
+              size: string;
+              stock_on_hand: number;
+            }[],
+          );
+          const { product_variants: _pv, ...rest } = row as typeof row & {
+            product_variants?: unknown;
+          };
+          void _pv;
+          return {
+            ...attachImageUrls(rest),
+            is_sold_out: isProductSoldOut(variants),
+          };
+        }),
+      );
     }),
 });

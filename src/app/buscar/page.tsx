@@ -54,7 +54,7 @@ export default function SearchPage() {
 
       <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
         {(results.data ?? []).map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard key={p.id} product={p} soldOut={p.is_sold_out} />
         ))}
       </div>
     </div>

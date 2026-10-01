@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0+T1+T2 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T3 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline + tracking + home Pencil en branch `feat/frontend-baseline`** (`5ccf0aa` T0, `b68ff4b` T1, T2 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0, `b68ff4b` T1, `031b2f5` T2, T3 pendiente de commit).
 
 Ownership:
 
@@ -237,18 +237,19 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T3 — Categoria chips + agotados (06 / 23 / 46)
+### T3 — Categoria chips + agotados (06 / 23 / 46) ✅
 
-**Ruta:** `src/app/c/[slug]/page.tsx`, `product-card.tsx` (ya tiene prop `soldOut`)
+**Ruta:** `src/app/c/[slug]/page.tsx`, `product-card.tsx`  
+**Domain:** `category-tree`, `sold-out` · **UI helper:** `lib/catalog/category-chips`  
+**API:** `listProducts` / `search` → `is_sold_out`; root slug incluye descendientes
 
-**Hacer:**
-1. Chips subcategorias (hijos del root o siblings)
-2. Badge **Agotado** cuando todas las variantes `available/stock` = 0  
-   - Public list hoy **no** trae variants/available → o extender `listProducts` con flag `is_sold_out` en **domain/catalog**, o query liviana
-   - Si tocas API: actualizar `procedure-map.md`
-3. Empty state categoria
+**Hecho:**
+1. Chips Todas + subcats (root children / child siblings)
+2. Badge Agotado vía `is_sold_out` (available ≤ 0 en todas las variantes)
+3. Empty state con CTAs inicio/buscar
+4. Contracts: `procedure-map.md` + `domain-invariants.md`
 
-**Done:** chips navegan; agotado visible; build OK.
+**Verify:** 10 unit tests · lint 0 err · build OK
 
 ---
 
@@ -422,6 +423,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Emails | ~10% |
 | Tracking visual | ~hecho (T1) |
 | Home Pencil 01/61 | ~hecho (T2) |
+| Categoria chips + agotado | ~hecho (T3) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -430,10 +432,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T3 — Categoria chips + agotados (06 / 23 / 46)**  
-Ruta: `src/app/c/[slug]`, `product-card`. Chips subcats, badge Agotado, empty state.
+**T4 — Menu drawer Pencil (07 / 35)**  
+Ruta: `chrome.tsx`. Drill-down Mujer, iconos no-emoji, WA settings.
 
-T0 + T1 + T2 listos en `feat/frontend-baseline` (commitear T2 cuando digas).
+T0–T3 en `feat/frontend-baseline` (commitear T3 cuando digas).
 
 ---
 
