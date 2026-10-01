@@ -188,10 +188,10 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 - [x] Branch descriptivo (`feat/frontend-baseline` o similar)
 - [x] Stage solo FE relevante (no `.env*`, no basura)
 - [x] `pnpm lint && pnpm build` verdes
-- [ ] Commit GPG: humano corre `git commit -S -m "…"` si el agente no tiene TTY
+- [x] Commit local `5ccf0aa` (sin GPG: no hay clave secreta en este entorno; re-firmar con `-S` si hace falta)
 - [x] Actualizar `docs/ONBOARDING.md` (todavia dice “UI is next track”)
 
-**Done:** `git status` limpio de FE o PR abierto con baseline. (Staged on `feat/frontend-baseline`; human signs commit.)
+**Done:** baseline en `feat/frontend-baseline` (`5ccf0aa`). Working tree limpio.
 
 ---
 
