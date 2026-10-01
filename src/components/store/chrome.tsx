@@ -5,12 +5,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart/store";
+import { formatPromoBarCopy } from "@/lib/format/promo";
 import { trpc } from "@/lib/trpc/client";
 
 export function PromoBar() {
+  const settings = trpc.settings.getPublic.useQuery();
+  const bps = settings.data?.payment_discount_bps ?? 1000;
   return (
     <div className="store-promo bg-bar px-4 py-2.5 text-center text-[11px] font-semibold tracking-[0.06em] text-inverse">
-      10% DE DESCUENTO CON TRANSFERENCIA
+      {formatPromoBarCopy(bps)}
     </div>
   );
 }

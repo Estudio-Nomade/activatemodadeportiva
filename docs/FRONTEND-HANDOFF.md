@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (sesion FE scaffold + P0 parcial)
+**Fecha de este handoff:** 2026-04-01 (T0+T1+T2 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend esta scaffolded localmente y casi todo sin commit** (muchos untracked + modified).
+**Frontend baseline + tracking + home Pencil en branch `feat/frontend-baseline`** (`5ccf0aa` T0, `b68ff4b` T1, T2 pendiente de commit).
 
 Ownership:
 
@@ -170,9 +170,9 @@ Tratalo como baseline. Mejorar si la tarea lo pide; no reescribir de cero.
 - `pnpm build` → OK
 
 ### Git status (importante)
-Mucho FE **untracked/modified en `main` sin push**. Antes de features grandes:
-1. `git status`
-2. Considerar branch `feat/frontend-baseline` y commit firmado (`git commit -S`) de lo ya hecho
+Baseline FE + T1 en **`feat/frontend-baseline`** (working tree limpio al cerrar T1).
+1. Seguir tareas en branch feature o cortar `feat/<tarea>` desde acá
+2. Commit firmado cuando haya GPG (`git commit -S`)
 3. No commitear `.env.local` / secrets
 
 ---
@@ -195,31 +195,20 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T1 — Tracking timeline visual (P0 restante UX post-compra)
+### T1 — Tracking timeline visual (P0 restante UX post-compra) ✅
 
+**Commit:** `b68ff4b` — `feat: order tracking timeline and status banners`  
 **Pencil:** 09, 18, 26, 27, 32, 36, 41–43, 50  
-**Ruta:** `src/app/pedido/page.tsx` (+ opcional `/pedido/[token]`)
+**Ruta:** `src/app/pedido/page.tsx`
 
-**Hoy:** lista status + items + upload; **no** hay timeline dots/lineas ni banners por estado.
+**Hecho:**
+1. `OrderTimeline` — dots/línea; step 4 = `listo_retiro` **o** `enviado` según `shipping_method`
+2. `OrderStatusBanner` — pendiente 24h, listo, en camino, entregado, cancelado
+3. Empty not-found + toast comprobante
+4. Totals solo de API; `access_token` solo vía token (no getByCode)
 
-**Hacer:**
-1. Componente `OrderTimeline` con steps:
-   - `pendiente_pago` → recibido
-   - `pago_confirmado`
-   - `preparando`
-   - `listo_retiro` **o** `enviado` (segun `shipping_method`)
-   - `entregado`
-   - `cancelado` = estado terminal con banner (frame 36)
-2. Banners:
-   - pendiente + reserva 24h (`reservation_expires_at`)
-   - listo retiro
-   - enviado (+ guia si algun dia existe tracking number — hoy puede no haber campo; no inventar DB sin contrato)
-   - comprobante subido toast (50)
-3. Codigo invalido empty state (32)
-4. No exponer `access_token` en getByCode
-
-**Done:** cada status del enum se ve distinto y legible mobile 390. Lint/build OK.  
-**No:** recalcular totales; no inventar REST.
+**Verify:** 5 tests OK · lint 0 err · build OK  
+**Archivos:** `src/components/store/order-*.tsx`, `/pedido`, `order-timeline.test.ts`
 
 - [x] `OrderTimeline` + `OrderStatusBanner` (`src/components/store/order-*.tsx`)
 - [x] `/pedido` banners, empty not-found, toast comprobante
@@ -228,20 +217,23 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T2 — Home fidelidad Pencil (01 + 61)
+### T2 — Home fidelidad Pencil (01 + 61) ✅
 
-**Ruta:** `src/app/page.tsx`, `src/components/store/chrome.tsx`
+**Ruta:** `src/app/page.tsx`, `src/components/store/chrome.tsx`  
+**Helpers:** `src/lib/format/promo.ts`, `src/lib/media/category-tile.ts`  
+**Assets:** `public/home/hero.jpg`, `public/categories/{mujer,hombre,accesorios,fallback}.jpg`
 
-**Hoy:** hero Unsplash generico + lista cats + 4 benefits. Falta:
-- Promo bar dinamica desde settings (discount bps / copy)
-- Hero overlay como pen (season_label)
-- Tiles categoria con imagen + overlay (hoy sin imagenes de cat)
-- Brand block
-- Desktop 61: hero split + nav desktop ya parcial
+**Hecho:**
+1. Promo bar desde `settings.payment_discount_bps` (`formatPromoBarCopy`)
+2. Hero mobile overlay + `season_label`; desktop split (61)
+3. Tiles cat con imagen estática por slug + overlay (sin CMS)
+4. Brand block (logo + copy + CTAs)
+5. Benefits con % off dinámico
 
-**Opciones imagen cat:** placeholder/brand o campo futuro; **no** inventar CMS (out of PRD). Puede ser imagen estatica en `public/` por root slug (`mujer|hombre|accesorios`).
+**Verify:** 7 tests OK · lint 0 err · build OK  
+**Commit:** pendiente (working tree dirty en `feat/frontend-baseline`)
 
-**Done:** mobile se parece a frame 01; desktop no se rompe. Settings season/discount visibles.
+**Done:** mobile ~frame 01; desktop split sin romper; season/discount visibles.
 
 ---
 
@@ -428,7 +420,8 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Fidelidad visual mobile | ~45–55% |
 | Desktop polish | ~25% |
 | Emails | ~10% |
-| Tracking visual | ~30% |
+| Tracking visual | ~hecho (T1) |
+| Home Pencil 01/61 | ~hecho (T2) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -437,10 +430,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**Empezar por T1 — Tracking timeline visual**  
-(alto valor post-compra, scope acotado, no depende de CMS).
+**T3 — Categoria chips + agotados (06 / 23 / 46)**  
+Ruta: `src/app/c/[slug]`, `product-card`. Chips subcats, badge Agotado, empty state.
 
-Si el baseline no esta commiteado: **T0 primero**.
+T0 + T1 + T2 listos en `feat/frontend-baseline` (commitear T2 cuando digas).
 
 ---
 
