@@ -378,19 +378,20 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T13 — Smoke QA end-to-end (antes de “listo cliente”) ✅ (automatizado)
+### T13 — Smoke QA end-to-end (antes de “listo cliente”) ✅ parcial
 
-Checklist:
+**Automatizado (agente, 2026-04-01):**
+- `pnpm lint` → 0 errors
+- `pnpm build` → OK
+- Unit tests (sin Supabase): **69 passed**
+- Integration (`place-order`, `transitions`, `expire-reservations`, smoke): **timeout** — Supabase local no corría (`supabase status` sin container). Requiere: `pnpm exec supabase start` + `.env.test.local` + `pnpm test`
 
-1. Manual browser (humano): Home → cat → PDP → cart → checkout → proof → admin → timeline
-2. Manual: cash+pickup OK; cash+Andreani bloqueado
-3. Manual: stock max / `STOCK_INSUFFICIENT`
-4. Manual: admin product + foto + guía + publish
-5. Manual: PWA manifest + SW
-6. `pnpm test` — ver resultado en commit T13
-7. `pnpm lint` + `pnpm build` — ver resultado en commit T13
-
-**Agente:** ejecutó lint/build/test suite; smoke manual browser queda a cargo humano pre-prod.
+**Manual pre-prod (humano):**
+1. Home → cat → PDP → cart → checkout transfer+Andreani (Photon) → exito → proof → admin confirma → timeline
+2. cash+pickup OK; cash+Andreani bloqueado
+3. Stock max / `STOCK_INSUFFICIENT`
+4. Admin product + foto + guía + publish
+5. PWA manifest + SW + A2HS
 
 ---
 
@@ -463,6 +464,8 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Size guides admin CRUD | ~hecho (T9) |
 | Desktop layouts | ~hecho (T10) |
 | Emails brand templates | ~hecho (T11) |
+| Legales/contacto settings | ~hecho (T12) |
+| Smoke QA | parcial (lint/build/unit OK; integration + browser manual) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -471,13 +474,13 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T12 — legales / contacto desde settings**  
-**T13 — smoke QA** end-to-end.
+**Cola T0–T13 cerrada en código** (`feat/frontend-baseline`).  
+Siguiente humano: integration tests con Supabase local, smoke browser, PR a `main`, ops migrations/buckets/email.
 
-T0–T11 en `feat/frontend-baseline`.
-
-**Ops T9:** migration bucket `size-guides`.  
-**Ops T11:** `RESEND_API_KEY`, `EMAIL_FROM`, `NEXT_PUBLIC_APP_URL`.
+**Ops:**
+- T9: migration bucket `size-guides`
+- T11: `RESEND_API_KEY`, `EMAIL_FROM`, `NEXT_PUBLIC_APP_URL`
+- T13: `supabase start` + `pnpm test` full
 
 ---
 
