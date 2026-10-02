@@ -81,9 +81,20 @@ export default function AdminConfigPage() {
         });
       }}
     >
+      <div className="field">
+        <label htmlFor="season_label">Temporada / colección (hero)</label>
+        <input
+          id="season_label"
+          value={form.season_label}
+          onChange={(e) => patch("season_label", e.target.value)}
+        />
+        <p className="text-xs text-muted">
+          Se muestra arriba de “Disciplina en movimiento” en la home.
+        </p>
+      </div>
+
       {(
         [
-          ["season_label", "Temporada (header)"],
           ["whatsapp_url_or_phone", "WhatsApp (url o teléfono)"],
           ["instagram_url", "Instagram URL"],
           ["transfer_cbu_alias_text", "Alias / CBU"],

@@ -348,6 +348,17 @@ span[data-nimg="fill"] > img {
   max-width: min(100%, 20rem);
 }
 
+.home-hero__season {
+  margin: 0 0 0.625rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-inverse) 88%, transparent);
+}
+
 .home-hero__title {
   font-family: var(--font-display);
   font-weight: 700;
@@ -381,6 +392,10 @@ span[data-nimg="fill"] > img {
 }
 
 @media (min-width: 640px) {
+  .home-hero__season {
+    font-size: 0.8125rem;
+  }
+
   .home-hero__title {
     font-size: clamp(2rem, 5vw, 2.5rem);
   }
@@ -395,6 +410,12 @@ span[data-nimg="fill"] > img {
 }
 
 @media (min-width: 768px) {
+  .home-hero__season {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.12em;
+  }
+
   .home-hero__title {
     font-size: clamp(2.5rem, 4.5vw, 2.75rem);
   }
