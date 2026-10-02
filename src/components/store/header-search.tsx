@@ -26,11 +26,12 @@ export function buildSearchHref(q: string): string {
 }
 
 type HeaderSearchProps = {
-  /** Desktop expands inline; mobile navigates to /buscar */
   variant: "desktop" | "mobile";
+  /** Notify parent (e.g. hide mobile logo while open) */
+  onOpenChange?: (open: boolean) => void;
 };
 
-export function HeaderSearch({ variant }: HeaderSearchProps) {
+export function HeaderSearch({ variant, onOpenChange }: HeaderSearchProps) {
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -39,6 +40,14 @@ export function HeaderSearch({ variant }: HeaderSearchProps) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
+
+  const setOpenBoth = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      onOpenChange?.(next);
+    },
+    [onOpenChange],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -53,14 +62,14 @@ export function HeaderSearch({ variant }: HeaderSearchProps) {
   }, [open]);
 
   const close = useCallback(() => {
-    setOpen(false);
+    setOpenBoth(false);
     setQ("");
     setDebounced("");
     window.requestAnimationFrame(() => triggerRef.current?.focus());
-  }, []);
+  }, [setOpenBoth]);
 
   useEffect(() => {
-    if (!open || variant !== "desktop") return;
+    if (!open) return;
 
     function onPointerDown(e: MouseEvent) {
       if (!rootRef.current?.contains(e.target as Node)) close();
@@ -77,19 +86,15 @@ export function HeaderSearch({ variant }: HeaderSearchProps) {
       document.removeEventListener("mousedown", onPointerDown);
       window.removeEventListener("keydown", onKey);
     };
-  }, [open, variant, close]);
+  }, [open, close]);
 
   const results = trpc.catalog.search.useQuery(
     { q: debounced },
-    { enabled: variant === "desktop" && open && debounced.length >= 1 },
+    { enabled: open && debounced.length >= 1 },
   );
 
   function openSearch() {
-    if (variant === "mobile") {
-      router.push("/buscar");
-      return;
-    }
-    setOpen(true);
+    setOpenBoth(true);
   }
 
   function onSubmit(e: FormEvent) {
@@ -107,34 +112,37 @@ export function HeaderSearch({ variant }: HeaderSearchProps) {
     }
   }
 
-  if (variant === "mobile") {
-    return (
-      <button
-        type="button"
-        ref={triggerRef}
-        className="grid h-11 w-11 place-items-center text-text"
-        aria-label="Buscar"
-        onClick={openSearch}
-      >
-        <IconSearch />
-      </button>
-    );
-  }
-
   const showPanel = open && debounced.length >= 1;
   const items = (results.data ?? []).slice(0, PANEL_LIMIT);
   const total = results.data?.length ?? 0;
+  const isMobile = variant === "mobile";
+
+  const fieldOpenClass = isMobile
+    ? "header-search__field--open header-search__field--mobile max-w-none flex-1 opacity-100"
+    : "header-search__field--open max-w-[280px] opacity-100";
+
+  const formWidthClass = isMobile
+    ? "h-10 w-full min-w-0"
+    : "h-10 w-[min(280px,28vw)]";
+
+  const triggerSize = isMobile ? "h-11" : "h-10";
+  const triggerClosed = isMobile ? "w-11 opacity-100" : "w-10 opacity-100";
 
   return (
-    <div ref={rootRef} className="header-search relative flex items-center">
+    <div
+      ref={rootRef}
+      className={`header-search relative flex items-center ${
+        isMobile && open ? "min-w-0 flex-1" : ""
+      }`}
+    >
       <div
         className={`header-search__field overflow-hidden transition-[max-width,opacity] duration-200 ease-out ${
-          open ? "header-search__field--open max-w-[280px] opacity-100" : "max-w-0 opacity-0"
+          open ? fieldOpenClass : "max-w-0 opacity-0"
         }`}
         aria-hidden={!open}
       >
         <form
-          className="flex h-10 w-[min(280px,28vw)] items-center gap-1 rounded-full border border-border bg-surface pl-3 pr-1"
+          className={`flex items-center gap-1 rounded-full border border-border bg-surface pl-3 pr-1 ${formWidthClass}`}
           onSubmit={onSubmit}
           role="search"
         >
@@ -167,8 +175,8 @@ export function HeaderSearch({ variant }: HeaderSearchProps) {
       <button
         type="button"
         ref={triggerRef}
-        className={`grid h-10 place-items-center text-text hover:text-accent transition-[width,opacity] duration-200 ${
-          open ? "pointer-events-none w-0 overflow-hidden opacity-0" : "w-10 opacity-100"
+        className={`grid place-items-center text-text hover:text-accent transition-[width,opacity] duration-200 ${triggerSize} ${
+          open ? "pointer-events-none w-0 overflow-hidden opacity-0" : triggerClosed
         }`}
         aria-label="Buscar"
         aria-expanded={open}
@@ -182,7 +190,11 @@ export function HeaderSearch({ variant }: HeaderSearchProps) {
       {showPanel ? (
         <div
           id={listId}
-          className="header-search__panel absolute right-0 top-full z-50 mt-2 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-[12px] border border-border bg-surface shadow-lg"
+          className={`header-search__panel absolute z-50 mt-2 overflow-hidden rounded-[12px] border border-border bg-surface shadow-lg ${
+            isMobile
+              ? "left-0 right-0 top-full w-auto min-w-[min(100%,calc(100vw-1rem))]"
+              : "right-0 top-full w-[min(360px,calc(100vw-2rem))]"
+          }`}
         >
           {results.isLoading ? (
             <p className="px-4 py-3 text-sm text-muted">Buscando…</p>

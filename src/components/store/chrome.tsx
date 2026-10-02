@@ -107,6 +107,7 @@ export function StoreHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   /** null = root list; string = expanded root category id (drill-down) */
   const [expandedRootId, setExpandedRootId] = useState<string | null>(null);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const cats = trpc.catalog.listCategories.useQuery();
 
   const roots = (cats.data ?? [])
@@ -164,30 +165,38 @@ export function StoreHeader() {
     <>
       {/* Opaque white header only — never transparent over hero */}
       <header className="store-header w-full border-b border-border bg-surface">
-        {/* Mobile: ☰ | logo | 🔍 🛒 — single white row */}
-        <div className="mx-auto grid h-14 w-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-1 bg-surface px-2 sm:px-3 lg:hidden">
-          <button
-            type="button"
-            className="grid h-11 w-11 shrink-0 place-items-center text-text"
-            aria-label="Abrir menú"
-            onClick={openMenu}
-          >
-            <IconMenu />
-          </button>
+        {/* Mobile: ☰ | logo | 🔍 🛒 — search expands left (logo/menu yield space) */}
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center gap-1 bg-surface px-2 sm:px-3 lg:hidden">
+          {!mobileSearchOpen ? (
+            <button
+              type="button"
+              className="grid h-11 w-11 shrink-0 place-items-center text-text"
+              aria-label="Abrir menú"
+              onClick={openMenu}
+            >
+              <IconMenu />
+            </button>
+          ) : null}
 
-          <Link
-            href="/"
-            className="flex min-w-0 max-w-[200px] items-center justify-center justify-self-center overflow-hidden"
-            aria-label="Activate — inicio"
-          >
-            <BrandLogo size="sm" />
-          </Link>
+          {!mobileSearchOpen ? (
+            <Link
+              href="/"
+              className="flex min-w-0 flex-1 items-center justify-center overflow-hidden"
+              aria-label="Activate — inicio"
+            >
+              <BrandLogo size="sm" />
+            </Link>
+          ) : null}
 
-          <div className="flex shrink-0 items-center justify-end">
-            <HeaderSearch variant="mobile" />
+          <div
+            className={`flex items-center justify-end ${
+              mobileSearchOpen ? "min-w-0 flex-1 gap-1" : "shrink-0"
+            }`}
+          >
+            <HeaderSearch variant="mobile" onOpenChange={setMobileSearchOpen} />
             <Link
               href="/carrito"
-              className="relative grid h-11 w-11 place-items-center text-text"
+              className="relative grid h-11 w-11 shrink-0 place-items-center text-text"
               aria-label="Carrito"
             >
               <IconCart />

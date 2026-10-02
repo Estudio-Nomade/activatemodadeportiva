@@ -328,7 +328,7 @@ span[data-nimg="fill"] > img {
   background-color: var(--surface);
 }
 
-/* Desktop header search: expands left from magnifier */
+/* Header search: expands left from magnifier (desktop + mobile) */
 .header-search__field {
   max-width: 0;
   opacity: 0;
@@ -340,6 +340,13 @@ span[data-nimg="fill"] > img {
   opacity: 1;
   pointer-events: auto;
   margin-right: 0.125rem;
+}
+
+.header-search__field--mobile.header-search__field--open {
+  max-width: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
 }
 
 .header-search input[type="search"]::-webkit-search-decoration,
