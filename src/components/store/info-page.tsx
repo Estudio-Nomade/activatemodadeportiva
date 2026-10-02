@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { instagramHref } from "@/lib/contact/instagram";
 import { whatsappHref } from "@/lib/contact/whatsapp";
 import { discountPercentFromBps } from "@/lib/format/promo";
 import { formatArsCents } from "@/lib/format/money";
@@ -22,7 +22,7 @@ export function usePublicStoreSettings() {
 export function ContactLinks() {
   const { data } = usePublicStoreSettings();
   const wa = whatsappHref(data?.whatsapp);
-  const ig = data?.instagram?.trim();
+  const ig = instagramHref(data?.instagram);
   const email = data?.contact_email?.trim();
   return (
     <div className="flex flex-col gap-2 pt-2">
@@ -31,23 +31,17 @@ export function ContactLinks() {
           WhatsApp
         </a>
       ) : null}
-      {ig ? (
-        <a href={ig} target="_blank" rel="noreferrer" className="font-semibold text-accent">
-          Instagram
-        </a>
-      ) : null}
+      <a href={ig} target="_blank" rel="noreferrer" className="font-semibold text-accent">
+        Instagram · @activate.ropa.deportiva
+      </a>
       {email ? (
         <a href={`mailto:${email}`} className="font-semibold text-accent">
           {email}
         </a>
       ) : null}
-      {!wa && !ig && !email ? (
+      {!wa && !email ? (
         <p className="text-sm text-muted">
-          Contacto aún no configurado.{" "}
-          <Link href="/contacto" className="text-accent underline">
-            Ver página de contacto
-          </Link>
-          .
+          WhatsApp / email se configuran en admin. Instagram ya está disponible arriba.
         </p>
       ) : null}
     </div>

@@ -75,5 +75,6 @@ update public.store_settings set
   payment_discount_bps = 1000,
   andreani_fee_cents = 450000,
   free_shipping_threshold_cents = 8000000,
-  season_label = 'Colección Primavera / Verano'
+  season_label = 'Colección Primavera / Verano',
+  instagram_url = 'https://www.instagram.com/activate.ropa.deportiva/'
 where id = 1;

@@ -1,18 +1,18 @@
 "use client";
 
 import {
-  ContactLinks,
   InfoShell,
   StoreAddressBlock,
   usePublicStoreSettings,
 } from "@/components/store/info-page";
+import { instagramHref } from "@/lib/contact/instagram";
 import { whatsappHref } from "@/lib/contact/whatsapp";
 
 export default function ContactoPage() {
   const { data, isLoading } = usePublicStoreSettings();
   const waHref = whatsappHref(data?.whatsapp);
   const email = data?.contact_email?.trim();
-  const ig = data?.instagram?.trim();
+  const ig = instagramHref(data?.instagram);
 
   return (
     <InfoShell title="Contacto">
@@ -36,18 +36,16 @@ export default function ContactoPage() {
         ) : (
           <p className="text-sm">WhatsApp aún no configurado en admin.</p>
         )}
-        {ig ? (
-          <a
-            href={ig}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-secondary max-w-xs"
-          >
-            Instagram
-          </a>
-        ) : null}
+        <a href={ig} target="_blank" rel="noreferrer" className="btn btn-secondary max-w-xs">
+          Instagram
+        </a>
       </div>
-      <ContactLinks />
+      <p className="text-sm">
+        Seguinos:{" "}
+        <a href={ig} target="_blank" rel="noreferrer" className="font-semibold text-accent">
+          @activate.ropa.deportiva
+        </a>
+      </p>
     </InfoShell>
   );
 }

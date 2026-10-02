@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart/store";
+import { instagramHref } from "@/lib/contact/instagram";
 import { whatsappHref } from "@/lib/contact/whatsapp";
 import { formatPromoBarCopy } from "@/lib/format/promo";
 import { trpc } from "@/lib/trpc/client";
@@ -443,7 +444,7 @@ export function StoreHeader() {
 export function StoreFooter() {
   const settings = trpc.settings.getPublic.useQuery();
   const wa = whatsappHref(settings.data?.whatsapp);
-  const ig = settings.data?.instagram?.trim();
+  const ig = instagramHref(settings.data?.instagram);
 
   return (
     <footer className="mt-auto border-t border-border bg-surface-soft">
@@ -473,6 +474,7 @@ export function StoreFooter() {
           </Link>
         </div>
         <div className="flex flex-col gap-2 text-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">Redes</p>
           {wa ? (
             <a
               href={wa}
@@ -486,11 +488,15 @@ export function StoreFooter() {
           ) : (
             <span className="text-muted">WhatsApp (configurar en admin)</span>
           )}
-          {ig ? (
-            <a href={ig} target="_blank" rel="noreferrer" className="text-muted hover:text-text">
-              Instagram
-            </a>
-          ) : null}
+          <a
+            href={ig}
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-accent hover:opacity-90"
+          >
+            Instagram
+          </a>
+          <span className="text-xs text-muted">@activate.ropa.deportiva</span>
           <Link href="/contacto" className="text-muted hover:text-text">
             Contacto
           </Link>
