@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v1";
+const CACHE = "activate-pwa-v5-type-scale";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",
@@ -58,6 +58,11 @@ self.addEventListener("fetch", (event) => {
           return cached || caches.match("/") || Response.error();
         }),
     );
+    return;
+  }
+
+  // Never cache CSS long-term with stale brand tokens (dev + deploy)
+  if (url.pathname.endsWith(".css") || url.pathname.includes("globals")) {
     return;
   }
 

@@ -1,21 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap");
 @import "tailwindcss";
 
+/* Brand SoT: Identidad visual — Montserrat display + Inter body. */
 :root {
-  --bg: #f7f4ef;
-  --surface: #ffffff;
-  --surface-soft: #efeae3;
-  --text: #2c2a28;
-  --text-muted: #7a756e;
-  --text-inverse: #ffffff;
-  --accent: #2f6f6a;
-  --accent-soft: #e4f0ee;
-  --promo: #c45c4a;
-  --border: #e5dfd6;
-  --bar: #2f6f6a;
-  --success: #3d7a5a;
-  --danger: #b54040;
-  --wa: #25d366;
+  --bg: #f3eee7;
+  --surface: #faf7f3;
+  --surface-soft: #e8e0d6;
+  --text: #12100f;
+  --text-muted: #7a736c;
+  --text-inverse: #faf7f3;
+  --accent: #1a1816;
+  --accent-soft: #ede6dd;
+  --promo: #8f5e4a;
+  --border: #d6cdc3;
+  --bar: #f3eee7;
+  --success: #5c5346;
+  --danger: #9a4540;
+  --wa: #1a1816;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -26,6 +26,21 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --header-offset: calc(var(--safe-top) + 0px);
   --bottom-nav-h: calc(64px + var(--safe-bottom));
+
+  --font-display: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --text-h1: 52px;
+  --lh-h1: 1.1;
+  --text-h2: 36px;
+  --lh-h2: 1.2;
+  --text-h3: 26px;
+  --lh-h3: 1.25;
+  --text-body: 16px;
+  --lh-body: 1.5;
+  --text-caption: 12px;
+  --lh-caption: 1.5;
+  --text-cta: 14px;
+  --lh-cta: 1.25;
 }
 
 @theme inline {
@@ -43,7 +58,7 @@
   --color-success: var(--success);
   --color-danger: var(--danger);
   --color-wa: var(--wa);
-  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-sans: var(--font-body);
 }
 
 * {
@@ -64,13 +79,66 @@ body {
   min-height: 100dvh;
   background: var(--bg);
   color: var(--text);
-  font-family: "DM Sans", system-ui, sans-serif;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
-  /* standalone PWA: keep content clear of home indicator via components */
+}
+
+/* Type scale */
+.type-h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+}
+
+.type-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+}
+
+.type-h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+}
+
+.type-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.type-caption {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.type-cta {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-cta);
+  line-height: var(--lh-cta);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
 }
 
 /* Mobile-first touch targets & iOS quirks */
@@ -111,6 +179,13 @@ video {
   height: auto;
 }
 
+/* next/image fill must keep explicit height */
+img[style*="position:absolute"],
+span[data-nimg="fill"] > img {
+  max-width: none;
+  height: 100%;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -118,8 +193,10 @@ video {
   gap: 8px;
   border: 0;
   cursor: pointer;
-  font-weight: 700;
-  font-size: 14px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-cta);
+  line-height: var(--lh-cta);
   border-radius: var(--radius-pill);
   padding: 0 20px;
   min-height: 48px;
@@ -163,8 +240,10 @@ video {
 }
 
 .field label {
-  font-size: 12px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
   font-weight: 600;
+  line-height: var(--lh-caption);
   color: var(--text-muted);
 }
 
@@ -192,17 +271,34 @@ video {
   min-width: 48px;
   padding: 0 14px;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid transparent;
+  background: var(--surface-soft);
+  font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .chip[data-active="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--text-inverse);
+}
+
+/* PDP size tiles (Pencil 02) */
+.chip-size {
+  min-width: 48px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.chip-size[data-active="true"] {
   border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--accent);
+  color: var(--text-inverse);
 }
 
 .chip:disabled {
@@ -210,13 +306,138 @@ video {
   cursor: not-allowed;
 }
 
-/* Sticky store chrome: respect notch / home indicator */
-.store-promo {
-  padding-top: max(10px, var(--safe-top));
+/* Sticky store chrome: opaque stack — hero never paints through */
+.store-chrome {
+  background-color: var(--surface);
+  isolation: isolate;
 }
 
-.store-header-sticky {
-  top: 0;
+.store-promo {
+  background-color: var(--bg);
+  padding-top: max(8px, var(--safe-top));
+  padding-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  line-height: var(--lh-caption);
+}
+
+.store-header {
+  position: relative;
+  background-color: #ffffff;
+  background-color: var(--surface);
+}
+
+.brand-logo__mark {
+  max-width: none;
+  object-fit: contain;
+}
+
+.brand-wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+/* Hero alignment locked in CSS (no JS reflow after hydrate) */
+.home-hero__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+
+.home-hero__claim {
+  margin-right: auto;
+  margin-left: 0;
+  text-align: left;
+  max-width: min(100%, 20rem);
+}
+
+.home-hero__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 7.2vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-inverse);
+}
+
+.home-hero__title > span {
+  display: block;
+  white-space: nowrap;
+}
+
+.home-hero__sub {
+  margin-top: 0.75rem;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--text-inverse) 95%, transparent);
+}
+
+.home-hero__sub > span {
+  display: block;
+}
+
+.home-hero__cta {
+  align-self: flex-start;
+}
+
+@media (min-width: 640px) {
+  .home-hero__title {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+  }
+
+  .home-hero__sub {
+    font-size: var(--text-body);
+  }
+
+  .home-hero__claim {
+    max-width: min(100%, 22rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .home-hero__title {
+    font-size: clamp(2.5rem, 4.5vw, 2.75rem);
+  }
+
+  .home-hero__sub {
+    margin-top: 1rem;
+  }
+
+  .home-hero__claim {
+    max-width: min(100%, 24rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero__title {
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+  }
+
+  .home-hero__claim {
+    max-width: min(100%, 28rem);
+  }
+}
+
+/* Pencil 07/35 — drawer slides from left */
+.menu-drawer {
+  animation: menu-drawer-in 0.2s ease-out;
+}
+
+@keyframes menu-drawer-in {
+  from {
+    transform: translateX(-12px);
+    opacity: 0.92;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .wa-fab {

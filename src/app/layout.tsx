@@ -1,14 +1,29 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Montserrat } from "next/font/google";
 import { CartProvider } from "@/lib/cart/store";
 import { TRPCProvider } from "@/lib/trpc/provider";
 import { StoreShell } from "@/components/store/shell";
 import { RegisterServiceWorker } from "@/components/pwa/register-sw";
 import "./globals.css";
 
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
 const APP_NAME = "Activate Moda Deportiva";
 const APP_DESC =
   "Moda deportiva. Retiro en local o envío Andreani. Transferencia o efectivo.";
-const THEME = "#2F6F6A";
+const THEME = "#1A1816";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,
@@ -57,7 +72,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es-AR">
+    <html lang="es-AR" className={`${montserrat.variable} ${inter.variable}`}>
       <body className="min-h-dvh bg-bg text-text antialiased">
         <TRPCProvider>
           <CartProvider>
