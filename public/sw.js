@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v6-hero-season";
+const CACHE = "activate-pwa-v7-home-cat-blocks";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",

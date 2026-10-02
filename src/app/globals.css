@@ -333,12 +333,67 @@ span[data-nimg="fill"] > img {
   object-fit: contain;
 }
 
-/* Hero alignment locked in CSS (no JS reflow after hydrate) */
+/* Hero: shorter on mobile so category tiles fit first screen */
+.home-hero {
+  min-height: 44vh;
+}
+
 .home-hero__content {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   align-items: stretch;
+  min-height: 44vh;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .home-hero {
+    min-height: 72vh;
+  }
+
+  .home-hero__content {
+    min-height: 72vh;
+    gap: 2rem;
+    padding-top: 2.5rem;
+    padding-bottom: 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero {
+    min-height: min(78vh, 720px);
+  }
+
+  .home-hero__content {
+    min-height: min(78vh, 720px);
+  }
+}
+
+/* Home category accordion tiles */
+.home-cat__tile {
+  position: relative;
+  display: block;
+  height: 4.75rem; /* 76px — 3 tiles + hero on ~390×700 */
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .home-cat__tile {
+    height: 11.25rem; /* 180px */
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-cat__tile {
+    height: 12.5rem; /* 200px */
+  }
+}
+
+.home-cat__panel[hidden] {
+  display: none;
 }
 
 .home-hero__claim {
