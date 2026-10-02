@@ -20,7 +20,7 @@ export default function HomePage() {
   return (
     <div>
       {/* Mobile: full-bleed hero · Desktop 61: split hero */}
-      <section className="md:grid md:min-h-[480px] md:grid-cols-2 md:bg-surface">
+      <section className="md:grid md:min-h-[520px] md:grid-cols-2 md:overflow-hidden md:rounded-b-[24px] md:bg-surface lg:min-h-[560px]">
         <div className="relative flex min-h-[280px] flex-col justify-end overflow-hidden md:min-h-full md:order-2">
           <Image
             src="/home/hero.jpg"
@@ -48,28 +48,28 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="hidden flex-col justify-center gap-5 px-10 py-16 md:flex md:order-1">
+        <div className="hidden flex-col justify-center gap-5 px-10 py-16 md:flex md:order-1 md:px-12 lg:px-16 lg:py-20">
           <p className="text-xs font-semibold tracking-[0.14em] text-muted uppercase">{season}</p>
-          <h1 className="max-w-[12ch] text-5xl font-bold leading-[1.1] text-text">
+          <h1 className="max-w-[12ch] text-5xl font-bold leading-[1.1] text-text lg:text-6xl">
             Movete a tu ritmo
           </h1>
-          <p className="max-w-md text-base text-muted">
+          <p className="max-w-md text-base text-muted lg:text-lg">
             Moda deportiva para entrenar y vivir el día. Retiro en San Manuel o envío Andreani.
           </p>
-          <Link href={primaryHref} className="btn btn-primary mt-2 max-w-[240px]">
+          <Link href={primaryHref} className="btn btn-primary mt-2 max-w-[260px]">
             Ver colección
           </Link>
         </div>
       </section>
 
-      <section className="space-y-3 px-4 py-6 md:px-6 md:py-10">
-        <h2 className="text-lg font-bold md:text-xl">Comprá por categoría</h2>
-        <div className="flex flex-col gap-2.5 md:grid md:grid-cols-3 md:gap-4">
+      <section className="space-y-3 px-4 py-6 md:px-6 md:py-12 lg:px-8 lg:py-14">
+        <h2 className="text-lg font-bold md:text-xl lg:text-2xl">Comprá por categoría</h2>
+        <div className="flex flex-col gap-2.5 md:grid md:grid-cols-3 md:gap-5">
           {roots.map((root) => (
             <Link
               key={root.id}
               href={`/c/${root.slug}`}
-              className="group relative block h-[100px] overflow-hidden rounded-[12px] md:h-[160px]"
+              className="group relative block h-[100px] overflow-hidden rounded-[12px] md:h-[180px] lg:h-[200px] lg:rounded-[16px]"
             >
               <Image
                 src={categoryTileImageSrc(root.slug)}
@@ -94,22 +94,25 @@ export default function HomePage() {
         ) : null}
       </section>
 
-      <section className="grid grid-cols-2 gap-2.5 px-4 pb-6 md:grid-cols-4 md:gap-3 md:px-6 md:pb-10">
+      <section className="grid grid-cols-2 gap-2.5 px-4 pb-6 md:grid-cols-4 md:gap-4 md:px-6 md:pb-12 lg:px-8 lg:pb-14">
         {[
           { t: `${discPct}% off`, d: "Transferencia o efectivo" },
           { t: "Envíos", d: "Andreani a todo el país" },
           { t: "Cambios", d: "Consultanos por WhatsApp" },
           { t: "Local", d: "Retiro en San Manuel" },
         ].map((b) => (
-          <div key={b.t} className="rounded-[12px] border border-border bg-surface p-3.5 md:p-4">
-            <p className="text-[13px] font-bold text-text">{b.t}</p>
+          <div
+            key={b.t}
+            className="rounded-[12px] border border-border bg-surface p-3.5 md:p-5 lg:rounded-[16px]"
+          >
+            <p className="text-[13px] font-bold text-text md:text-sm">{b.t}</p>
             <p className="mt-1 text-[11px] text-muted md:text-sm">{b.d}</p>
           </div>
         ))}
       </section>
 
-      <section className="mx-4 mb-10 overflow-hidden rounded-[16px] border border-border bg-surface md:mx-6">
-        <div className="flex flex-col items-center gap-4 px-6 py-10 text-center md:flex-row md:gap-10 md:px-12 md:py-12 md:text-left">
+      <section className="mx-4 mb-10 overflow-hidden rounded-[16px] border border-border bg-surface md:mx-6 md:mb-14 lg:mx-8 lg:rounded-[20px]">
+        <div className="flex flex-col items-center gap-4 px-6 py-10 text-center md:flex-row md:gap-10 md:px-12 md:py-14 md:text-left lg:px-16">
           <Image
             src="/brand/logo.png"
             alt="Activate"

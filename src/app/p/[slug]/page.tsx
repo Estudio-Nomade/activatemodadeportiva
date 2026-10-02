@@ -85,9 +85,9 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="grid gap-6 px-4 py-6 md:grid-cols-2 md:px-6 md:pb-10">
-      <div>
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] border border-border bg-surface-soft md:aspect-square">
+    <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2 md:items-start md:gap-10 md:px-6 md:pb-14 lg:gap-14 lg:px-8">
+      <div className="md:sticky md:top-24">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] border border-border bg-surface-soft md:aspect-[4/5] lg:rounded-[20px]">
           <button
             type="button"
             className="absolute inset-0 z-0"
@@ -131,9 +131,9 @@ export default function ProductPage() {
         ) : null}
       </div>
 
-      <div className="space-y-4 pb-24 md:pb-0">
+      <div className="space-y-4 pb-24 md:max-w-xl md:pb-4 lg:pt-2">
         <div>
-          <h1 className="text-2xl font-bold">{product.name}</h1>
+          <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">{product.name}</h1>
           <div className="mt-2 flex flex-wrap items-baseline gap-2">
             <span className={`text-xl font-bold ${hasPromo ? "text-promo" : "text-accent"}`}>
               {formatArsCents(price)}
@@ -244,10 +244,10 @@ export default function ProductPage() {
           ))}
         </ul>
 
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:mt-2 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-primary md:max-w-sm"
             disabled={!variant || available <= 0 || productSoldOut}
             onClick={() => {
               if (!variant || available <= 0) return;

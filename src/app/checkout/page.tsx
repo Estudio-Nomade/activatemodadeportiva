@@ -182,9 +182,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 md:grid md:grid-cols-[1.1fr_0.9fr] md:items-start md:gap-8 md:space-y-0 md:px-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)] md:items-start md:gap-10 md:space-y-0 md:px-6 lg:gap-14 lg:px-8 lg:py-10">
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Tu compra</h1>
+        <h1 className="text-2xl font-bold md:text-3xl">Tu compra</h1>
 
         <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
           <h2 className="font-bold">Tus datos</h2>
@@ -359,7 +359,7 @@ export default function CheckoutPage() {
         </section>
       </div>
 
-      <aside className="space-y-4 md:sticky md:top-24">
+      <aside className="space-y-4 md:sticky md:top-28 lg:rounded-[20px]">
         {needsMoreForFree > 0 ? (
           <div className="rounded-[16px] border border-accent/30 bg-accent-soft p-4 text-sm">
             <p className="font-bold text-accent">Envío gratis cerca</p>

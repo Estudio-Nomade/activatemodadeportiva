@@ -66,7 +66,7 @@ export function StoreHeader() {
   return (
     <>
       <header className="store-header-sticky sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/90">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-6 lg:px-8">
           <button
             type="button"
             className="grid h-12 w-12 place-items-center rounded-full border border-border bg-surface text-text md:hidden"
@@ -295,7 +295,7 @@ export function StoreFooter() {
 
   return (
     <footer className="mt-auto border-t border-border bg-surface-soft">
-      <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 md:grid-cols-3">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-3 md:px-6 lg:gap-12 lg:px-8 lg:py-14">
         <div>
           <p className="text-sm font-bold tracking-wide">ACTIVATE</p>
           <p className="mt-2 text-sm text-muted">Moda deportiva · San Manuel</p>

@@ -23,13 +23,13 @@ export default function CartPage() {
   }
 
   return (
-    <div className="px-4 py-6 md:px-6">
-      <h1 className="text-2xl font-bold">Carrito</h1>
-      <ul className="mt-5 space-y-3">
+    <div className="mx-auto max-w-3xl px-4 py-6 md:px-6 lg:max-w-4xl lg:px-8 lg:py-10">
+      <h1 className="text-2xl font-bold md:text-3xl">Carrito</h1>
+      <ul className="mt-5 space-y-3 md:mt-8">
         {lines.map((l) => (
           <li
             key={l.variantId}
-            className="flex gap-3 rounded-[16px] border border-border bg-surface p-3"
+            className="flex gap-3 rounded-[16px] border border-border bg-surface p-3 md:gap-4 md:p-4"
           >
             <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-surface-soft">
               <ProductImage
@@ -81,13 +81,15 @@ export default function CartPage() {
         ))}
       </ul>
 
-      <div className="sticky bottom-0 mt-6 border-t border-border bg-bg/95 py-4 backdrop-blur">
-        <div className="mb-3 flex justify-between text-sm">
+      <div className="sticky bottom-0 mt-6 border-t border-border bg-bg/95 py-4 backdrop-blur md:static md:mt-10 md:rounded-[16px] md:border md:bg-surface md:px-6 md:py-6 md:backdrop-blur-none">
+        <div className="mb-3 flex justify-between text-sm md:text-base">
           <span className="text-muted">Subtotal (sin descuentos/envío)</span>
           <strong>{formatArsCents(subtotal)}</strong>
         </div>
-        <p className="mb-3 text-xs text-muted">El total final se calcula en el checkout (servidor).</p>
-        <Link href="/checkout" className="btn btn-primary">
+        <p className="mb-3 text-xs text-muted md:text-sm">
+          El total final se calcula en el checkout (servidor).
+        </p>
+        <Link href="/checkout" className="btn btn-primary md:max-w-xs">
           Iniciar compra
         </Link>
       </div>

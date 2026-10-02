@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T9 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T10 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `233fc28` T8, T9 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `6204883` T9, T10 pendiente de commit).
 
 Ownership:
 
@@ -338,12 +338,17 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T10 — Desktop layouts (61–63)
+### T10 — Desktop layouts (61–63) ✅
 
-- Home split hero
-- PDP 2 col ya parcial
-- Checkout 2 col ya parcial — alinear spacing/max-width al pen
-- No dark mode
+**Hecho (sin dark mode):**
+- Shell/header/footer → `max-w-7xl` + padding lg
+- Home: hero más alto, tiles/benefits/brand spacing desktop
+- PDP: sticky gallery, tipografía lg, CTA max-width
+- Checkout: grid `max-w-6xl`, gap/sticky aside
+- Cart: max-width + summary card desktop
+- Categoría: títulos/gaps grid desktop
+
+**Verify:** lint 0 · build OK
 
 ---
 
@@ -445,6 +450,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Admin add/remove variant | ~hecho (T7) |
 | Reorder product images | ~hecho (T8) |
 | Size guides admin CRUD | ~hecho (T9) |
+| Desktop layouts | ~hecho (T10) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -453,10 +459,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T10 — Desktop layouts (61–63)** polish spacing.  
-**T11 — Emails Resend** · **T12 — legales desde settings** · **T13 — smoke QA**.
+**T11 — Emails Resend** alineados a mocks.  
+**T12 — legales desde settings** · **T13 — smoke QA**.
 
-T0–T9 en `feat/frontend-baseline`.
+T0–T10 en `feat/frontend-baseline`.
 
 **Ops T9:** aplicar migration bucket `size-guides` en cada entorno Supabase.
 

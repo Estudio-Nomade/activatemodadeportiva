@@ -18,13 +18,13 @@ export default function CategoryPage() {
   const empty = !products.isLoading && !products.isError && list.length === 0;
 
   return (
-    <div>
-      <div className="px-4 pt-6 md:px-6">
-        <h1 className="text-2xl font-bold">{cat?.name ?? slug}</h1>
+    <div className="pb-8 md:pb-12">
+      <div className="px-4 pt-6 md:px-6 lg:px-8 lg:pt-10">
+        <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">{cat?.name ?? slug}</h1>
       </div>
 
       {chips.length > 0 ? (
-        <div className="mt-3 flex gap-2 overflow-x-auto bg-surface px-4 py-3 md:px-6">
+        <div className="mt-3 flex gap-2 overflow-x-auto bg-surface px-4 py-3 md:mt-5 md:px-6 lg:px-8">
           {chips.map((chip) => (
             <Link
               key={chip.slug}
@@ -38,14 +38,14 @@ export default function CategoryPage() {
         </div>
       ) : null}
 
-      <div className="px-4 py-5 md:px-6">
+      <div className="px-4 py-5 md:px-6 md:py-8 lg:px-8">
         {products.isLoading ? <p className="text-sm text-muted">Cargando…</p> : null}
         {products.isError ? (
           <p className="text-sm text-danger">No se pudo cargar el catálogo.</p>
         ) : null}
 
         {empty ? (
-          <div className="mt-4 rounded-[16px] border border-border bg-surface px-5 py-10 text-center">
+          <div className="mt-4 rounded-[16px] border border-border bg-surface px-5 py-10 text-center md:mx-auto md:max-w-lg md:py-14">
             <p className="text-base font-semibold text-text">Sin productos por ahora</p>
             <p className="mt-2 text-sm text-muted">
               Todavía no hay artículos publicados en esta categoría.
@@ -61,7 +61,7 @@ export default function CategoryPage() {
           </div>
         ) : null}
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5 lg:grid-cols-4 lg:gap-6">
           {list.map((p) => (
             <ProductCard key={p.id} product={p} soldOut={p.is_sold_out} />
           ))}
