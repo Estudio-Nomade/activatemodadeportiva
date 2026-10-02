@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v8-header-nav-wordmark";
+const CACHE = "activate-pwa-v9-home-images";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",
