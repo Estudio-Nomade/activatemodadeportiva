@@ -351,9 +351,16 @@ span[data-nimg="fill"] > img {
   object-position: center 8%;
 }
 
-/* Accesorios: products sit higher in the source — pin crop to top */
+/* Accesorios: asset is product-cropped; pin top + taller mobile strip */
 .home-cat__photo--accesorios {
   object-position: center top;
+}
+
+@media (max-width: 767px) {
+  .home-cat__block--accesorios .home-cat__tile,
+  .home-cat__tile--accesorios {
+    height: 7.5rem; /* 120px — more vertical room for product stills */
+  }
 }
 
 /* Hero: shorter on mobile so category tiles fit first screen */

@@ -43,12 +43,15 @@ export function HomeCategoryBlocks({ categories, isError }: Props) {
           const open = expandedId === root.id;
           const href = `/c/${root.slug}`;
 
+          const isAccesorios = root.slug === "accesorios";
+          const tileClass = `home-cat__tile group relative${isAccesorios ? " home-cat__tile--accesorios" : ""}`;
+
           if (!hasChildren) {
             return (
               <Link
                 key={root.id}
                 href={href}
-                className="home-cat__tile group relative block overflow-hidden rounded-[12px] lg:rounded-[16px]"
+                className={`${tileClass} block overflow-hidden rounded-[12px] lg:rounded-[16px]`}
               >
                 <TileFace name={root.name} slug={root.slug} chevron />
               </Link>
@@ -58,9 +61,9 @@ export function HomeCategoryBlocks({ categories, isError }: Props) {
           return (
             <div
               key={root.id}
-              className={`home-cat__block overflow-hidden rounded-[12px] lg:rounded-[16px] ${open ? "home-cat__block--open" : ""}`}
+              className={`home-cat__block overflow-hidden rounded-[12px] lg:rounded-[16px]${isAccesorios ? " home-cat__block--accesorios" : ""}${open ? " home-cat__block--open" : ""}`}
             >
-              <div className="home-cat__tile group relative">
+              <div className={tileClass}>
                 <TileFace name={root.name} slug={root.slug} />
                 <button
                   type="button"
