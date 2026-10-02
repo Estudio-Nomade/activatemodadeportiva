@@ -113,22 +113,22 @@ export function IconZoom(props: IconProps) {
   });
 }
 
-/** Lucide percent — home benefits */
+/** Lucide-ish percent — path-only (avoid line/circle intrinsic edge cases). */
 export function IconPercent(props: IconProps) {
   return base({
     ...props,
     size: props.size ?? 24,
     children: (
       <>
-        <line x1="19" x2="5" y1="5" y2="19" />
-        <circle cx="6.5" cy="6.5" r="2.5" />
-        <circle cx="17.5" cy="17.5" r="2.5" />
+        <path d="M19 5 5 19" />
+        <path d="M6.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+        <path d="M17.5 20a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
       </>
     ),
   });
 }
 
-/** Lucide truck — home benefits */
+/** Lucide-ish truck — path-only */
 export function IconTruck(props: IconProps) {
   return base({
     ...props,
@@ -138,14 +138,14 @@ export function IconTruck(props: IconProps) {
         <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
         <path d="M15 18H9" />
         <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
-        <circle cx="17" cy="18" r="2" />
-        <circle cx="7" cy="18" r="2" />
+        <path d="M17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+        <path d="M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
       </>
     ),
   });
 }
 
-/** Lucide refresh-cw — home benefits */
+/** Lucide-ish refresh-cw */
 export function IconRefresh(props: IconProps) {
   return base({
     ...props,
@@ -161,15 +161,15 @@ export function IconRefresh(props: IconProps) {
   });
 }
 
-/** Lucide credit-card — home benefits */
+/** Lucide-ish credit-card — path-only */
 export function IconCreditCard(props: IconProps) {
   return base({
     ...props,
     size: props.size ?? 24,
     children: (
       <>
-        <rect width="20" height="14" x="2" y="5" rx="2" />
-        <line x1="2" x2="22" y1="10" y2="10" />
+        <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" />
+        <path d="M2 10h20" />
       </>
     ),
   });

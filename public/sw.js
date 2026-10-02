@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v11-accesorios-products";
+const CACHE = "activate-pwa-v12-home-benefits-path-svg";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",
