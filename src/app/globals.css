@@ -351,6 +351,11 @@ span[data-nimg="fill"] > img {
   object-position: center 8%;
 }
 
+/* Accesorios: products sit higher in the source — pin crop to top */
+.home-cat__photo--accesorios {
+  object-position: center top;
+}
+
 /* Hero: shorter on mobile so category tiles fit first screen */
 .home-hero {
   min-height: 44vh;

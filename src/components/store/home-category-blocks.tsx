@@ -138,7 +138,9 @@ function TileFace({
         src={categoryTileImageSrc(slug)}
         alt=""
         fill
-        className="home-cat__photo transition duration-300 group-hover:scale-[1.02]"
+        className={`home-cat__photo transition duration-300 group-hover:scale-[1.02]${
+          slug === "accesorios" ? " home-cat__photo--accesorios" : ""
+        }`}
         sizes="(min-width: 768px) 33vw, 100vw"
       />
       <span className="absolute inset-0 z-[1] flex items-center justify-between bg-[#12100f66] px-4 font-display text-lg font-semibold text-inverse md:text-xl lg:text-2xl">
