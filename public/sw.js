@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v14-header-search-mobile";
+const CACHE = "activate-pwa-v15-quienes-somos-lorena";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",
