@@ -526,6 +526,95 @@ span[data-nimg="fill"] > img {
   }
 }
 
+/* Home benefits strip — mockup flat icons + labels, no cards */
+.home-benefits {
+  background: var(--bg);
+  padding: 1.75rem 1rem 2rem;
+}
+
+.home-benefits__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.home-benefits__item {
+  margin: 0;
+  min-width: 0;
+}
+
+.home-benefits__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  min-height: 100%;
+}
+
+.home-benefits__link:hover .home-benefits__label {
+  opacity: 0.85;
+}
+
+.home-benefits__icon {
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.home-benefits__label {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  max-width: 16ch;
+}
+
+@media (min-width: 768px) {
+  .home-benefits {
+    padding: 2.25rem 1.5rem 2.75rem;
+  }
+
+  .home-benefits__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 2rem;
+  }
+
+  .home-benefits__label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    max-width: 18ch;
+  }
+
+  .home-benefits__icon svg {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-benefits {
+    padding: 2.5rem 2rem 3rem;
+  }
+
+  .home-benefits__label {
+    font-size: 0.75rem;
+    max-width: 20ch;
+  }
+}
+
 /* Pencil 07/35 — drawer slides from left */
 .menu-drawer {
   animation: menu-drawer-in 0.2s ease-out;

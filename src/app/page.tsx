@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PRODUCTS_HREF } from "@/components/store/chrome";
+import { HomeBenefits } from "@/components/store/home-benefits";
 import { HomeCategoryBlocks } from "@/components/store/home-category-blocks";
 import { discountPercentFromBps } from "@/lib/format/promo";
 import { trpc } from "@/lib/trpc/client";
@@ -66,22 +67,7 @@ export default function HomePage() {
 
       <HomeCategoryBlocks categories={cats.data ?? []} isError={cats.isError} />
 
-      <section className="grid grid-cols-2 gap-2.5 px-4 pb-8 md:grid-cols-4 md:gap-4 md:px-6 md:pb-12 lg:px-8 lg:pb-14">
-        {[
-          { t: `${discPct}% off`, d: "Transferencia o efectivo" },
-          { t: "Envíos", d: "Andreani a todo el país" },
-          { t: "Cambios", d: "Consultanos por WhatsApp" },
-          { t: "Local", d: "Retiro en San Manuel" },
-        ].map((b) => (
-          <div
-            key={b.t}
-            className="rounded-[12px] border border-border bg-surface p-3.5 md:p-5 lg:rounded-[16px]"
-          >
-            <p className="font-display text-[13px] font-semibold text-text md:text-sm">{b.t}</p>
-            <p className="type-caption mt-1 text-muted md:text-sm md:leading-normal">{b.d}</p>
-          </div>
-        ))}
-      </section>
+      <HomeBenefits discountPercent={discPct} />
 
       <section className="relative mx-0 mb-0 min-h-[220px] overflow-hidden bg-surface-soft md:mx-6 md:mb-14 md:rounded-[20px] lg:mx-8">
         <Image
