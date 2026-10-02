@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
+import { canRemoveVariant } from "@/server/domain/catalog/variant-ops";
 import { withImageUrls } from "@/lib/media/product-image";
 import { PRODUCT_IMAGES_BUCKET } from "@/server/storage/port";
 import { adminProcedure, createTRPCRouter } from "../../init";
@@ -164,6 +165,93 @@ export const adminCatalogRouter = createTRPCRouter({
         });
       }
       return data;
+    }),
+
+  addVariant: adminProcedure
+    .input(
+      z.object({
+        productId: z.string().uuid(),
+        color: z.string().min(1).max(80),
+        size: z.string().min(1).max(40),
+        stockOnHand: z.number().int().nonnegative().default(0),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { data: product, error: pErr } = await ctx.db
+        .from("products")
+        .select("id")
+        .eq("id", input.productId)
+        .maybeSingle();
+      if (pErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: pErr.message });
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
+
+      const color = input.color.trim();
+      const size = input.size.trim();
+      if (!color || !size) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Color and size are required" });
+      }
+
+      const { data, error } = await ctx.db
+        .from("product_variants")
+        .insert({
+          product_id: input.productId,
+          color,
+          size,
+          stock_on_hand: input.stockOnHand,
+        })
+        .select("id, product_id, color, size, stock_on_hand")
+        .single();
+
+      if (error || !data) {
+        const dup = error?.code === "23505" || error?.message?.toLowerCase().includes("unique");
+        throw new TRPCError({
+          code: dup ? "CONFLICT" : "INTERNAL_SERVER_ERROR",
+          message: dup
+            ? "Ya existe esa combinación color/talle"
+            : (error?.message ?? "Failed to add variant"),
+        });
+      }
+      return data;
+    }),
+
+  removeVariant: adminProcedure
+    .input(z.object({ variantId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: variant, error: vErr } = await ctx.db
+        .from("product_variants")
+        .select("id")
+        .eq("id", input.variantId)
+        .maybeSingle();
+      if (vErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: vErr.message });
+      if (!variant) throw new TRPCError({ code: "NOT_FOUND", message: "Variant not found" });
+
+      const { count: resCount, error: rErr } = await ctx.db
+        .from("stock_reservations")
+        .select("id", { count: "exact", head: true })
+        .eq("variant_id", input.variantId);
+      if (rErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: rErr.message });
+
+      const { count: itemCount, error: iErr } = await ctx.db
+        .from("order_items")
+        .select("id", { count: "exact", head: true })
+        .eq("variant_id", input.variantId);
+      if (iErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: iErr.message });
+
+      const gate = canRemoveVariant({
+        reservationCount: resCount ?? 0,
+        orderItemCount: itemCount ?? 0,
+      });
+      if (!gate.ok) {
+        const msg =
+          gate.reason === "HAS_RESERVATIONS"
+            ? "No se puede borrar: hay reservas de stock asociadas"
+            : "No se puede borrar: la variante figura en pedidos (poné stock 0 en su lugar)";
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: msg });
+      }
+
+      const { error } = await ctx.db.from("product_variants").delete().eq("id", input.variantId);
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      return { ok: true as const };
     }),
 
   setPublished: adminProcedure

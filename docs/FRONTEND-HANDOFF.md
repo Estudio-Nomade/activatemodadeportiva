@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T6 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T7 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `b9b6dc8` T5, T6 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `adf331b` T6, T7 pendiente de commit).
 
 Ownership:
 
@@ -299,16 +299,18 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T7 — Admin add variant a producto existente
+### T7 — Admin add variant a producto existente ✅
 
-**Hoy:** createProduct acepta variants; edit solo `setVariantStock`. No hay `addVariant`.
+**API:** `admin.catalog.addVariant` / `removeVariant`  
+**Domain:** `canRemoveVariant` (bloquea si reservas u order_items)  
+**UI:** `/admin/catalogo/[id]` form agregar + borrar
 
-**Hacer:**
-1. `admin.catalog.addVariant` / `removeVariant` (cuidar FKs order_items)
-2. UI en editor producto
-3. Contracts + tests dominio si aplica
+**Hecho:**
+1. Add color/size/stock; unique conflict → CONFLICT
+2. Remove solo si no hay reservas ni líneas de pedido (si no → stock 0)
+3. `procedure-map.md` + tests
 
-**Done:** se puede sumar color/talle sin crear producto nuevo.
+**Verify:** 3 unit tests · lint 0 · build OK
 
 ---
 
@@ -434,6 +436,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Menu drawer drill-down | ~hecho (T4) |
 | PDP polish | ~hecho (T5) |
 | Admin proof signed URL | ~hecho (T6) |
+| Admin add/remove variant | ~hecho (T7) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -442,10 +445,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T7 — Admin add variant a producto existente**  
-`addVariant` / `removeVariant` + UI editor.
+**T8 — Reorder product images UI**  
+API ya existe; botones ↑↓ o drag en `AdminProductImages`.
 
-T0–T6 en `feat/frontend-baseline`.
+T0–T7 en `feat/frontend-baseline`.
 
 ---
 

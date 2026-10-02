@@ -162,6 +162,24 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | `{ variantId, stockOnHand }` |
 | Output | variant row |
 
+### `admin.catalog.addVariant`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, color, size, stockOnHand? }` |
+| Output | variant row `{ id, product_id, color, size, stock_on_hand }` |
+| Errors | `NOT_FOUND`, `CONFLICT` if unique `(product_id, color, size)` |
+
+### `admin.catalog.removeVariant`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ variantId }` |
+| Output | `{ ok: true }` |
+| Errors | `NOT_FOUND`, `PRECONDITION_FAILED` if reservations or order_items reference the variant (use stock 0 instead) |
+
 ### `admin.catalog.setPublished`
 
 | | |

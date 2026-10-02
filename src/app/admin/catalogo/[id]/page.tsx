@@ -81,6 +81,8 @@ function EditForm({
   const guides = trpc.admin.catalog.listSizeGuides.useQuery();
   const update = trpc.admin.catalog.updateProduct.useMutation();
   const setStock = trpc.admin.catalog.setVariantStock.useMutation();
+  const addVariant = trpc.admin.catalog.addVariant.useMutation();
+  const removeVariant = trpc.admin.catalog.removeVariant.useMutation();
   const setPublished = trpc.admin.catalog.setPublished.useMutation();
   const utils = trpc.useUtils();
 
@@ -94,6 +96,9 @@ function EditForm({
     product.promo_price_cents != null ? centsToPesosInput(product.promo_price_cents) : "",
   );
   const [isPublished, setIsPublished] = useState(product.is_published);
+  const [newColor, setNewColor] = useState("");
+  const [newSize, setNewSize] = useState("");
+  const [newStock, setNewStock] = useState("0");
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -234,14 +239,14 @@ function EditForm({
       </label>
 
       <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
-        <h2 className="font-bold">Stock por variante</h2>
+        <h2 className="font-bold">Variantes y stock</h2>
         <p className="text-xs text-muted">
-          Alta de variantes nuevas no está en API v1 (solo stock). Creá producto nuevo si falta
-          color/talle.
+          Sumá color/talle acá. Si la variante ya salió en un pedido o tiene reserva, no se borra:
+          poné stock 0.
         </p>
         {(product.product_variants ?? []).map((v) => (
           <div key={v.id} className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="min-w-28">
+            <span className="min-w-28 font-medium">
               {v.color} / {v.size}
             </span>
             <input
@@ -265,8 +270,95 @@ function EditForm({
               }}
             />
             <span className="text-xs text-muted">on hand</span>
+            <button
+              type="button"
+              className="text-xs font-semibold text-danger underline-offset-2 hover:underline disabled:opacity-40"
+              disabled={removeVariant.isPending}
+              onClick={() => {
+                if (!window.confirm(`¿Borrar variante ${v.color} / ${v.size}?`)) return;
+                setError(null);
+                removeVariant.mutate(
+                  { variantId: v.id },
+                  {
+                    onSuccess: () => {
+                      setMsg("Variante eliminada");
+                      utils.admin.catalog.listProducts.invalidate();
+                    },
+                    onError: (err) => setError(errorMessage(err)),
+                  },
+                );
+              }}
+            >
+              Borrar
+            </button>
           </div>
         ))}
+
+        <div className="border-t border-border pt-3">
+          <p className="mb-2 text-sm font-semibold">Agregar variante</p>
+          <div className="grid gap-2 sm:grid-cols-4">
+            <div className="field">
+              <label htmlFor="nv-color">Color</label>
+              <input
+                id="nv-color"
+                value={newColor}
+                onChange={(e) => setNewColor(e.target.value)}
+                placeholder="Negro"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="nv-size">Talle</label>
+              <input
+                id="nv-size"
+                value={newSize}
+                onChange={(e) => setNewSize(e.target.value)}
+                placeholder="M"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="nv-stock">Stock</label>
+              <input
+                id="nv-stock"
+                type="number"
+                min={0}
+                value={newStock}
+                onChange={(e) => setNewStock(e.target.value)}
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={addVariant.isPending}
+                onClick={() => {
+                  setError(null);
+                  const color = newColor.trim();
+                  const size = newSize.trim();
+                  if (!color || !size) {
+                    setError("Color y talle son obligatorios");
+                    return;
+                  }
+                  const stockOnHand = Math.max(0, Math.floor(Number(newStock)) || 0);
+                  addVariant.mutate(
+                    { productId: product.id, color, size, stockOnHand },
+                    {
+                      onSuccess: () => {
+                        setNewColor("");
+                        setNewSize("");
+                        setNewStock("0");
+                        setMsg("Variante agregada");
+                        utils.admin.catalog.listProducts.invalidate();
+                      },
+                      onError: (err) => setError(errorMessage(err)),
+                    },
+                  );
+                }}
+              >
+                {addVariant.isPending ? "…" : "Agregar"}
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
       {error ? <p className="text-sm text-danger">{error}</p> : null}
