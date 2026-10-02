@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T10 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T11 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `6204883` T9, T10 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `73a1b2b` T10, T11 pendiente de commit).
 
 Ownership:
 
@@ -352,12 +352,18 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T11 — Emails Resend alineados a mocks (37–38, 51–54)
+### T11 — Emails Resend alineados a mocks (37–38, 51–54) ✅
 
-**Server:** `src/server/email/*`  
-No son paginas. Templates HTML con logo, CTA a `/pedido?token=…`, estados.
+**Server:** `src/server/email/templates.ts` (+ resend/console)
 
-**Done:** con `RESEND_API_KEY` manda; sin key → console adapter.
+**Hecho:**
+- HTML brand (accent bar, logo si `NEXT_PUBLIC_APP_URL`, CTA pill “Ver pedido”)
+- Templates: order_created, payment_confirmed, ready_pickup, shipped, delivered, cancelled
+- Magic link `/pedido?token=…`; transfer CBU en order_created
+- Resend usa templates; console loguea subject + htmlBytes (`EMAIL_CONSOLE_HTML=1` dump)
+
+**Env:** `RESEND_API_KEY` + `EMAIL_FROM` + `NEXT_PUBLIC_APP_URL`  
+**Verify:** 5 template tests · lint 0 · build OK
 
 ---
 
@@ -451,6 +457,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Reorder product images | ~hecho (T8) |
 | Size guides admin CRUD | ~hecho (T9) |
 | Desktop layouts | ~hecho (T10) |
+| Emails brand templates | ~hecho (T11) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -459,12 +466,13 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T11 — Emails Resend** alineados a mocks.  
-**T12 — legales desde settings** · **T13 — smoke QA**.
+**T12 — legales / contacto desde settings**  
+**T13 — smoke QA** end-to-end.
 
-T0–T10 en `feat/frontend-baseline`.
+T0–T11 en `feat/frontend-baseline`.
 
-**Ops T9:** aplicar migration bucket `size-guides` en cada entorno Supabase.
+**Ops T9:** migration bucket `size-guides`.  
+**Ops T11:** `RESEND_API_KEY`, `EMAIL_FROM`, `NEXT_PUBLIC_APP_URL`.
 
 ---
 
