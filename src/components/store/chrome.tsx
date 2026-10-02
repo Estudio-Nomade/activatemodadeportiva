@@ -82,7 +82,7 @@ function BrandLogo({ size = "md" }: { size?: LogoSize }) {
   return (
     <span className={`brand-logo inline-flex max-w-full items-center ${gap}`}>
       <Image
-        src="/brand/logo-mark-128.png"
+        src="/brand/logo-mark-circle-128.png"
         alt=""
         width={px}
         height={px}
