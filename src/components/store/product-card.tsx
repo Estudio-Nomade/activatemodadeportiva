@@ -30,15 +30,12 @@ export function ProductCard({ product, soldOut }: ProductCardProps) {
   const imgUrl = primaryProductImageUrl(product.product_images);
 
   return (
-    <Link
-      href={`/p/${product.slug}`}
-      className="group block overflow-hidden rounded-[16px] border border-border bg-surface"
-    >
-      <div className="relative aspect-[4/5] bg-surface-soft">
+    <Link href={`/p/${product.slug}`} className="group block">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-[12px] bg-surface-soft">
         <ProductImage
           url={imgUrl}
           alt={product.name}
-          className="h-full w-full transition group-hover:scale-[1.02]"
+          className="h-full w-full transition duration-300 group-hover:scale-[1.02]"
           fallbackLabel="Sin foto"
         />
         {soldOut ? (
@@ -47,10 +44,12 @@ export function ProductCard({ product, soldOut }: ProductCardProps) {
           </span>
         ) : null}
       </div>
-      <div className="space-y-1 p-3">
-        <h3 className="text-sm font-semibold leading-snug">{product.name}</h3>
+      <div className="mt-2 space-y-0.5">
+        <h3 className="text-[13px] font-semibold leading-snug text-text">{product.name}</h3>
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="text-sm font-bold text-accent">{formatArsCents(price)}</span>
+          <span className={`text-[13px] font-bold ${hasPromo ? "text-promo" : "text-text"}`}>
+            {formatArsCents(price)}
+          </span>
           {hasPromo ? (
             <span className="text-xs text-muted line-through">
               {formatArsCents(product.list_price_cents)}

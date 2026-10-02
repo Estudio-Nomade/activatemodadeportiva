@@ -86,8 +86,8 @@ export default function ProductPage() {
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2 md:items-start md:gap-10 md:px-6 md:pb-14 lg:gap-14 lg:px-8">
-      <div className="md:sticky md:top-24">
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] border border-border bg-surface-soft md:aspect-[4/5] lg:rounded-[20px]">
+      <div className="-mx-4 md:sticky md:top-24 md:mx-0">
+        <div className="relative aspect-square w-full overflow-hidden bg-surface-soft md:aspect-[4/5] md:rounded-[16px] md:border md:border-border lg:rounded-[20px]">
           <button
             type="button"
             className="absolute inset-0 z-0"
@@ -108,7 +108,7 @@ export default function ProductPage() {
           ) : null}
           <button
             type="button"
-            className="absolute bottom-3 right-3 z-10 grid h-11 w-11 place-items-center rounded-full border border-border bg-surface/95 text-text shadow-sm"
+            className="absolute bottom-3 right-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-white/80 text-text shadow-sm"
             onClick={() => setZoom(true)}
             aria-label="Zoom"
           >
@@ -116,12 +116,12 @@ export default function ProductPage() {
           </button>
         </div>
         {images.length > 1 ? (
-          <div className="mt-3 flex gap-2 overflow-x-auto">
+          <div className="mt-0 flex gap-2 overflow-x-auto bg-surface px-4 py-2.5 md:mt-3 md:bg-transparent md:px-0">
             {images.map((img, i) => (
               <button
                 key={img.id}
                 type="button"
-                className={`h-16 w-16 shrink-0 overflow-hidden rounded-md border ${i === imgIdx ? "border-accent" : "border-border"}`}
+                className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${i === imgIdx ? "border-accent" : "border-transparent bg-surface-soft"}`}
                 onClick={() => setImgIdx(i)}
               >
                 <ProductImage url={img.url} alt="" className="h-full w-full" />
@@ -133,16 +133,20 @@ export default function ProductPage() {
 
       <div className="space-y-4 pb-24 md:max-w-xl md:pb-4 lg:pt-2">
         <div>
-          <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">{product.name}</h1>
-          <div className="mt-2 flex flex-wrap items-baseline gap-2">
-            <span className={`text-xl font-bold ${hasPromo ? "text-promo" : "text-accent"}`}>
-              {formatArsCents(price)}
-            </span>
+          <h1 className="text-[22px] font-bold leading-snug md:text-3xl lg:text-4xl">
+            {product.name}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-baseline gap-2.5">
             {hasPromo ? (
-              <span className="text-sm text-muted line-through">
-                {formatArsCents(product.list_price_cents)}
-              </span>
-            ) : null}
+              <>
+                <span className="text-sm text-muted line-through">
+                  {formatArsCents(product.list_price_cents)}
+                </span>
+                <span className="text-xl font-bold text-promo">{formatArsCents(price)}</span>
+              </>
+            ) : (
+              <span className="text-xl font-bold text-text">{formatArsCents(price)}</span>
+            )}
           </div>
         </div>
 
@@ -178,8 +182,8 @@ export default function ProductPage() {
         ) : null}
 
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Color</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="mb-2 text-[13px] font-semibold text-text">Color</p>
+          <div className="flex flex-wrap gap-2.5">
             {colors.map((c) => (
               <button
                 key={c}
@@ -199,11 +203,11 @@ export default function ProductPage() {
 
         <div>
           <div className="mb-2 flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Talle</p>
+            <p className="text-[13px] font-semibold text-text">Talle</p>
             {sizeGuide ? (
               <button
                 type="button"
-                className="min-h-11 text-xs font-bold text-accent underline-offset-2 hover:underline"
+                className="min-h-11 text-xs font-semibold text-accent underline-offset-2 hover:underline"
                 onClick={() => setGuideOpen(true)}
               >
                 Guía de talles
@@ -215,7 +219,7 @@ export default function ProductPage() {
               <button
                 key={v.id}
                 type="button"
-                className="chip"
+                className="chip chip-size"
                 data-active={v.size === selectedSize}
                 disabled={v.available <= 0}
                 onClick={() => setSize(v.size)}
@@ -232,10 +236,10 @@ export default function ProductPage() {
         </div>
 
         {product.description ? (
-          <p className="text-sm leading-relaxed text-muted">{product.description}</p>
+          <p className="text-[13px] leading-relaxed text-muted">{product.description}</p>
         ) : null}
 
-        <ul className="flex flex-col gap-1.5 text-xs text-muted md:text-sm">
+        <ul className="flex flex-col gap-2 text-xs text-muted md:text-sm">
           {metaChips.map((line) => (
             <li key={line} className="flex gap-2">
               <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
@@ -244,10 +248,10 @@ export default function ProductPage() {
           ))}
         </ul>
 
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:mt-2 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface p-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-2 md:border-0 md:bg-transparent md:p-0">
           <button
             type="button"
-            className="btn btn-primary md:max-w-sm"
+            className="btn btn-primary tracking-[0.06em] md:max-w-sm"
             disabled={!variant || available <= 0 || productSoldOut}
             onClick={() => {
               if (!variant || available <= 0) return;
@@ -269,7 +273,7 @@ export default function ProductPage() {
             {productSoldOut ? "Agotado" : available > 0 ? "Sumar al carrito" : "Sin stock"}
           </button>
           {added ? (
-            <Link href="/carrito" className="btn btn-secondary mt-2">
+            <Link href="/carrito" className="btn btn-secondary mt-2 md:max-w-sm">
               Ver carrito
             </Link>
           ) : null}

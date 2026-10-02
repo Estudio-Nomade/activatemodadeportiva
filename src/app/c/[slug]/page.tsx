@@ -24,7 +24,7 @@ export default function CategoryPage() {
       </div>
 
       {chips.length > 0 ? (
-        <div className="mt-3 flex gap-2 overflow-x-auto bg-surface px-4 py-3 md:mt-5 md:px-6 lg:px-8">
+        <div className="mt-3 flex gap-2 overflow-x-auto border-b border-border bg-surface px-4 py-3 md:mt-5 md:px-6 lg:px-8">
           {chips.map((chip) => (
             <Link
               key={chip.slug}
@@ -38,7 +38,7 @@ export default function CategoryPage() {
         </div>
       ) : null}
 
-      <div className="px-4 py-5 md:px-6 md:py-8 lg:px-8">
+      <div className="px-4 py-4 md:px-6 md:py-8 lg:px-8">
         {products.isLoading ? <p className="text-sm text-muted">Cargando…</p> : null}
         {products.isError ? (
           <p className="text-sm text-danger">No se pudo cargar el catálogo.</p>

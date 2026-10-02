@@ -1,8 +1,8 @@
 import type { EmailTemplate } from "./port";
 
-const ACCENT = "#2F6F6A";
-const BG = "#F7F4EF";
-const TEXT = "#2C2A28";
+const ACCENT = "#1A1816";
+const BG = "#F3EEE7";
+const TEXT = "#12100F";
 const MUTED = "#7A756E";
 const BORDER = "#E5DFD6";
 

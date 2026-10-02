@@ -93,7 +93,7 @@ export function OrderStatusBanner({
   if (status === "entregado") {
     return (
       <div
-        className="rounded-[12px] border border-success/25 bg-[#EAF3EE] px-4 py-3"
+        className="rounded-[12px] border border-success/25 bg-accent-soft px-4 py-3"
         role="status"
       >
         <p className="text-sm font-bold text-success">Entregado</p>

@@ -12,12 +12,15 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <PromoBar />
-      <StoreHeader />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-0">{children}</main>
+    <div className="flex min-h-dvh flex-col bg-bg">
+      {/* Fixed-in-flow opaque chrome: never paints over hero */}
+      <div className="store-chrome sticky top-0 z-50 w-full bg-surface">
+        <PromoBar />
+        <StoreHeader />
+      </div>
+      <main className="relative z-0 w-full flex-1">{children}</main>
       <StoreFooter />
-      <WhatsAppFab />
+      <WhatsAppFab hideOnHome={pathname === "/"} />
     </div>
   );
 }

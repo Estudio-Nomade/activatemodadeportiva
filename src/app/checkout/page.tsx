@@ -371,7 +371,7 @@ export default function CheckoutPage() {
         ) : null}
 
         {shippingMethod === "andreani" && quote && quote.shippingCents === 0 && freeThreshold > 0 ? (
-          <div className="rounded-[16px] border border-success/30 bg-success/10 p-4 text-sm text-success">
+          <div className="rounded-[16px] border border-border bg-accent-soft p-4 text-sm text-text">
             ¡Llegaste al umbral! Envío Andreani gratis.
           </div>
         ) : null}
@@ -379,7 +379,11 @@ export default function CheckoutPage() {
         <section className="space-y-2 rounded-[16px] border border-border bg-surface p-4 text-sm">
           <h2 className="font-bold">Resumen</h2>
           {quoteMut.isError ? (
-            <p className="text-danger">{errorMessage(quoteMut.error, "No se pudo cotizar")}</p>
+            <p className="text-danger">
+              {domainCode(quoteMut.error) === "STOCK_INSUFFICIENT"
+                ? "Stock insuficiente. Revisá cantidades en el carrito."
+                : errorMessage(quoteMut.error, "No se pudo cotizar")}
+            </p>
           ) : null}
           {!andreaniReady && shippingMethod === "andreani" ? (
             <p className="text-muted">Completá dirección, ciudad y CP para cotizar el envío.</p>

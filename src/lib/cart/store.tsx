@@ -35,25 +35,42 @@ const EMPTY: CartLine[] = [];
 const CartContext = createContext<CartContextValue | null>(null);
 
 let memoryLines: CartLine[] = EMPTY;
+let hydrated = false;
 const listeners = new Set<() => void>();
 
-function readStorage(): CartLine[] {
-  if (typeof window === "undefined") return memoryLines;
+function parseLines(raw: string | null): CartLine[] {
+  if (!raw) return EMPTY;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return EMPTY;
     const parsed = JSON.parse(raw) as CartLine[];
-    return Array.isArray(parsed) ? parsed : EMPTY;
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : EMPTY;
   } catch {
     return EMPTY;
   }
 }
 
+function hydrateFromStorage() {
+  if (typeof window === "undefined") return;
+  memoryLines = parseLines(window.localStorage.getItem(STORAGE_KEY));
+  hydrated = true;
+}
+
+function readStorage(): CartLine[] {
+  if (typeof window === "undefined") return memoryLines;
+  if (!hydrated) hydrateFromStorage();
+  return memoryLines;
+}
+
 function writeStorage(next: CartLine[]) {
-  memoryLines = next;
+  const normalized = next.length === 0 ? EMPTY : next;
+  memoryLines = normalized;
+  hydrated = true;
   if (typeof window !== "undefined") {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      if (normalized === EMPTY) {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } else {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+      }
     } catch {
       /* ignore */
     }
@@ -63,11 +80,24 @@ function writeStorage(next: CartLine[]) {
 
 function subscribe(onChange: () => void) {
   listeners.add(onChange);
+  if (typeof window !== "undefined") {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== null && e.key !== STORAGE_KEY) return;
+      hydrateFromStorage();
+      onChange();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      listeners.delete(onChange);
+      window.removeEventListener("storage", onStorage);
+    };
+  }
   return () => listeners.delete(onChange);
 }
 
+/** Must return a cached reference; fresh JSON.parse each call breaks useSyncExternalStore. */
 function getSnapshot() {
-  memoryLines = readStorage();
+  if (!hydrated) hydrateFromStorage();
   return memoryLines;
 }
 

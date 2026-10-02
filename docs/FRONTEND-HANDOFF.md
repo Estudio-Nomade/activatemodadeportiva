@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T13 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-10-02 (T0–T13 en `feat/frontend-baseline` + visual fidelity en `feat/visual-fidelity-pencil-brand`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -79,27 +79,30 @@ Admin auth: Supabase password + fila en `admin_profiles` + `Authorization: Beare
 
 ---
 
-## 2. Design tokens (Pencil)
+## 2. Design tokens (brand PDF gana sobre Pencil e-commerce)
 
-| Token | Value |
-|-------|--------|
-| bg | `#F7F4EF` |
-| surface | `#FFFFFF` |
-| surface-soft | `#EFEAE3` |
-| text | `#2C2A28` |
-| text-muted | `#7A756E` |
-| accent / bar | `#2F6F6A` |
-| accent-soft | `#E4F0EE` |
-| promo | `#C45C4A` |
-| border | `#E5DFD6` |
-| success | `#3D7A5A` |
-| danger | `#B54040` |
-| font | DM Sans |
-| radius | 8 / 12 / 16 / pill 999 |
-| mobile | 390 width frames |
-| desktop | 1440 frames |
+**SoT color/logo:** `docs/Identidad visual.pdf` + `LOGO SIN FONDO.png`  
+**SoT layout pantallas:** `design/ui-ux.pen` (estructura), **no** el teal del pen.
 
-Ya cableados en `src/app/globals.css` (+ safe-area PWA).
+| Token | Value (brand) | Notas |
+|-------|---------------|--------|
+| bg | `#F3EEE7` | papel cálido PDF (~`#DDD5CD` suavizado para UI) |
+| surface | `#FAF7F3` | crema |
+| surface-soft | `#E8E0D6` | |
+| text / ink | `#12100F` | tinta monograma logo |
+| text-muted | `#7A736C` | |
+| accent / bar / CTA | `#1A1816` | charcoal — **no** `#2F6F6A` teal Pencil |
+| accent-soft | `#EDE6DD` | |
+| promo | `#8F5E4A` | terracotta suave (PDF no trae coral chillón) |
+| border | `#D6CDC3` | |
+| success | `#5C5346` | taupe (sin verde) |
+| danger | `#9A4540` | terracota oscuro |
+| wa FAB | `#1A1816` | charcoal (no verde marca WhatsApp en UI) |
+| font | DM Sans | PDF sin tipografía extraíble; se mantiene |
+| radius | 8 / 12 / 16 / pill 999 | |
+| mobile / desktop | 390 / 1440 | frames Pencil |
+
+Cableados en `src/app/globals.css` (+ themeColor/manifest/emails).
 
 ---
 
@@ -378,20 +381,25 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T13 — Smoke QA end-to-end (antes de “listo cliente”) ✅ parcial
+### T13 — Smoke QA end-to-end (antes de “listo cliente”) ✅ casi cerrado
 
-**Automatizado (agente, 2026-04-01):**
+**Automatizado (agente, 2026-10-02):**
+- `pnpm exec supabase start` + `db reset` (incl. migration `size-guides`)
+- `.env.test.local` alineado a ports de `supabase status` (API `54421`)
+- `pnpm test` → **77/77 passed** (unit + integration)
 - `pnpm lint` → 0 errors
-- `pnpm build` → OK
-- Unit tests (sin Supabase): **69 passed**
-- Integration (`place-order`, `transitions`, `expire-reservations`, smoke): **timeout** — Supabase local no corría (`supabase status` sin container). Requiere: `pnpm exec supabase start` + `.env.test.local` + `pnpm test`
 
-**Manual pre-prod (humano):**
-1. Home → cat → PDP → cart → checkout transfer+Andreani (Photon) → exito → proof → admin confirma → timeline
-2. cash+pickup OK; cash+Andreani bloqueado
-3. Stock max / `STOCK_INSUFFICIENT`
-4. Admin product + foto + guía + publish
-5. PWA manifest + SW + A2HS
+**Smoke browser (Playwright headless, Chromium del sistema):**
+1. Home → `/c/mujer` → PDP → cart → checkout **transfer+Andreani** (addr manual) → `/pedido/exito` → **OK** (`ACT-*`)
+2. **cash+pickup** → éxito **OK**; cash bajo Andreani **disabled** + copy “Efectivo solo con retiro”
+3. Stock oversell: quote falla → confirm disabled + msg `STOCK_INSUFFICIENT`; cart capea `qty ≤ maxAvailable`
+4. Tracking `/pedido?token=…`: timeline + **Subir comprobante** (`input[type=file]`) **OK**
+5. PWA: `/manifest.webmanifest` + `/sw.js` **OK**; admin login page carga
+6. Admin confirma pago / CRUD producto+foto+guía+publish: **pendiente humano** (user `admin_profiles` + sesión)
+
+**Bugfix en smoke:** `useSyncExternalStore` cart — `getSnapshot` hacía `JSON.parse` nuevo cada call → infinite loop. Fix en `src/lib/cart/store.tsx` (cache `memoryLines`). Checkout muestra copy clara si quote devuelve `STOCK_INSUFFICIENT`.
+
+**A2HS:** no verificado en device real (solo manifest/SW HTTP).
 
 ---
 
@@ -450,14 +458,14 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Rutas storefront | ~85% |
 | Logica tRPC cableada | ~80% |
 | Admin estructura | ~75% |
-| Fidelidad visual mobile | ~45–55% |
-| Desktop polish | ~25% |
-| Emails | ~10% |
+| Fidelidad visual mobile | ~70–75% (pass 2026-10-02) |
+| Desktop polish | ~45% |
+| Emails | ~hecho brand HTML (T11) |
 | Tracking visual | ~hecho (T1) |
-| Home Pencil 01/61 | ~hecho (T2) |
-| Categoria chips + agotado | ~hecho (T3) |
-| Menu drawer drill-down | ~hecho (T4) |
-| PDP polish | ~hecho (T5) |
+| Home Pencil 01/61 | ~hecho + brand block overlay |
+| Categoria chips + agotado | ~hecho (chips solid accent) |
+| Menu drawer 07/35 | ~hecho flat list + drill-down |
+| PDP polish 02/13 | ~hecho gallery bleed, size tiles, sheet |
 | Admin proof signed URL | ~hecho (T6) |
 | Admin add/remove variant | ~hecho (T7) |
 | Reorder product images | ~hecho (T8) |
@@ -465,22 +473,65 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Desktop layouts | ~hecho (T10) |
 | Emails brand templates | ~hecho (T11) |
 | Legales/contacto settings | ~hecho (T12) |
-| Smoke QA | parcial (lint/build/unit OK; integration + browser manual) |
+| Smoke QA | ~cerrado (77 tests + browser; admin confirm/CRUD humano) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
 
 ---
 
+## 8b. Visual fidelity pass (`feat/visual-fidelity-pencil-brand`)
+
+Pass extra post T0–T13. **No reabre** la cola T#. SoT: `design/ui-ux.pen` + brand pack cliente.
+
+### Checklist frames
+
+| Frame | Qué se alineó | ~% |
+|-------|----------------|-----|
+| Tokens / DS 00 | **Corregido 2026-10-02:** PDF brand (beige+charcoal) pisa teal Pencil; DM Sans se mantiene | 90 |
+| Brand assets | `public/brand/logo-mark.png` (+ transparent/on-light), icons PWA desde mark | 90 |
+| 07 / 35 menú | Drawer 300px flat (sin cards), tipografía 18/15, overlay `#2C2A2866`, WA + legales muted | 85 |
+| Header | Wordmark mark + ACTIVATE + season; iconos sin círculo borde; badge cart | 80 |
+| 01 / 61 home | Hero 420 mobile, tiles 110, brand block accent overlay quote | 80 |
+| 06 / 46 cat | Chips solid accent, cards 3:4 sin border box, precio promo | 75 |
+| 02 / 13 / 14 PDP | Gallery bleed, thumbs, size tiles sm radius, sheet guía SVG close + nota cm | 80 |
+| Footer / FAB | Logo mark + tracking; FAB 52 | 75 |
+| 03–05 cart/checkout | Sin rediseño profundo este pass (baseline T ok) | 55 |
+| 61–63 desktop | Split hero + sticky PDP ya de T10; menú desktop nav intacto | 50 |
+| Admin | Fuera de prioridad este pass | — |
+
+### Assets
+
+- Logos: `public/brand/logo.png` (transparent full), `logo-mark.png`, `logo-transparent.png`, `logo-on-light.png`
+- Size guides: ya iguales a tablas Magher/Sox del cliente (no reexport)
+- **No versionar** PDF/PNG sueltos en raíz del repo (duplicados de `docs/`)
+
+### Gaps honestos
+
+1. PDF identidad = páginas raster sin texto extraíble; tokens siguen Pencil (coinciden con mockup cálido `#F7F4EF`)
+2. Mockup cliente menú no se pudo OCR; se usó Pencil 07/35 + demo HTML
+3. Pencil color swatches circulares vs chips texto (API da nombre de color, no hex) — chips texto OK
+4. Cart/checkout/éxito densidades tipográficas pendientes de pass fino
+5. Pencil app MCP no conectó en sesión; extracción vía parse JSON del `.pen`
+
+### Verify
+
+- `pnpm lint` 0 errors
+- `pnpm build` OK (2026-10-02)
+
+---
+
 ## 9. Proxima tarea recomendada
 
-**Cola T0–T13 cerrada en código** (`feat/frontend-baseline`).  
-Siguiente humano: integration tests con Supabase local, smoke browser, PR a `main`, ops migrations/buckets/email.
+**Cola T0–T13 cerrada** + **visual fidelity pass** en `feat/visual-fidelity-pencil-brand`.  
+Siguiente: smoke browser 390/1440, admin smoke, PR → `main`, ops cloud.
 
-**Ops:**
-- T9: migration bucket `size-guides`
-- T11: `RESEND_API_KEY`, `EMAIL_FROM`, `NEXT_PUBLIC_APP_URL`
-- T13: `supabase start` + `pnpm test` full
+**Ops (humano / cloud):**
+- [ ] `supabase db push` (o migrate) en cloud — bucket `size-guides` + buckets product-images / payment-proofs
+- [ ] Env prod: `RESEND_API_KEY`, `EMAIL_FROM`, `NEXT_PUBLIC_APP_URL`, Supabase URL/keys
+- [ ] Admin user Auth + fila `admin_profiles`
+- [ ] Vercel Cron → `/api/cron/expire-reservations` + `CRON_SECRET`
+- [ ] PR `feat/frontend-baseline` → `main` + deploy
 
 ---
 
@@ -495,3 +546,7 @@ Siguiente humano: integration tests con Supabase local, smoke browser, PR a `mai
 5. Vitest parallel = flaky stock → `fileParallelism: false`
 6. React lint: no setState sync en effect (usar key/remount o defer)
 7. `storage_path` puede ser URL absoluta **o** key de bucket — siempre pasar por `resolveProductImageUrl` / `resolveSizeGuideUrl`
+8. `Identidad visual.pdf` es imagen (sin texto). **Paleta real = beige papel + charcoal logo.** El teal `#2F6F6A` del Pencil es e-commerce inventado — PDF de marca gana.
+9. `pencil-open` bare se clava en picker; pasar path absoluto al `.pen`
+10. Logo fuente es mark circular 1254²: header usa `logo-mark` + wordmark ACTIVATE, no el PNG solo a 36px de alto (se ve pixelado/cropped)
+11. No commitear duplicados root de brand pack si ya están en `docs/`
