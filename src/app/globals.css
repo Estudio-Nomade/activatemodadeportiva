@@ -333,11 +333,6 @@ span[data-nimg="fill"] > img {
   object-fit: contain;
 }
 
-.brand-wordmark {
-  font-family: var(--font-display);
-  font-weight: 700;
-}
-
 /* Hero alignment locked in CSS (no JS reflow after hydrate) */
 .home-hero__content {
   display: flex;

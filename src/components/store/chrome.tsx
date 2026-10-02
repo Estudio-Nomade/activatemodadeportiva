@@ -42,30 +42,21 @@ const DESKTOP_NAV: { href: string; label: string }[] = [
 
 type LogoSize = "sm" | "md" | "lg";
 
-/** Mark + ACTIVATE — sizes split so mobile stays compact and desktop readable. */
-function BrandWordmark({ size = "md" }: { size?: LogoSize }) {
-  const mark =
-    size === "sm" ? "h-5 w-5" : size === "lg" ? "h-10 w-10" : "h-7 w-7";
-  const word =
-    size === "sm"
-      ? "text-[11px] tracking-[0.14em]"
-      : size === "lg"
-        ? "text-[15px] tracking-[0.16em]"
-        : "text-[13px] tracking-[0.14em]";
-  const px = size === "sm" ? 20 : size === "lg" ? 40 : 28;
+/** Brand mark only (image already carries the wordmark). */
+function BrandLogo({ size = "md" }: { size?: LogoSize }) {
+  const box =
+    size === "sm" ? "h-8 w-8" : size === "lg" ? "h-12 w-12" : "h-9 w-9";
+  const px = size === "sm" ? 32 : size === "lg" ? 48 : 36;
   return (
-    <span className="inline-flex max-w-full items-center gap-1.5">
-      <Image
-        src="/brand/logo-mark-128.png"
-        alt=""
-        width={px}
-        height={px}
-        className={`brand-logo__mark shrink-0 object-contain ${mark}`}
-        priority
-        sizes={`${px}px`}
-      />
-      <span className={`brand-wordmark uppercase leading-none text-text ${word}`}>Activate</span>
-    </span>
+    <Image
+      src="/brand/logo-mark-128.png"
+      alt=""
+      width={px}
+      height={px}
+      className={`brand-logo__mark shrink-0 object-contain ${box}`}
+      priority
+      sizes={`${px}px`}
+    />
   );
 }
 
@@ -144,10 +135,10 @@ export function StoreHeader() {
 
           <Link
             href="/"
-            className="flex min-w-0 max-w-[150px] items-center justify-center justify-self-center overflow-hidden"
+            className="flex min-w-0 items-center justify-center justify-self-center"
             aria-label="Activate — inicio"
           >
-            <BrandWordmark size="sm" />
+            <BrandLogo size="sm" />
           </Link>
 
           <div className="flex shrink-0 items-center justify-end">
@@ -176,7 +167,7 @@ export function StoreHeader() {
         {/* Desktop: logo | Inicio Productos Nosotros Contacto | search+cart */}
         <div className="mx-auto hidden h-16 w-full max-w-7xl items-center justify-between gap-4 bg-surface px-6 lg:flex lg:px-8">
           <Link href="/" className="flex shrink-0 items-center" aria-label="Activate — inicio">
-            <BrandWordmark size="lg" />
+            <BrandLogo size="lg" />
           </Link>
 
           <nav className="flex flex-1 items-center justify-center gap-6 font-body text-[13px] font-semibold tracking-wide text-text xl:gap-8">
@@ -419,16 +410,13 @@ export function StoreFooter() {
     <footer className="mt-auto border-t border-border bg-surface-soft">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-3 md:px-6 lg:gap-12 lg:px-8 lg:py-14">
         <div>
-          <div className="flex items-center gap-2">
-            <Image
-              src="/brand/logo-mark.png"
-              alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9 object-contain"
-            />
-            <p className="text-base font-bold tracking-[0.12em] text-text">ACTIVATE</p>
-          </div>
+          <Image
+            src="/brand/logo-mark-128.png"
+            alt="Activate Moda Deportiva"
+            width={44}
+            height={44}
+            className="brand-logo__mark h-11 w-11 object-contain"
+          />
           <p className="mt-3 text-sm text-muted">Moda deportiva · San Manuel</p>
         </div>
         <div className="flex flex-col gap-2 text-sm text-muted">
