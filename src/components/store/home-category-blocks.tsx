@@ -35,11 +35,7 @@ export function HomeCategoryBlocks({ categories, isError }: Props) {
   }
 
   return (
-    <section className="home-cat px-4 py-3 md:px-6 md:py-10 lg:px-8 lg:py-12">
-      <h2 className="home-cat__heading mb-0 font-display text-[0] leading-none md:mb-5 md:text-[36px] md:font-semibold md:leading-[1.2]">
-        Comprá por categoría
-      </h2>
-
+    <section className="home-cat px-4 py-3 md:px-6 md:py-10 lg:px-8 lg:py-12" aria-label="Categorías">
       <div className="home-cat__list flex flex-col gap-2 md:grid md:grid-cols-3 md:gap-5">
         {roots.map((root) => {
           const children = childrenOf(root.id);
