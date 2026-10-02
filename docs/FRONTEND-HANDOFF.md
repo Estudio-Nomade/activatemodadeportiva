@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T7 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T8 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `adf331b` T6, T7 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `b4166f0` T7, T8 pendiente de commit).
 
 Ownership:
 
@@ -314,12 +314,14 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T8 — Reorder product images UI
+### T8 — Reorder product images UI ✅
 
-**API ya existe:** `admin.catalog.reorderProductImages`  
-**UI:** drag o botones ↑↓ en `AdminProductImages`
+**API:** `admin.catalog.reorderProductImages` (existente)  
+**UI:** ↑↓ en `AdminProductImages` · helper `moveIdInOrder`
 
-**Done:** primera imagen = portada en cards/PDP.
+**Hecho:** reordenar con botones; badge Portada en índice 0; tests helper.
+
+**Verify:** 4 unit tests · lint 0 · build OK
 
 ---
 
@@ -437,6 +439,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | PDP polish | ~hecho (T5) |
 | Admin proof signed URL | ~hecho (T6) |
 | Admin add/remove variant | ~hecho (T7) |
+| Reorder product images | ~hecho (T8) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -445,10 +448,11 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T8 — Reorder product images UI**  
-API ya existe; botones ↑↓ o drag en `AdminProductImages`.
+**T9 — Size guides admin CRUD (opcional v1.1)** — no bloquear v1 si seed alcanza.  
+**T10 — Desktop layouts (61–63)** polish spacing.  
+**T11 — Emails Resend** · **T12 — legales desde settings** · **T13 — smoke QA**.
 
-T0–T7 en `feat/frontend-baseline`.
+T0–T8 en `feat/frontend-baseline`.
 
 ---
 

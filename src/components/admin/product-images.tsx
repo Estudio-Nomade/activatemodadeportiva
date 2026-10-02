@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { ProductImage } from "@/components/store/product-image";
+import { moveIdInOrder } from "@/lib/catalog/reorder-ids";
 import { errorMessage } from "@/lib/errors";
 import { trpc } from "@/lib/trpc/client";
 
@@ -24,6 +25,7 @@ export function AdminProductImages({ productId, images, onChanged }: Props) {
   const createUrl = trpc.admin.catalog.createImageUploadUrl.useMutation();
   const attach = trpc.admin.catalog.attachProductImage.useMutation();
   const remove = trpc.admin.catalog.removeProductImage.useMutation();
+  const reorder = trpc.admin.catalog.reorderProductImages.useMutation();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -89,6 +91,23 @@ export function AdminProductImages({ productId, images, onChanged }: Props) {
     }
   }
 
+  async function onMove(imageId: string, direction: "up" | "down") {
+    const ids = sorted.map((img) => img.id);
+    const next = moveIdInOrder(ids, imageId, direction);
+    if (next === ids || next.every((id, i) => id === ids[i])) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await reorder.mutateAsync({ productId, orderedIds: next });
+      setMsg(direction === "up" ? "Movida hacia portada" : "Orden actualizado");
+      await onChanged();
+    } catch (e) {
+      setErr(errorMessage(e, "No se pudo reordenar"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -112,8 +131,7 @@ export function AdminProductImages({ productId, images, onChanged }: Props) {
       </div>
 
       <p className="text-xs text-muted">
-        JPG/PNG/WebP · máx 8MB. Path: <code>products/{"{id}"}/…</code> en bucket{" "}
-        <code>product-images</code>.
+        JPG/PNG/WebP · máx 8MB. La primera (Portada) sale en cards y PDP. Usá ↑↓ para reordenar.
       </p>
 
       {sorted.length === 0 ? (
@@ -121,7 +139,7 @@ export function AdminProductImages({ productId, images, onChanged }: Props) {
           Todavía no hay fotos
         </div>
       ) : (
-        <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           {sorted.map((img, idx) => (
             <li key={img.id} className="relative overflow-hidden rounded-[12px] border border-border">
               <div className="aspect-square bg-surface-soft">
@@ -137,14 +155,36 @@ export function AdminProductImages({ productId, images, onChanged }: Props) {
                   Portada
                 </span>
               ) : null}
-              <button
-                type="button"
-                className="absolute bottom-1 right-1 rounded-full bg-black/70 px-2 py-1 text-[10px] font-semibold text-white"
-                disabled={busy}
-                onClick={() => void onRemove(img.id)}
-              >
-                Quitar
-              </button>
+              <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between gap-1">
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-black/70 text-xs font-bold text-white disabled:opacity-30"
+                    disabled={busy || idx === 0}
+                    aria-label="Subir en el orden"
+                    onClick={() => void onMove(img.id, "up")}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-black/70 text-xs font-bold text-white disabled:opacity-30"
+                    disabled={busy || idx === sorted.length - 1}
+                    aria-label="Bajar en el orden"
+                    onClick={() => void onMove(img.id, "down")}
+                  >
+                    ↓
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="rounded-full bg-black/70 px-2 py-1 text-[10px] font-semibold text-white disabled:opacity-40"
+                  disabled={busy}
+                  onClick={() => void onRemove(img.id)}
+                >
+                  Quitar
+                </button>
+              </div>
             </li>
           ))}
         </ul>
