@@ -1,16 +1,19 @@
+"use client";
+
+import { InfoShell, ShippingFeesCopy, StoreAddressBlock } from "@/components/store/info-page";
+
 export default function EnviosPage() {
   return (
-    <div className="mx-auto max-w-2xl space-y-3 px-4 py-8 text-sm text-muted md:px-6">
-      <h1 className="text-2xl font-bold text-text">Envíos</h1>
+    <InfoShell title="Envíos">
       <p>
         <strong className="text-text">Retiro en local (San Manuel):</strong> gratis.
       </p>
+      <StoreAddressBlock />
+      <ShippingFeesCopy />
       <p>
-        <strong className="text-text">Andreani a domicilio:</strong> costo fijo configurable. Si el
-        subtotal de productos (después del descuento por medio de pago) supera el umbral, el envío
-        es gratis.
+        No hay envío a domicilio dentro de San Manuel: si estás en la zona, retirás en el local.
       </p>
-      <p>No hay envío a domicilio dentro de San Manuel: quien está en la zona retira en el local.</p>
-    </div>
+      <p>El total de envío se calcula en el checkout (servidor); no uses importes de esta página para cobrar.</p>
+    </InfoShell>
   );
 }

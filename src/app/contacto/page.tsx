@@ -1,28 +1,53 @@
 "use client";
 
+import {
+  ContactLinks,
+  InfoShell,
+  StoreAddressBlock,
+  usePublicStoreSettings,
+} from "@/components/store/info-page";
 import { whatsappHref } from "@/lib/contact/whatsapp";
-import { trpc } from "@/lib/trpc/client";
 
 export default function ContactoPage() {
-  const settings = trpc.settings.getPublic.useQuery();
-  const waHref = whatsappHref(settings.data?.whatsapp);
+  const { data, isLoading } = usePublicStoreSettings();
+  const waHref = whatsappHref(data?.whatsapp);
+  const email = data?.contact_email?.trim();
+  const ig = data?.instagram?.trim();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-3 px-4 py-8 text-sm text-muted md:px-6">
-      <h1 className="text-2xl font-bold text-text">Contacto</h1>
-      <p>San Manuel · horarios y dirección placeholders.</p>
-      {waHref ? (
-        <a href={waHref} target="_blank" rel="noreferrer" className="btn btn-primary max-w-xs">
-          WhatsApp
-        </a>
+    <InfoShell title="Contacto">
+      {isLoading ? <p>Cargando datos de la tienda…</p> : null}
+      <StoreAddressBlock />
+      {email ? (
+        <p>
+          Email:{" "}
+          <a href={`mailto:${email}`} className="font-semibold text-accent">
+            {email}
+          </a>
+        </p>
       ) : (
-        <p>WhatsApp aún no configurado en admin.</p>
+        <p>Email de contacto: configurar en admin → Config.</p>
       )}
-      {settings.data?.instagram ? (
-        <a href={settings.data.instagram} target="_blank" rel="noreferrer" className="block text-accent">
-          Instagram
-        </a>
-      ) : null}
-    </div>
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
+        {waHref ? (
+          <a href={waHref} target="_blank" rel="noreferrer" className="btn btn-primary max-w-xs">
+            WhatsApp
+          </a>
+        ) : (
+          <p className="text-sm">WhatsApp aún no configurado en admin.</p>
+        )}
+        {ig ? (
+          <a
+            href={ig}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-secondary max-w-xs"
+          >
+            Instagram
+          </a>
+        ) : null}
+      </div>
+      <ContactLinks />
+    </InfoShell>
   );
 }

@@ -1,8 +1,30 @@
+"use client";
+
+import Link from "next/link";
+import { ContactLinks, InfoShell, StoreAddressBlock } from "@/components/store/info-page";
+
 export default function TerminosPage() {
   return (
-    <div className="mx-auto max-w-2xl space-y-3 px-4 py-8 text-sm text-muted md:px-6">
-      <h1 className="text-2xl font-bold text-text">Términos y condiciones</h1>
-      <p>Texto placeholder v1. Completar con legales definitivos de Activate Moda Deportiva.</p>
-    </div>
+    <InfoShell title="Términos y condiciones">
+      <p>
+        Al comprar en Activate Moda Deportiva aceptás que los precios y totales se confirman en el
+        checkout del servidor, que el stock puede reservarse 24 h en pedidos pendientes de pago, y
+        que el efectivo solo aplica a retiro en local.
+      </p>
+      <p>
+        Envíos Andreani y retiro se rigen por lo indicado en{" "}
+        <Link href="/envios" className="font-semibold text-accent">
+          Envíos
+        </Link>
+        . Medios de pago en{" "}
+        <Link href="/medios-de-pago" className="font-semibold text-accent">
+          Medios de pago
+        </Link>
+        .
+      </p>
+      <StoreAddressBlock />
+      <p>Para consultas comerciales o reclamos:</p>
+      <ContactLinks />
+    </InfoShell>
   );
 }

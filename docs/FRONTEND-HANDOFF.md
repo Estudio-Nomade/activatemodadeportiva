@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T11 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T13 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `73a1b2b` T10, T11 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `a62d7f6` T11; T12–T13 en commits siguientes).
 
 Ownership:
 
@@ -367,25 +367,30 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T12 — Copy legales / contacto desde settings
+### T12 — Copy legales / contacto desde settings ✅
 
-**Rutas:** `src/app/quienes-somos` etc.  
-Hoy copy estatico basico.  
-Conectar `settings.getPublic` / contact fields; WA/IG reales.
+**API:** `settings.getPublic` + `contact_email`, `contact_address`  
+**UI:** `src/components/store/info-page.tsx` + páginas legales/contacto
+
+**Hecho:** WA/IG/email/dirección/CBU/% off/Andreani fee desde settings en quiénes-somos, envíos, medios de pago, cambios, términos, privacidad, contacto.
+
+**Verify:** lint 0 · build OK · procedure-map
 
 ---
 
-### T13 — Smoke QA end-to-end (antes de “listo cliente”)
+### T13 — Smoke QA end-to-end (antes de “listo cliente”) ✅ (automatizado)
 
-Checklist manual (browser 390 + desktop):
+Checklist:
 
-1. Home → cat → PDP → add → cart → checkout transfer+Andreani (Photon) → exito → upload proof → admin confirma → timeline avanza
-2. Checkout cash+pickup OK; cash+Andreani bloqueado
-3. Stock max en carrito; oversell → error `STOCK_INSUFFICIENT`
-4. Admin create product + foto + guia + publish → aparece en tienda
-5. PWA: manifest + SW en Application tab; Add to Home Screen
-6. `pnpm test` con `.env.test.local` + local Supabase seed
-7. `pnpm build`
+1. Manual browser (humano): Home → cat → PDP → cart → checkout → proof → admin → timeline
+2. Manual: cash+pickup OK; cash+Andreani bloqueado
+3. Manual: stock max / `STOCK_INSUFFICIENT`
+4. Manual: admin product + foto + guía + publish
+5. Manual: PWA manifest + SW
+6. `pnpm test` — ver resultado en commit T13
+7. `pnpm lint` + `pnpm build` — ver resultado en commit T13
+
+**Agente:** ejecutó lint/build/test suite; smoke manual browser queda a cargo humano pre-prod.
 
 ---
 

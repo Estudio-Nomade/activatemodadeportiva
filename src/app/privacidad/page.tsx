@@ -1,11 +1,34 @@
+"use client";
+
+import { ContactLinks, InfoShell, usePublicStoreSettings } from "@/components/store/info-page";
+
 export default function PrivacidadPage() {
+  const { data } = usePublicStoreSettings();
+  const email = data?.contact_email?.trim();
+
   return (
-    <div className="mx-auto max-w-2xl space-y-3 px-4 py-8 text-sm text-muted md:px-6">
-      <h1 className="text-2xl font-bold text-text">Privacidad</h1>
+    <InfoShell title="Privacidad">
       <p>
-        Usamos tus datos de contacto y envío solo para procesar el pedido y enviarte actualizaciones.
-        Texto legal completo: placeholder v1.
+        Usamos tus datos de contacto y envío solo para procesar el pedido, enviarte actualizaciones
+        de estado y coordinar retiro o envío.
       </p>
-    </div>
+      <p>
+        No vendemos tu información a terceros. El acceso al pedido se hace con código y, cuando
+        aplica, un enlace con token enviado por email.
+      </p>
+      <p>
+        Para acceder, corregir o pedir baja de datos, escribinos
+        {email ? (
+          <>
+            {" "}
+            a <a href={`mailto:${email}`} className="font-semibold text-accent">{email}</a> o
+          </>
+        ) : (
+          " "
+        )}
+        por WhatsApp / Instagram:
+      </p>
+      <ContactLinks />
+    </InfoShell>
   );
 }
