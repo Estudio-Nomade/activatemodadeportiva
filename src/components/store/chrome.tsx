@@ -177,7 +177,7 @@ export function StoreHeader() {
 
           <Link
             href="/"
-            className="flex min-w-0 max-w-[200px] items-center justify-center justify-self-center overflow-hidden"
+            className="flex min-w-0 max-w-[200px] items-center justify-start justify-self-start overflow-hidden pl-0.5"
             aria-label="Activate — inicio"
           >
             <BrandLogo size="sm" />
@@ -206,9 +206,13 @@ export function StoreHeader() {
           </div>
         </div>
 
-        {/* Desktop: logo | Mujer Hombre Accesorios Quienes Somos | search+cart */}
-        <div className="mx-auto hidden h-16 w-full max-w-7xl items-center justify-between gap-4 bg-surface px-6 lg:flex lg:px-8">
-          <Link href="/" className="flex shrink-0 items-center" aria-label="Activate — inicio">
+        {/* Desktop: logo flush-left | Mujer Hombre Accesorios Quienes Somos | search+cart */}
+        <div className="mx-auto hidden h-16 w-full max-w-7xl items-center justify-between gap-4 bg-surface pl-3 pr-6 lg:flex lg:pl-4 lg:pr-8">
+          <Link
+            href="/"
+            className="flex shrink-0 items-center -ml-0.5"
+            aria-label="Activate — inicio"
+          >
             <BrandLogo size="lg" />
           </Link>
 
