@@ -8,13 +8,13 @@ import { useCart } from "@/lib/cart/store";
 import { whatsappHref } from "@/lib/contact/whatsapp";
 import { formatPromoBarCopy } from "@/lib/format/promo";
 import { trpc } from "@/lib/trpc/client";
+import { HeaderSearch } from "@/components/store/header-search";
 import {
   IconCart,
   IconChevronLeft,
   IconChevronRight,
   IconClose,
   IconMenu,
-  IconSearch,
   IconWhatsApp,
 } from "@/components/store/icons";
 
@@ -184,13 +184,7 @@ export function StoreHeader() {
           </Link>
 
           <div className="flex shrink-0 items-center justify-end">
-            <Link
-              href="/buscar"
-              className="grid h-11 w-11 place-items-center text-text"
-              aria-label="Buscar"
-            >
-              <IconSearch />
-            </Link>
+            <HeaderSearch variant="mobile" />
             <Link
               href="/carrito"
               className="relative grid h-11 w-11 place-items-center text-text"
@@ -236,13 +230,7 @@ export function StoreHeader() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-0.5">
-            <Link
-              href="/buscar"
-              className="grid h-10 w-10 place-items-center text-text hover:text-accent"
-              aria-label="Buscar"
-            >
-              <IconSearch />
-            </Link>
+            <HeaderSearch variant="desktop" />
             <Link
               href="/carrito"
               className="relative grid h-10 w-10 place-items-center text-text hover:text-accent"
