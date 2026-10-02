@@ -28,11 +28,16 @@ export default function AdminCatalogoPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">{(catalog.data ?? []).length} productos</p>
-        <Link href="/admin/catalogo/nuevo" className="btn btn-primary w-auto px-4">
-          + Nuevo
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/guias" className="btn btn-secondary w-auto px-4">
+            Guías de talles
+          </Link>
+          <Link href="/admin/catalogo/nuevo" className="btn btn-primary w-auto px-4">
+            + Nuevo
+          </Link>
+        </div>
       </div>
 
       <div className="field">

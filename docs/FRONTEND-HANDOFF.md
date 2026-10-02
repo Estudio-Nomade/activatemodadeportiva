@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T8 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T9 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `b4166f0` T7, T8 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `233fc28` T8, T9 pendiente de commit).
 
 Ownership:
 
@@ -325,12 +325,16 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T9 — Size guides admin CRUD (opcional v1.1)
+### T9 — Size guides admin CRUD (opcional v1.1) ✅
 
-**Hoy:** seed fijo + picker.  
-**Si hace falta:** create/update guide name + upload imagen a public o storage.
+**Ruta:** `/admin/guias`  
+**API:** `createSizeGuide` / `updateSizeGuide` / `createSizeGuideUploadUrl` / `deleteSizeGuide`  
+**Migration:** `20261001000000_size_guides_bucket.sql` (bucket público `size-guides`)  
+**Nota:** en cloud/local aplicar migration (`supabase db push` / reset) para el bucket.
 
-No bloquear v1 si seed alcanza.
+**Hecho:** list + create name + rename + upload image + delete; seed paths `/size-guides/…` siguen OK.
+
+**Verify:** 5 path tests · lint 0 · build OK (+ route `/admin/guias`)
 
 ---
 
@@ -440,6 +444,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Admin proof signed URL | ~hecho (T6) |
 | Admin add/remove variant | ~hecho (T7) |
 | Reorder product images | ~hecho (T8) |
+| Size guides admin CRUD | ~hecho (T9) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -448,11 +453,12 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T9 — Size guides admin CRUD (opcional v1.1)** — no bloquear v1 si seed alcanza.  
 **T10 — Desktop layouts (61–63)** polish spacing.  
 **T11 — Emails Resend** · **T12 — legales desde settings** · **T13 — smoke QA**.
 
-T0–T8 en `feat/frontend-baseline`.
+T0–T9 en `feat/frontend-baseline`.
+
+**Ops T9:** aplicar migration bucket `size-guides` en cada entorno Supabase.
 
 ---
 

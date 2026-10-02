@@ -53,11 +53,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const title =
     NAV.find((n) => n.match(pathname))?.label ??
-    (pathname.includes("/nuevo")
-      ? "Nuevo producto"
-      : pathname.includes("/catalogo/")
-        ? "Editar producto"
-        : "Admin");
+    (pathname.startsWith("/admin/guias")
+      ? "Guías de talles"
+      : pathname.includes("/nuevo")
+        ? "Nuevo producto"
+        : pathname.includes("/catalogo/")
+          ? "Editar producto"
+          : "Admin");
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg">

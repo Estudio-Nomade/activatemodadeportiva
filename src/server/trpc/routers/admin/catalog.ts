@@ -3,7 +3,12 @@ import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
 import { canRemoveVariant } from "@/server/domain/catalog/variant-ops";
 import { withImageUrls } from "@/lib/media/product-image";
-import { PRODUCT_IMAGES_BUCKET } from "@/server/storage/port";
+import {
+  isValidSizeGuideStoragePath,
+  normalizeSizeGuideStorageKey,
+} from "@/lib/media/size-guide-path";
+import { mapSizeGuide } from "@/lib/media/size-guide";
+import { PRODUCT_IMAGES_BUCKET, SIZE_GUIDES_BUCKET } from "@/server/storage/port";
 import { adminProcedure, createTRPCRouter } from "../../init";
 
 function assertProductImagePath(productId: string, storagePath: string) {
@@ -302,8 +307,140 @@ export const adminCatalogRouter = createTRPCRouter({
       .select("id, name, storage_path")
       .order("name", { ascending: true });
     if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
-    return data ?? [];
+    return (data ?? []).map(mapSizeGuide);
   }),
+
+  createSizeGuide: adminProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(120),
+        storagePath: z.string().min(1).max(512).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const name = input.name.trim();
+      if (!name) throw new TRPCError({ code: "BAD_REQUEST", message: "Name required" });
+      let storagePath: string | null = null;
+      if (input.storagePath?.trim()) {
+        const key = normalizeSizeGuideStorageKey(input.storagePath);
+        if (!isValidSizeGuideStoragePath(key)) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid storage path" });
+        }
+        storagePath = key;
+      }
+      const { data, error } = await ctx.db
+        .from("size_guides")
+        .insert({ name, storage_path: storagePath })
+        .select("id, name, storage_path")
+        .single();
+      if (error || !data) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error?.message ?? "Failed to create size guide",
+        });
+      }
+      return mapSizeGuide(data);
+    }),
+
+  updateSizeGuide: adminProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        name: z.string().min(1).max(120).optional(),
+        storagePath: z.string().min(1).max(512).nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const patch: { name?: string; storage_path?: string | null } = {};
+      if (input.name !== undefined) {
+        const name = input.name.trim();
+        if (!name) throw new TRPCError({ code: "BAD_REQUEST", message: "Name required" });
+        patch.name = name;
+      }
+      if (input.storagePath !== undefined) {
+        if (input.storagePath === null || input.storagePath.trim() === "") {
+          patch.storage_path = null;
+        } else {
+          const key = normalizeSizeGuideStorageKey(input.storagePath);
+          if (!isValidSizeGuideStoragePath(key)) {
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid storage path" });
+          }
+          patch.storage_path = key;
+        }
+      }
+      if (Object.keys(patch).length === 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Nothing to update" });
+      }
+      const { data, error } = await ctx.db
+        .from("size_guides")
+        .update(patch)
+        .eq("id", input.id)
+        .select("id, name, storage_path")
+        .single();
+      if (error || !data) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error?.message ?? "Size guide not found",
+        });
+      }
+      return mapSizeGuide(data);
+    }),
+
+  createSizeGuideUploadUrl: adminProcedure
+    .input(
+      z.object({
+        fileName: z.string().min(1).max(120),
+        contentType: z.string().min(1).max(120).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
+      const path = `${Date.now()}-${safeName}`;
+      const signed = await ctx.storage.createSignedUploadUrl({
+        bucket: SIZE_GUIDES_BUCKET,
+        path,
+      });
+      const key = normalizeSizeGuideStorageKey(signed.path || path);
+      return {
+        bucket: SIZE_GUIDES_BUCKET,
+        path: key,
+        signedUrl: signed.signedUrl,
+        token: signed.token,
+        publicUrl: ctx.storage.getPublicUrl({
+          bucket: SIZE_GUIDES_BUCKET,
+          path: key,
+        }),
+      };
+    }),
+
+  deleteSizeGuide: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: row, error: findErr } = await ctx.db
+        .from("size_guides")
+        .select("id, storage_path")
+        .eq("id", input.id)
+        .maybeSingle();
+      if (findErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: findErr.message });
+      if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Size guide not found" });
+
+      const { error } = await ctx.db.from("size_guides").delete().eq("id", input.id);
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+
+      const path = row.storage_path?.trim() ?? "";
+      if (path && !path.startsWith("/") && !/^https?:\/\//i.test(path)) {
+        const key = normalizeSizeGuideStorageKey(path);
+        try {
+          await ctx.storage.removeObjects?.({
+            bucket: SIZE_GUIDES_BUCKET,
+            paths: [key],
+          });
+        } catch {
+          /* orphan ok */
+        }
+      }
+      return { ok: true as const };
+    }),
 
   /** Signed upload URL for product gallery image under products/{productId}/… */
   createImageUploadUrl: adminProcedure

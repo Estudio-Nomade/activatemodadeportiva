@@ -1,6 +1,9 @@
+import { SIZE_GUIDES_BUCKET } from "@/server/storage/port";
+import { normalizeSizeGuideStorageKey } from "./size-guide-path";
+
 /**
  * Resolve size-guide storage_path to a browser URL.
- * Supports absolute URLs, site paths (/size-guides/…), or future storage keys.
+ * Supports absolute URLs, site paths (/size-guides/…), or public bucket keys.
  */
 export function resolveSizeGuideUrl(storagePath: string | null | undefined): string | null {
   const raw = (storagePath ?? "").trim();
@@ -9,13 +12,13 @@ export function resolveSizeGuideUrl(storagePath: string | null | undefined): str
   if (raw.startsWith("//")) return `https:${raw}`;
   if (raw.startsWith("/")) return raw;
 
+  const key = normalizeSizeGuideStorageKey(raw);
   const base =
     (typeof process !== "undefined"
       ? process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "")
       : "") || "";
-  if (!base) return `/${raw.replace(/^\//, "")}`;
-  // optional future: size-guides bucket
-  return `${base}/storage/v1/object/public/size-guides/${raw.replace(/^size-guides\//, "")}`;
+  if (!base) return `/${key.replace(/^\//, "")}`;
+  return `${base}/storage/v1/object/public/${SIZE_GUIDES_BUCKET}/${key}`;
 }
 
 export type SizeGuidePublic = {

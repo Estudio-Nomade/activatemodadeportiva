@@ -19,3 +19,4 @@ export type StoragePort = {
 
 export const PRODUCT_IMAGES_BUCKET = "product-images";
 export const PAYMENT_PROOFS_BUCKET = "payment-proofs";
+export const SIZE_GUIDES_BUCKET = "size-guides";

@@ -202,7 +202,40 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | none |
-| Output | `{ id, name, storage_path }[]` |
+| Output | `{ id, name, storage_path, url }[]` |
+
+### `admin.catalog.createSizeGuide`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ name, storagePath? }` — path = site `/size-guides/…` or object key in bucket `size-guides` |
+| Output | `{ id, name, storage_path, url }` |
+
+### `admin.catalog.updateSizeGuide`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id, name?, storagePath? }` (`storagePath` null clears image) |
+| Output | `{ id, name, storage_path, url }` |
+
+### `admin.catalog.createSizeGuideUploadUrl`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ fileName, contentType? }` |
+| Output | `{ bucket: "size-guides", path, signedUrl, token?, publicUrl }` |
+
+### `admin.catalog.deleteSizeGuide`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id }` |
+| Output | `{ ok: true }` |
+| Note | Products with this guide get `size_guide_id` null (FK ON DELETE SET NULL). Storage object removed when path is a bucket key (not `/public` site path). |
 
 ### `admin.catalog.createImageUploadUrl`
 
