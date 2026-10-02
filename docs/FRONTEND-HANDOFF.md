@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T4 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T5 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `3441ad9` T3, T4 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `63133b5` T4, T5 pendiente de commit).
 
 Ownership:
 
@@ -268,17 +268,17 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T5 — PDP polish restante (02 / 14 / 16)
+### T5 — PDP polish restante (02 / 14 / 16) ✅
 
-**Ruta:** `src/app/p/[slug]/page.tsx`
+**Ruta:** `src/app/p/[slug]/page.tsx` · helper `lib/catalog/pdp-meta.ts`
 
-**Ya hay:** zoom, guia talles, stock.  
-**Falta:**
-- Chips meta (10% off / Andreani-retiro / cambios) como pen
-- Estado OOS mas fuerte (16) — boton disabled ya; UI warning
-- Zoom full-screen mas “14” (gestos opcionales, no obligatorio)
+**Hecho:**
+1. Meta lines dinámicas (% off / Andreani-retiro / cambios) desde settings bps
+2. OOS producto (banner + badge) y OOS combo (warning)
+3. Zoom fullscreen (Escape, flechas, dots, safe-area, botón zoom)
+4. CTA sticky mobile “Sumar al carrito”; precio promo en color promo
 
-**Done:** OOS y meta chips claros en 390.
+**Verify:** pdp-meta tests · lint 0 err · build OK
 
 ---
 
@@ -429,6 +429,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Home Pencil 01/61 | ~hecho (T2) |
 | Categoria chips + agotado | ~hecho (T3) |
 | Menu drawer drill-down | ~hecho (T4) |
+| PDP polish | ~hecho (T5) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -437,10 +438,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T5 — PDP polish restante (02 / 14 / 16)**  
-Meta chips, OOS warning, zoom full-screen polish.
+**T6 — Admin comprobante signed URL (48)**  
+Procedure + modal imagen/PDF via signed URL.
 
-T0–T4 en `feat/frontend-baseline`.
+T0–T5 en `feat/frontend-baseline`.
 
 ---
 

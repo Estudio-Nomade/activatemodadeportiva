@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { IconClose, IconZoom } from "@/components/store/icons";
 import { ProductImage } from "@/components/store/product-image";
 import { SizeGuideSheet } from "@/components/store/size-guide-sheet";
+import { buildPdpMetaChips } from "@/lib/catalog/pdp-meta";
 import { useCart } from "@/lib/cart/store";
+import { discountPercentFromBps } from "@/lib/format/promo";
 import { formatArsCents, unitPriceCents } from "@/lib/format/money";
 import { primaryProductImageUrl } from "@/lib/media/product-image";
 import { trpc } from "@/lib/trpc/client";
@@ -13,6 +16,7 @@ import { trpc } from "@/lib/trpc/client";
 export default function ProductPage() {
   const params = useParams<{ slug: string }>();
   const productQ = trpc.catalog.getProduct.useQuery({ slug: params.slug });
+  const settings = trpc.settings.getPublic.useQuery();
   const { addLine } = useCart();
   const product = productQ.data;
   const variants = useMemo(() => product?.product_variants ?? [], [product?.product_variants]);
@@ -36,6 +40,36 @@ export default function ProductPage() {
   const mainUrl = main?.url ?? primaryProductImageUrl(images);
   const sizeGuide = product?.size_guide ?? null;
 
+  const productSoldOut =
+    variants.length === 0 || variants.every((v) => v.available <= 0);
+  const comboOos = Boolean(variant && available <= 0);
+  const discPct = discountPercentFromBps(settings.data?.payment_discount_bps ?? 1000);
+  const metaChips = buildPdpMetaChips(discPct);
+  const hasPromo =
+    product != null &&
+    product.promo_price_cents != null &&
+    product.promo_price_cents < product.list_price_cents;
+
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoom(false);
+      if (e.key === "ArrowRight" && images.length > 1) {
+        setImgIdx((i) => (i + 1) % images.length);
+      }
+      if (e.key === "ArrowLeft" && images.length > 1) {
+        setImgIdx((i) => (i - 1 + images.length) % images.length);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [zoom, images.length]);
+
   if (productQ.isLoading) {
     return <p className="p-6 text-sm text-muted">Cargando producto…</p>;
   }
@@ -51,20 +85,36 @@ export default function ProductPage() {
   }
 
   return (
-    <div className="grid gap-6 px-4 py-6 md:grid-cols-2 md:px-6">
+    <div className="grid gap-6 px-4 py-6 md:grid-cols-2 md:px-6 md:pb-10">
       <div>
-        <button
-          type="button"
-          className="aspect-square w-full overflow-hidden rounded-[16px] border border-border bg-surface-soft"
-          onClick={() => setZoom(true)}
-        >
-          <ProductImage
-            url={mainUrl}
-            alt={main?.alt || product.name}
-            className="h-full w-full"
-            fallbackLabel="Sin foto"
-          />
-        </button>
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[16px] border border-border bg-surface-soft md:aspect-square">
+          <button
+            type="button"
+            className="absolute inset-0 z-0"
+            onClick={() => setZoom(true)}
+            aria-label="Ampliar imagen"
+          >
+            <ProductImage
+              url={mainUrl}
+              alt={main?.alt || product.name}
+              className="h-full w-full"
+              fallbackLabel="Sin foto"
+            />
+          </button>
+          {productSoldOut ? (
+            <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-text/85 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-inverse">
+              Agotado
+            </span>
+          ) : null}
+          <button
+            type="button"
+            className="absolute bottom-3 right-3 z-10 grid h-11 w-11 place-items-center rounded-full border border-border bg-surface/95 text-text shadow-sm"
+            onClick={() => setZoom(true)}
+            aria-label="Zoom"
+          >
+            <IconZoom />
+          </button>
+        </div>
         {images.length > 1 ? (
           <div className="mt-3 flex gap-2 overflow-x-auto">
             {images.map((img, i) => (
@@ -81,18 +131,51 @@ export default function ProductPage() {
         ) : null}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pb-24 md:pb-0">
         <div>
           <h1 className="text-2xl font-bold">{product.name}</h1>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-xl font-bold text-accent">{formatArsCents(price)}</span>
-            {product.promo_price_cents != null ? (
+          <div className="mt-2 flex flex-wrap items-baseline gap-2">
+            <span className={`text-xl font-bold ${hasPromo ? "text-promo" : "text-accent"}`}>
+              {formatArsCents(price)}
+            </span>
+            {hasPromo ? (
               <span className="text-sm text-muted line-through">
                 {formatArsCents(product.list_price_cents)}
               </span>
             ) : null}
           </div>
         </div>
+
+        {productSoldOut ? (
+          <div
+            className="rounded-[12px] border border-danger/25 bg-danger/10 px-4 py-3"
+            role="status"
+          >
+            <p className="text-sm font-bold text-danger">Producto agotado</p>
+            <p className="mt-1 text-sm text-muted">
+              No hay stock en ningún talle/color por ahora. Podés mirar otras categorías o avisarnos
+              por WhatsApp.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/" className="btn btn-secondary max-w-[180px] text-sm">
+                Ver catálogo
+              </Link>
+              <Link href="/buscar" className="btn btn-ghost max-w-[140px] text-sm">
+                Buscar
+              </Link>
+            </div>
+          </div>
+        ) : null}
+
+        {!productSoldOut && comboOos ? (
+          <div
+            className="rounded-[12px] border border-promo/30 bg-[#FBF0EE] px-4 py-3"
+            role="status"
+          >
+            <p className="text-sm font-bold text-promo">Sin stock en esta combinación</p>
+            <p className="mt-1 text-sm text-muted">Probá otro color o talle disponible.</p>
+          </div>
+        ) : null}
 
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Color</p>
@@ -120,7 +203,7 @@ export default function ProductPage() {
             {sizeGuide ? (
               <button
                 type="button"
-                className="text-xs font-bold text-accent underline-offset-2 hover:underline"
+                className="min-h-11 text-xs font-bold text-accent underline-offset-2 hover:underline"
                 onClick={() => setGuideOpen(true)}
               >
                 Guía de talles
@@ -141,77 +224,103 @@ export default function ProductPage() {
               </button>
             ))}
           </div>
-          <p className="mt-2 text-sm text-muted">
-            {available > 0 ? `${available} disponibles` : "Sin stock en esta combinación"}
-          </p>
+          {!productSoldOut ? (
+            <p className="mt-2 text-sm text-muted">
+              {available > 0 ? `${available} disponibles` : "Elegí otra combinación"}
+            </p>
+          ) : null}
         </div>
 
         {product.description ? (
           <p className="text-sm leading-relaxed text-muted">{product.description}</p>
         ) : null}
 
-        <button
-          type="button"
-          className="btn btn-primary"
-          disabled={!variant || available <= 0}
-          onClick={() => {
-            if (!variant) return;
-            addLine({
-              variantId: variant.id,
-              productId: product.id,
-              productSlug: product.slug,
-              productName: product.name,
-              color: variant.color,
-              size: variant.size,
-              unitPriceCents: price,
-              maxAvailable: available,
-              imagePath: mainUrl,
-              qty: 1,
-            });
-            setAdded(true);
-          }}
-        >
-          {available > 0 ? "Agregar al carrito" : "Sin stock"}
-        </button>
-        {added ? (
-          <Link href="/carrito" className="btn btn-secondary">
-            Ver carrito
-          </Link>
-        ) : null}
+        <ul className="flex flex-col gap-1.5 text-xs text-muted md:text-sm">
+          {metaChips.map((line) => (
+            <li key={line} className="flex gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+              <span>{line}</span>
+            </li>
+          ))}
+        </ul>
 
-        <div className="space-y-2 rounded-[16px] border border-border bg-surface p-4 text-sm text-muted">
-          <p>
-            <Link href="/medios-de-pago" className="font-semibold text-text">
-              Medios de pago
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!variant || available <= 0 || productSoldOut}
+            onClick={() => {
+              if (!variant || available <= 0) return;
+              addLine({
+                variantId: variant.id,
+                productId: product.id,
+                productSlug: product.slug,
+                productName: product.name,
+                color: variant.color,
+                size: variant.size,
+                unitPriceCents: price,
+                maxAvailable: available,
+                imagePath: mainUrl,
+                qty: 1,
+              });
+              setAdded(true);
+            }}
+          >
+            {productSoldOut ? "Agotado" : available > 0 ? "Sumar al carrito" : "Sin stock"}
+          </button>
+          {added ? (
+            <Link href="/carrito" className="btn btn-secondary mt-2">
+              Ver carrito
             </Link>
-            : transferencia y efectivo (retiro).
-          </p>
-          <p>
-            <Link href="/envios" className="font-semibold text-text">
-              Envíos
-            </Link>
-            : retiro gratis o Andreani.
-          </p>
-          <p>
-            <Link href="/cambios-y-devoluciones" className="font-semibold text-text">
-              Cambios
-            </Link>
-            : gestión por local / WhatsApp.
-          </p>
+          ) : null}
         </div>
       </div>
 
       {zoom ? (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-4"
-          onClick={() => setZoom(false)}
+          className="fixed inset-0 z-50 flex flex-col bg-black"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Imagen ampliada"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={mainUrl}
-            alt={product.name}
-            className="max-h-[90dvh] max-w-full object-contain"
-          />
+          <div className="flex items-center justify-between px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
+            <p className="truncate px-2 text-sm font-semibold text-white/90">{product.name}</p>
+            <button
+              type="button"
+              className="grid h-12 w-12 place-items-center rounded-full text-white"
+              onClick={() => setZoom(false)}
+              aria-label="Cerrar zoom"
+            >
+              <IconClose />
+            </button>
+          </div>
+          <button
+            type="button"
+            className="flex min-h-0 flex-1 items-center justify-center p-4"
+            onClick={() => setZoom(false)}
+            aria-label="Cerrar"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mainUrl}
+              alt={product.name}
+              className="max-h-full max-w-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </button>
+          {images.length > 1 ? (
+            <div className="flex justify-center gap-2 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              {images.map((img, i) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  className={`h-2 w-2 rounded-full ${i === imgIdx ? "bg-white" : "bg-white/40"}`}
+                  aria-label={`Imagen ${i + 1}`}
+                  onClick={() => setImgIdx(i)}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

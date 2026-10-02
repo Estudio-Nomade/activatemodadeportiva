@@ -95,3 +95,18 @@ export function IconWhatsApp(props: IconProps) {
     children: <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />,
   });
 }
+
+export function IconZoom(props: IconProps) {
+  return base({
+    ...props,
+    size: props.size ?? 18,
+    children: (
+      <>
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+        <path d="M11 8v6" />
+        <path d="M8 11h6" />
+      </>
+    ),
+  });
+}
