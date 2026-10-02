@@ -177,7 +177,7 @@ export function StoreHeader() {
 
           <Link
             href="/"
-            className="flex min-w-0 max-w-[200px] items-center justify-start justify-self-start overflow-hidden pl-0.5"
+            className="flex min-w-0 max-w-[200px] items-center justify-center justify-self-center overflow-hidden"
             aria-label="Activate — inicio"
           >
             <BrandLogo size="sm" />
