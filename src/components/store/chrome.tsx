@@ -2,11 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useCart } from "@/lib/cart/store";
+import { whatsappHref } from "@/lib/contact/whatsapp";
 import { formatPromoBarCopy } from "@/lib/format/promo";
 import { trpc } from "@/lib/trpc/client";
+import {
+  IconCart,
+  IconChevronLeft,
+  IconChevronRight,
+  IconClose,
+  IconMenu,
+  IconSearch,
+  IconWhatsApp,
+} from "@/components/store/icons";
 
 export function PromoBar() {
   const settings = trpc.settings.getPublic.useQuery();
@@ -18,16 +27,41 @@ export function PromoBar() {
   );
 }
 
+type Cat = { id: string; name: string; slug: string; parent_id: string | null; sort_order: number };
+
 export function StoreHeader() {
-  const pathname = usePathname();
   const { count } = useCart();
   const settings = trpc.settings.getPublic.useQuery();
   const [menuOpen, setMenuOpen] = useState(false);
+  /** null = root list; string = expanded root category id (drill-down) */
+  const [expandedRootId, setExpandedRootId] = useState<string | null>(null);
   const cats = trpc.catalog.listCategories.useQuery();
 
-  const roots = (cats.data ?? []).filter((c) => !c.parent_id);
+  const roots = (cats.data ?? [])
+    .filter((c) => !c.parent_id)
+    .sort((a, b) => a.sort_order - b.sort_order);
   const childrenOf = (id: string) =>
-    (cats.data ?? []).filter((c) => c.parent_id === id).sort((a, b) => a.sort_order - b.sort_order);
+    (cats.data ?? [])
+      .filter((c) => c.parent_id === id)
+      .sort((a, b) => a.sort_order - b.sort_order);
+
+  const expandedRoot: Cat | undefined = expandedRootId
+    ? roots.find((r) => r.id === expandedRootId)
+    : undefined;
+  const expandedChildren = expandedRoot ? childrenOf(expandedRoot.id) : [];
+
+  const wa = whatsappHref(settings.data?.whatsapp);
+  const season = settings.data?.season_label?.trim() || "Moda deportiva";
+
+  function openMenu() {
+    setExpandedRootId(null);
+    setMenuOpen(true);
+  }
+
+  function closeMenu() {
+    setMenuOpen(false);
+    setExpandedRootId(null);
+  }
 
   return (
     <>
@@ -35,14 +69,14 @@ export function StoreHeader() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <button
             type="button"
-            className="grid h-12 w-12 place-items-center rounded-full border border-border bg-surface md:hidden"
+            className="grid h-12 w-12 place-items-center rounded-full border border-border bg-surface text-text md:hidden"
             aria-label="Abrir menú"
-            onClick={() => setMenuOpen(true)}
+            onClick={openMenu}
           >
-            ☰
+            <IconMenu />
           </button>
 
-          <Link href="/" className="flex min-w-0 flex-col items-start md:items-start">
+          <Link href="/" className="flex min-w-0 flex-col items-start">
             <span className="flex items-center gap-2">
               <Image
                 src="/brand/logo.png"
@@ -53,9 +87,7 @@ export function StoreHeader() {
                 priority
               />
             </span>
-            <span className="text-[10px] text-muted">
-              {settings.data?.season_label ?? "Moda deportiva"}
-            </span>
+            <span className="text-[10px] text-muted">{season}</span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-semibold md:flex">
@@ -75,17 +107,17 @@ export function StoreHeader() {
           <div className="flex items-center gap-2">
             <Link
               href="/buscar"
-              className="grid h-12 w-12 place-items-center rounded-full border border-border md:hidden"
+              className="grid h-12 w-12 place-items-center rounded-full border border-border text-text md:hidden"
               aria-label="Buscar"
             >
-              ⌕
+              <IconSearch />
             </Link>
             <Link
               href="/carrito"
-              className="relative grid h-12 w-12 place-items-center rounded-full border border-border"
+              className="relative grid h-12 w-12 place-items-center rounded-full border border-border text-text"
               aria-label="Carrito"
             >
-              🛒
+              <IconCart />
               {count > 0 ? (
                 <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full bg-accent text-[10px] font-bold text-inverse">
                   {count}
@@ -97,68 +129,157 @@ export function StoreHeader() {
       </header>
 
       {menuOpen ? (
-        <div className="fixed inset-0 z-50 bg-black/40 md:hidden" onClick={() => setMenuOpen(false)}>
+        <div
+          className="fixed inset-0 z-50 bg-black/40 md:hidden"
+          onClick={closeMenu}
+          role="presentation"
+        >
           <div
-            className="h-full w-[86%] max-w-sm overflow-y-auto bg-surface p-5"
+            className="flex h-full w-[86%] max-w-sm flex-col bg-surface shadow-xl"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menú"
           >
-            <div className="mb-4 flex items-center justify-between">
-              <strong>Menú</strong>
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              {expandedRoot ? (
+                <button
+                  type="button"
+                  className="flex min-h-12 items-center gap-1 text-sm font-semibold text-text"
+                  onClick={() => setExpandedRootId(null)}
+                  aria-label="Volver al menú"
+                >
+                  <IconChevronLeft size={18} />
+                  Menú
+                </button>
+              ) : (
+                <div>
+                  <p className="text-sm font-bold tracking-[0.12em]">ACTIVATE</p>
+                  <p className="text-[10px] text-muted">{season}</p>
+                </div>
+              )}
               <button
                 type="button"
-                className="grid h-12 w-12 place-items-center rounded-full border border-border"
-                onClick={() => setMenuOpen(false)}
+                className="grid h-12 w-12 place-items-center rounded-full border border-border text-text"
+                onClick={closeMenu}
+                aria-label="Cerrar menú"
               >
-                ✕
+                <IconClose />
               </button>
             </div>
-            <div className="flex flex-col gap-3">
-              {roots.map((r) => (
-                <div key={r.id} className="border-b border-border pb-3">
+
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              {expandedRoot ? (
+                <div className="flex flex-col gap-1">
+                  <p className="mb-2 text-lg font-bold">{expandedRoot.name}</p>
                   <Link
-                    href={`/c/${r.slug}`}
-                    className="block py-2 text-base font-bold"
-                    onClick={() => setMenuOpen(false)}
+                    href={`/c/${expandedRoot.slug}`}
+                    className="flex min-h-12 items-center justify-between rounded-[12px] border border-border bg-surface-soft px-4 text-sm font-semibold"
+                    onClick={closeMenu}
                   >
-                    {r.name}
+                    Ver todo {expandedRoot.name}
+                    <IconChevronRight />
                   </Link>
-                  <div className="ml-2 flex flex-col">
-                    {childrenOf(r.id).map((ch) => (
+                  {expandedChildren.map((ch) => (
+                    <Link
+                      key={ch.id}
+                      href={`/c/${ch.slug}`}
+                      className="flex min-h-12 items-center justify-between border-b border-border px-1 text-sm font-medium"
+                      onClick={closeMenu}
+                    >
+                      {ch.name}
+                      <IconChevronRight className="text-muted" />
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {roots.map((r) => {
+                    const hasChildren = childrenOf(r.id).length > 0;
+                    if (hasChildren) {
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          className="flex min-h-12 w-full items-center justify-between rounded-[12px] border border-border bg-surface px-4 text-left text-base font-bold"
+                          onClick={() => setExpandedRootId(r.id)}
+                        >
+                          {r.name}
+                          <IconChevronRight />
+                        </button>
+                      );
+                    }
+                    return (
                       <Link
-                        key={ch.id}
-                        href={`/c/${ch.slug}`}
-                        className="py-2 text-sm text-muted"
-                        onClick={() => setMenuOpen(false)}
+                        key={r.id}
+                        href={`/c/${r.slug}`}
+                        className="flex min-h-12 items-center justify-between rounded-[12px] border border-border px-4 text-base font-bold"
+                        onClick={closeMenu}
                       >
-                        {ch.name}
+                        {r.name}
+                        <IconChevronRight />
                       </Link>
-                    ))}
+                    );
+                  })}
+
+                  <div className="mt-4 flex flex-col border-t border-border pt-3">
+                    <Link
+                      href="/buscar"
+                      onClick={closeMenu}
+                      className="flex min-h-12 items-center text-sm font-semibold"
+                    >
+                      Buscar
+                    </Link>
+                    <Link
+                      href="/pedido"
+                      onClick={closeMenu}
+                      className="flex min-h-12 items-center text-sm font-semibold"
+                    >
+                      Consultar pedido
+                    </Link>
+                    <Link
+                      href="/quienes-somos"
+                      onClick={closeMenu}
+                      className="flex min-h-12 items-center text-sm font-semibold"
+                    >
+                      Quiénes somos
+                    </Link>
+                    <Link
+                      href="/envios"
+                      onClick={closeMenu}
+                      className="flex min-h-12 items-center text-sm text-muted"
+                    >
+                      Envíos
+                    </Link>
+                    <Link
+                      href="/medios-de-pago"
+                      onClick={closeMenu}
+                      className="flex min-h-12 items-center text-sm text-muted"
+                    >
+                      Medios de pago
+                    </Link>
+                    <Link
+                      href="/cambios-y-devoluciones"
+                      onClick={closeMenu}
+                      className="flex min-h-12 items-center text-sm text-muted"
+                    >
+                      Cambios y devoluciones
+                    </Link>
+                    {wa ? (
+                      <a
+                        href={wa}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-2 flex min-h-12 items-center gap-2 text-sm font-semibold text-accent"
+                        onClick={closeMenu}
+                      >
+                        <IconWhatsApp size={18} />
+                        WhatsApp
+                      </a>
+                    ) : null}
                   </div>
                 </div>
-              ))}
-              <Link href="/buscar" onClick={() => setMenuOpen(false)} className="py-2 font-semibold">
-                Buscar
-              </Link>
-              <Link href="/pedido" onClick={() => setMenuOpen(false)} className="py-2 font-semibold">
-                Consultar pedido
-              </Link>
-              <Link href="/quienes-somos" onClick={() => setMenuOpen(false)} className="py-2 font-semibold">
-                Quiénes somos
-              </Link>
-              <Link href="/envios" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-muted">
-                Envíos
-              </Link>
-              <Link href="/medios-de-pago" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-muted">
-                Medios de pago
-              </Link>
-              <Link
-                href="/cambios-y-devoluciones"
-                onClick={() => setMenuOpen(false)}
-                className="py-2 text-sm text-muted"
-              >
-                Cambios y devoluciones
-              </Link>
-              {pathname ? null : null}
+              )}
             </div>
           </div>
         </div>
@@ -169,13 +290,8 @@ export function StoreHeader() {
 
 export function StoreFooter() {
   const settings = trpc.settings.getPublic.useQuery();
-  const wa = settings.data?.whatsapp?.trim();
+  const wa = whatsappHref(settings.data?.whatsapp);
   const ig = settings.data?.instagram?.trim();
-  const waHref = wa
-    ? wa.startsWith("http")
-      ? wa
-      : `https://wa.me/${wa.replace(/[^\d]/g, "")}`
-    : null;
 
   return (
     <footer className="mt-auto border-t border-border bg-surface-soft">
@@ -193,8 +309,8 @@ export function StoreFooter() {
           <Link href="/privacidad">Privacidad</Link>
         </div>
         <div className="flex flex-col gap-2 text-sm">
-          {waHref ? (
-            <a href={waHref} target="_blank" rel="noreferrer" className="font-semibold text-accent">
+          {wa ? (
+            <a href={wa} target="_blank" rel="noreferrer" className="font-semibold text-accent">
               WhatsApp
             </a>
           ) : (
@@ -214,18 +330,17 @@ export function StoreFooter() {
 
 export function WhatsAppFab() {
   const settings = trpc.settings.getPublic.useQuery();
-  const wa = settings.data?.whatsapp?.trim();
-  if (!wa) return null;
-  const href = wa.startsWith("http") ? wa : `https://wa.me/${wa.replace(/[^\d]/g, "")}`;
+  const href = whatsappHref(settings.data?.whatsapp);
+  if (!href) return null;
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="wa-fab fixed z-40 grid h-14 w-14 place-items-center rounded-full bg-wa text-lg font-bold text-white shadow-lg"
+      className="wa-fab fixed z-40 grid h-14 w-14 place-items-center rounded-full bg-wa text-white shadow-lg"
       aria-label="WhatsApp"
     >
-      WA
+      <IconWhatsApp size={24} />
     </a>
   );
 }

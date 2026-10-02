@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T3 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T4 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0, `b68ff4b` T1, `031b2f5` T2, T3 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `3441ad9` T3, T4 pendiente de commit).
 
 Ownership:
 
@@ -253,14 +253,18 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T4 — Menu drawer Pencil (07 / 35)
+### T4 — Menu drawer Pencil (07 / 35) ✅
 
-**Ruta:** `src/components/store/chrome.tsx`
+**Ruta:** `src/components/store/chrome.tsx`, `icons.tsx`  
+**Helper:** `src/lib/contact/whatsapp.ts`
 
-**Hoy:** drawer con roots+subs inline.  
-**Mejorar:** drill-down “Mujer expandido” (35), iconos no-emoji, WA desde settings, touch ≥48px (ya parcial).
+**Hecho:**
+1. Drill-down root → subcats (Volver / Ver todo / hijos)
+2. Iconos SVG (menu, close, search, cart, chevrons, WA) — sin emoji
+3. WA en drawer + fab + footer via `whatsappHref(settings)`
+4. Targets ≥48px; desktop header sin cambios de layout
 
-**Done:** navegacion mobile clara; no rompe desktop header.
+**Verify:** whatsapp tests · lint 0 err · build OK
 
 ---
 
@@ -424,6 +428,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Tracking visual | ~hecho (T1) |
 | Home Pencil 01/61 | ~hecho (T2) |
 | Categoria chips + agotado | ~hecho (T3) |
+| Menu drawer drill-down | ~hecho (T4) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -432,10 +437,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T4 — Menu drawer Pencil (07 / 35)**  
-Ruta: `chrome.tsx`. Drill-down Mujer, iconos no-emoji, WA settings.
+**T5 — PDP polish restante (02 / 14 / 16)**  
+Meta chips, OOS warning, zoom full-screen polish.
 
-T0–T3 en `feat/frontend-baseline` (commitear T3 cuando digas).
+T0–T4 en `feat/frontend-baseline`.
 
 ---
 

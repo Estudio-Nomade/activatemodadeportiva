@@ -1,15 +1,11 @@
 "use client";
 
+import { whatsappHref } from "@/lib/contact/whatsapp";
 import { trpc } from "@/lib/trpc/client";
 
 export default function ContactoPage() {
   const settings = trpc.settings.getPublic.useQuery();
-  const wa = settings.data?.whatsapp?.trim();
-  const waHref = wa
-    ? wa.startsWith("http")
-      ? wa
-      : `https://wa.me/${wa.replace(/[^\d]/g, "")}`
-    : null;
+  const waHref = whatsappHref(settings.data?.whatsapp);
 
   return (
     <div className="mx-auto max-w-2xl space-y-3 px-4 py-8 text-sm text-muted md:px-6">
