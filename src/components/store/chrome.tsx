@@ -19,8 +19,8 @@ import {
   IconWhatsApp,
 } from "@/components/store/icons";
 
-/** Primary catalog entry when no roots loaded yet. */
-export const PRODUCTS_HREF = "/c/mujer";
+/** Full catalog (all products + filters). Mobile hamburger "Productos". */
+export const PRODUCTS_HREF = "/productos";
 
 export function PromoBar() {
   const settings = trpc.settings.getPublic.useQuery();
@@ -126,7 +126,8 @@ export function StoreHeader() {
 
   const wa = whatsappHref(settings.data?.whatsapp);
   const season = settings.data?.season_label?.trim() || "Colección Primavera / Verano";
-  const productsHref = roots[0] ? `/c/${roots[0].slug}` : PRODUCTS_HREF;
+  // Productos → full catalog; roots still used for category drill-down in drawer
+  const productsHref = PRODUCTS_HREF;
 
   function openMenu() {
     setExpandedRootId(null);
