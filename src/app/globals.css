@@ -334,28 +334,21 @@ span[data-nimg="fill"] > img {
 }
 
 /*
-  Hero / tiles: keep heads in frame.
-  - object-position toward top (faces)
-  - scale < 1 = zoom out (more of the photo visible; slight edge bleed OK under overflow hidden)
+  Hero / tiles: head-safe crop (no empty letterbox).
+  Bias object-position toward the top so faces stay in frame under object-fit: cover.
 */
 .home-hero__photo {
   object-fit: cover;
-  object-position: center 18%;
-  transform: scale(0.92);
-  transform-origin: center 18%;
+  object-position: center 12%;
 }
 
 .home-hero__photo--soft {
-  object-position: center 28%;
-  transform: scale(0.94);
-  transform-origin: center 28%;
+  object-position: center 20%;
 }
 
 .home-cat__photo {
   object-fit: cover;
-  object-position: center 12%;
-  transform: scale(0.88);
-  transform-origin: center 12%;
+  object-position: center 8%;
 }
 
 /* Hero: shorter on mobile so category tiles fit first screen */
@@ -401,19 +394,20 @@ span[data-nimg="fill"] > img {
 .home-cat__tile {
   position: relative;
   display: block;
-  height: 5.5rem; /* 88px — a bit taller so faces crop less hard */
+  /* Taller band = less aggressive vertical crop on faces */
+  height: 6.25rem; /* 100px mobile */
   overflow: hidden;
 }
 
 @media (min-width: 768px) {
   .home-cat__tile {
-    height: 12.5rem; /* 200px */
+    height: 13.5rem; /* 216px */
   }
 }
 
 @media (min-width: 1024px) {
   .home-cat__tile {
-    height: 14rem; /* 224px */
+    height: 15rem; /* 240px */
   }
 }
 
