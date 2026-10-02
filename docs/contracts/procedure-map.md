@@ -241,6 +241,16 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | `{ id: uuid }` |
 | Output | full order + items + proofs + stock_reservations |
 
+### `admin.orders.getProofDownloadUrl`
+
+| | |
+|--|--|
+| Type | query |
+| Input | `{ proofId: uuid }` |
+| Output | `{ proofId, orderId, storagePath, signedUrl, expiresIn }` |
+| Errors | `NOT_FOUND`, `BAD_REQUEST` if path not under `payment-proofs/{orderId}/` |
+| Note | Private bucket `payment-proofs`; signed download (~15 min). Path re-validated server-side. |
+
 ### `admin.orders.confirmPayment` → `{ ok: true }`
 
 Input `{ id }` — `pendiente_pago` → `pago_confirmado`

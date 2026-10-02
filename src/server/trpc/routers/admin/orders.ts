@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { assertProofStoragePath } from "@/server/domain/orders/public-order";
 import {
   cancelOrder,
   confirmPayment,
@@ -8,6 +9,7 @@ import {
   markShipped,
   startPreparing,
 } from "@/server/domain/orders/transitions";
+import { PAYMENT_PROOFS_BUCKET } from "@/server/storage/port";
 import { adminProcedure, createTRPCRouter, rethrowDomain } from "../../init";
 
 export const adminOrdersRouter = createTRPCRouter({
@@ -66,6 +68,49 @@ export const adminOrdersRouter = createTRPCRouter({
       if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
       if (!data) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
       return data;
+    }),
+
+  getProofDownloadUrl: adminProcedure
+    .input(z.object({ proofId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { data: proof, error } = await ctx.db
+        .from("payment_proofs")
+        .select("id, order_id, storage_path, uploaded_at")
+        .eq("id", input.proofId)
+        .maybeSingle();
+
+      if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+      if (!proof) throw new TRPCError({ code: "NOT_FOUND", message: "Proof not found" });
+
+      try {
+        assertProofStoragePath(proof.order_id, proof.storage_path);
+      } catch {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid proof storage path",
+        });
+      }
+
+      const expiresIn = 60 * 15;
+      try {
+        const { signedUrl } = await ctx.storage.createSignedDownloadUrl({
+          bucket: PAYMENT_PROOFS_BUCKET,
+          path: proof.storage_path,
+          expiresIn,
+        });
+        return {
+          proofId: proof.id,
+          orderId: proof.order_id,
+          storagePath: proof.storage_path,
+          signedUrl,
+          expiresIn,
+        };
+      } catch (e) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: e instanceof Error ? e.message : "Failed to sign proof URL",
+        });
+      }
     }),
 
   confirmPayment: adminProcedure

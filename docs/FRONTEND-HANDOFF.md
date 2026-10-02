@@ -3,7 +3,7 @@
 **Para:** agente / humano que sigue el FE  
 **Repo:** `Estudio-Nomade/activatemodadeportiva`  
 **Path local tipico:** `~/Documentos/Estudio Nomade/activatemodadeportiva`  
-**Fecha de este handoff:** 2026-04-01 (T0–T5 en `feat/frontend-baseline`)
+**Fecha de este handoff:** 2026-04-01 (T0–T6 en `feat/frontend-baseline`)
 
 Leelo **entero** antes de tocar codigo. Ejecuta **una tarea a la vez** (orden sugerido abajo). No mezcles 3 features en un solo PR mental.
 
@@ -21,7 +21,7 @@ E-commerce AR sportswear **guest checkout** (sin cuentas de comprador v1):
 - Monosistema **Next.js App Router + tRPC + Supabase**
 
 **Backend core esta en `main` (origin).**  
-**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `63133b5` T4, T5 pendiente de commit).
+**Frontend baseline en branch `feat/frontend-baseline`** (`5ccf0aa` T0 … `b9b6dc8` T5, T6 pendiente de commit).
 
 Ownership:
 
@@ -282,17 +282,20 @@ Prioridad = orden. Cada item: objetivo, archivos, criterios de done, pitfalls.
 
 ---
 
-### T6 — Admin comprobante signed URL (48)
+### T6 — Admin comprobante signed URL (48) ✅
 
 **Ruta:** `src/app/admin/pedidos/[id]/page.tsx`  
-**Backend:** storage port ya tiene `createSignedDownloadUrl` para bucket privado `payment-proofs`
+**API:** `admin.orders.getProofDownloadUrl({ proofId })`  
+**Helpers:** `proofMediaKind`, tests `public-order` + `proof-kind`
 
-**Hacer:**
-1. Procedure admin p.ej. `admin.orders.getProofDownloadUrl({ proofId })` o por orderId
-2. UI modal muestra imagen/PDF via signed URL (no solo path texto)
-3. Actualizar `procedure-map.md`
+**Hecho:**
+1. Signed download (~15 min) bucket privado `payment-proofs`
+2. Path re-validado con `assertProofStoragePath`
+3. Modal: imagen / PDF iframe / link “otro”
+4. `procedure-map.md` actualizado
+5. Lint: warning `_token` en `toPublicOrderByCode` silenciado
 
-**Done:** admin ve el comprobante real; path sigue validado bajo `payment-proofs/{orderId}/`.
+**Verify:** 6 unit tests · lint 0 · build OK
 
 ---
 
@@ -430,6 +433,7 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 | Categoria chips + agotado | ~hecho (T3) |
 | Menu drawer drill-down | ~hecho (T4) |
 | PDP polish | ~hecho (T5) |
+| Admin proof signed URL | ~hecho (T6) |
 | Photon / imagenes / guia talles | ~hechos |
 
 **No es greenfield.** Es **pulir y cerrar gaps** contra Pencil + PRD.
@@ -438,10 +442,10 @@ Skill Hermes a cargar: **`activate-moda-deportiva-dev-pitfalls`**.
 
 ## 9. Proxima tarea recomendada
 
-**T6 — Admin comprobante signed URL (48)**  
-Procedure + modal imagen/PDF via signed URL.
+**T7 — Admin add variant a producto existente**  
+`addVariant` / `removeVariant` + UI editor.
 
-T0–T5 en `feat/frontend-baseline`.
+T0–T6 en `feat/frontend-baseline`.
 
 ---
 
