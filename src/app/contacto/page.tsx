@@ -28,24 +28,16 @@ export default function ContactoPage() {
       ) : (
         <p>Email de contacto: configurar en admin → Config.</p>
       )}
-      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap">
-        {waHref ? (
-          <a href={waHref} target="_blank" rel="noreferrer" className="btn btn-primary max-w-xs">
-            WhatsApp
-          </a>
-        ) : (
-          <p className="text-sm">WhatsApp aún no configurado en admin.</p>
-        )}
-        <a href={ig} target="_blank" rel="noreferrer" className="btn btn-secondary max-w-xs">
-          Instagram
+      {waHref ? (
+        <a href={waHref} target="_blank" rel="noreferrer" className="btn btn-primary max-w-xs">
+          WhatsApp
         </a>
-      </div>
-      <p className="text-sm">
-        Seguinos:{" "}
-        <a href={ig} target="_blank" rel="noreferrer" className="font-semibold text-accent">
-          @activate.ropa.deportiva
-        </a>
-      </p>
+      ) : (
+        <p className="text-sm">WhatsApp aún no configurado en admin.</p>
+      )}
+      <a href={ig} target="_blank" rel="noreferrer" className="font-semibold text-accent">
+        Instagram · @activate.ropa.deportiva
+      </a>
     </InfoShell>
   );
 }
