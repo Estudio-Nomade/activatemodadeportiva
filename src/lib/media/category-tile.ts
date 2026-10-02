@@ -1,7 +1,7 @@
 const TILE_BY_SLUG: Record<string, string> = {
-  mujer: "/categories/mujer.jpg",
-  hombre: "/categories/hombre.jpg",
-  accesorios: "/categories/accesorios.jpg",
+  mujer: "/categories/mujer-tile.jpg",
+  hombre: "/categories/hombre-tile.jpg",
+  accesorios: "/categories/accesorios-tile.jpg",
 };
 
 const FALLBACK = "/categories/fallback.jpg";

@@ -3,9 +3,9 @@ import { categoryTileImageSrc } from "./category-tile";
 
 describe("categoryTileImageSrc", () => {
   it("maps known root slugs to static public paths", () => {
-    expect(categoryTileImageSrc("mujer")).toBe("/categories/mujer.jpg");
-    expect(categoryTileImageSrc("hombre")).toBe("/categories/hombre.jpg");
-    expect(categoryTileImageSrc("accesorios")).toBe("/categories/accesorios.jpg");
+    expect(categoryTileImageSrc("mujer")).toBe("/categories/mujer-tile.jpg");
+    expect(categoryTileImageSrc("hombre")).toBe("/categories/hombre-tile.jpg");
+    expect(categoryTileImageSrc("accesorios")).toBe("/categories/accesorios-tile.jpg");
   });
 
   it("falls back for unknown slugs", () => {
