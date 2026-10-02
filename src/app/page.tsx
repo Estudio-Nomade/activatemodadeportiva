@@ -36,7 +36,7 @@ export default function HomePage() {
           alt=""
           fill
           priority
-          className="object-cover object-center"
+          className="home-hero__photo"
           sizes="100vw"
         />
         <div
@@ -88,7 +88,7 @@ export default function HomePage() {
           src="/home/hero-portada.jpg"
           alt=""
           fill
-          className="object-cover opacity-40"
+          className="home-hero__photo home-hero__photo--soft opacity-40"
           sizes="100vw"
         />
         <div className="absolute inset-0 bg-[#12100f99]" aria-hidden />
