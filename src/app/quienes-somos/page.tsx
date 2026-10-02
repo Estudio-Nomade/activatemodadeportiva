@@ -6,30 +6,18 @@ const GALLERY = [
   {
     src: "/about/lorena-local.jpg",
     alt: "Lorena en el local de Activate Moda Deportiva",
-    width: 1200,
-    height: 1600,
-    className: "md:row-span-2",
   },
   {
     src: "/about/local-1.jpg",
     alt: "Interior del local Activate Moda Deportiva",
-    width: 960,
-    height: 1280,
-    className: "",
   },
   {
     src: "/about/local-2.jpg",
     alt: "Detalle del local Activate en San Manuel",
-    width: 960,
-    height: 1280,
-    className: "",
   },
   {
     src: "/about/local-3.jpg",
     alt: "Espacio de venta Activate Moda Deportiva",
-    width: 960,
-    height: 1280,
-    className: "md:col-span-2 md:aspect-[21/9]",
   },
 ] as const;
 
@@ -109,20 +97,20 @@ export default function QuienesSomosPage() {
         </blockquote>
       </div>
 
-      {/* Gallery — local + Lorena */}
+      {/* Gallery — local + Lorena (2×2 mobile; 4 even cols desktop, no orphan span) */}
       <section className="mx-auto mt-12 max-w-6xl px-4 md:mt-16 md:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 md:gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4">
           {GALLERY.map((item) => (
             <div
               key={item.src}
-              className={`relative overflow-hidden rounded-xl bg-surface-soft aspect-[3/4] ${item.className}`}
+              className="relative aspect-[3/4] overflow-hidden rounded-xl bg-surface-soft"
             >
               <Image
                 src={item.src}
                 alt={item.alt}
                 fill
-                className="object-cover"
-                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover object-center"
+                sizes="(max-width: 768px) 50vw, 25vw"
               />
             </div>
           ))}
