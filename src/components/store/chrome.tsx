@@ -33,30 +33,70 @@ export function PromoBar() {
 
 type Cat = { id: string; name: string; slug: string; parent_id: string | null; sort_order: number };
 
-const DESKTOP_NAV: { href: string; label: string }[] = [
-  { href: "/", label: "Inicio" },
-  { href: PRODUCTS_HREF, label: "Productos" },
-  { href: "/quienes-somos", label: "Nosotros" },
-  { href: "/contacto", label: "Contacto" },
-];
+/** Desktop header categories — labels fixed; href from catalog roots when available. */
+const DESKTOP_CAT_KEYS = [
+  { key: "mujer", label: "Mujer", fallback: "/c/mujer" },
+  { key: "hombre", label: "Hombre", fallback: "/c/hombre" },
+  { key: "accesorios", label: "Accesorios", fallback: "/c/accesorios" },
+] as const;
+
+function buildDesktopNav(roots: Cat[]): { href: string; label: string }[] {
+  const findRoot = (key: string) =>
+    roots.find(
+      (r) => r.slug.toLowerCase() === key || r.name.toLowerCase() === key,
+    );
+
+  return [
+    ...DESKTOP_CAT_KEYS.map(({ key, label, fallback }) => {
+      const root = findRoot(key);
+      return { href: root ? `/c/${root.slug}` : fallback, label };
+    }),
+    { href: "/quienes-somos", label: "Quienes Somos" },
+  ];
+}
 
 type LogoSize = "sm" | "md" | "lg";
 
-/** Brand monogram only (A + black circle on the left of the letter). */
+/**
+ * Circle monogram + two-line wordmark (ACTIVATE / MODA DEPORTIVA).
+ * Compact so it fits h-14 (mobile) / h-16 (desktop) without dominating.
+ */
 function BrandLogo({ size = "md" }: { size?: LogoSize }) {
-  const box =
-    size === "sm" ? "h-8 w-8" : size === "lg" ? "h-12 w-12" : "h-9 w-9";
-  const px = size === "sm" ? 32 : size === "lg" ? 48 : 36;
+  // sm mobile header · md drawer · lg desktop header
+  const markBox = size === "sm" ? "h-5 w-5" : size === "lg" ? "h-[22px] w-[22px]" : "h-6 w-6";
+  const px = size === "sm" ? 20 : size === "lg" ? 22 : 24;
+  const title =
+    size === "sm"
+      ? "text-[13px] tracking-[0.12em]"
+      : size === "lg"
+        ? "text-[15px] tracking-[0.12em]"
+        : "text-[14px] tracking-[0.12em]";
+  const sub =
+    size === "sm"
+      ? "text-[8px] tracking-[0.14em]"
+      : size === "lg"
+        ? "text-[9px] tracking-[0.16em]"
+        : "text-[8px] tracking-[0.14em]";
+  const gap = size === "lg" ? "gap-2" : "gap-1.5";
+
   return (
-    <Image
-      src="/brand/logo-mark-128.png"
-      alt=""
-      width={px}
-      height={px}
-      className={`brand-logo__mark shrink-0 object-contain ${box}`}
-      priority
-      sizes={`${px}px`}
-    />
+    <span className={`brand-logo inline-flex max-w-full items-center ${gap}`}>
+      <Image
+        src="/brand/logo-mark-128.png"
+        alt=""
+        width={px}
+        height={px}
+        className={`brand-logo__mark shrink-0 object-contain ${markBox}`}
+        priority
+        sizes={`${px}px`}
+      />
+      <span className="flex min-w-0 flex-col leading-none">
+        <span className={`font-display font-bold uppercase text-text ${title}`}>Activate</span>
+        <span className={`mt-0.5 font-display font-semibold uppercase text-muted ${sub}`}>
+          Moda deportiva
+        </span>
+      </span>
+    </span>
   );
 }
 
@@ -118,6 +158,8 @@ export function StoreHeader() {
     return pathname === href || pathname?.startsWith(`${href}/`);
   }
 
+  const desktopNav = buildDesktopNav(roots);
+
   return (
     <>
       {/* Opaque white header only — never transparent over hero */}
@@ -135,7 +177,7 @@ export function StoreHeader() {
 
           <Link
             href="/"
-            className="flex min-w-0 items-center justify-center justify-self-center"
+            className="flex min-w-0 max-w-[200px] items-center justify-center justify-self-center overflow-hidden"
             aria-label="Activate — inicio"
           >
             <BrandLogo size="sm" />
@@ -164,23 +206,19 @@ export function StoreHeader() {
           </div>
         </div>
 
-        {/* Desktop: logo | Inicio Productos Nosotros Contacto | search+cart */}
+        {/* Desktop: logo | Mujer Hombre Accesorios Quienes Somos | search+cart */}
         <div className="mx-auto hidden h-16 w-full max-w-7xl items-center justify-between gap-4 bg-surface px-6 lg:flex lg:px-8">
           <Link href="/" className="flex shrink-0 items-center" aria-label="Activate — inicio">
             <BrandLogo size="lg" />
           </Link>
 
           <nav className="flex flex-1 items-center justify-center gap-6 font-body text-[13px] font-semibold tracking-wide text-text xl:gap-8">
-            {DESKTOP_NAV.map((item) => {
-              const href = item.label === "Productos" ? productsHref : item.href;
-              const active =
-                item.label === "Productos"
-                  ? Boolean(pathname?.startsWith("/c/") || pathname?.startsWith("/p/"))
-                  : navActive(href);
+            {desktopNav.map((item) => {
+              const active = navActive(item.href);
               return (
                 <Link
                   key={item.label}
-                  href={href}
+                  href={item.href}
                   className={
                     active
                       ? "text-accent underline decoration-2 underline-offset-8"
@@ -410,13 +448,7 @@ export function StoreFooter() {
     <footer className="mt-auto border-t border-border bg-surface-soft">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-3 md:px-6 lg:gap-12 lg:px-8 lg:py-14">
         <div>
-          <Image
-            src="/brand/logo-mark-128.png"
-            alt="Activate Moda Deportiva"
-            width={44}
-            height={44}
-            className="brand-logo__mark h-11 w-11 object-contain"
-          />
+          <BrandLogo size="md" />
           <p className="mt-3 text-sm text-muted">Moda deportiva · San Manuel</p>
         </div>
         <div className="flex flex-col gap-2 text-sm text-muted">
