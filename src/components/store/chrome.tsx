@@ -83,7 +83,7 @@ export function StoreHeader() {
   const expandedChildren = expandedRoot ? childrenOf(expandedRoot.id) : [];
 
   const wa = whatsappHref(settings.data?.whatsapp);
-  const season = settings.data?.season_label?.trim() || "Moda deportiva";
+  const season = settings.data?.season_label?.trim() || "Colección Primavera / Verano";
   const productsHref = roots[0] ? `/c/${roots[0].slug}` : PRODUCTS_HREF;
 
   function openMenu() {

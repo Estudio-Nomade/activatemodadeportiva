@@ -15,8 +15,11 @@ export default function HomePage() {
     .sort((a, b) => a.sort_order - b.sort_order);
 
   const discPct = discountPercentFromBps(settings.data?.payment_discount_bps ?? 1000);
+  // Wait for settings so we don't flash fallback → DB value on hydrate
   const seasonLabel =
-    settings.data?.season_label?.trim() || "Colección Primavera / Verano";
+    settings.data === undefined
+      ? null
+      : settings.data.season_label?.trim() || "Colección Primavera / Verano";
   // Stable href before cats load — avoids CTA jump on hydrate
   const primaryHref = roots[0] ? `/c/${roots[0].slug}` : PRODUCTS_HREF;
 
@@ -41,7 +44,7 @@ export default function HomePage() {
         />
         <div className="home-hero__content relative z-[2] flex min-h-[68vh] flex-col justify-end gap-6 px-5 pb-12 pt-10 md:min-h-[72vh] md:gap-8 md:px-10 md:pb-16 lg:min-h-[min(78vh,720px)] lg:px-14">
           <div className="home-hero__claim w-full text-left drop-shadow-sm">
-            <p className="home-hero__season">{seasonLabel}</p>
+            {seasonLabel ? <p className="home-hero__season">{seasonLabel}</p> : null}
             <h1 className="home-hero__title">
               <span>DISCIPLINA</span>
               <span>EN MOVIMIENTO</span>
