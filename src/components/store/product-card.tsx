@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ProductImage } from "@/components/store/product-image";
 import { formatArsCents, unitPriceCents } from "@/lib/format/money";
 import { primaryProductImageUrl } from "@/lib/media/product-image";
+import "./product-card.css";
 
 type ProductCardProps = {
   product: {
@@ -30,16 +31,16 @@ export function ProductCard({ product, soldOut }: ProductCardProps) {
   const imgUrl = primaryProductImageUrl(product.product_images);
 
   return (
-    <Link href={`/p/${product.slug}`} className="group block">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-[12px] bg-surface-soft">
+    <Link href={`/p/${product.slug}`} className="product-card group">
+      <div className="product-card__media aspect-[3/4]">
         <ProductImage
           url={imgUrl}
           alt={product.name}
-          className="h-full w-full transition duration-300 group-hover:scale-[1.02]"
+          className="product-card__img"
           fallbackLabel="Sin foto"
         />
         {soldOut ? (
-          <span className="absolute left-2 top-2 rounded-full bg-text/80 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-inverse">
+          <span className="absolute left-2 top-2 z-10 rounded-full bg-text/80 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-inverse">
             Agotado
           </span>
         ) : null}
