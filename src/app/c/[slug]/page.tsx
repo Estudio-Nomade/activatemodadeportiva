@@ -20,7 +20,9 @@ export default function CategoryPage() {
   return (
     <div className="pb-8 md:pb-12">
       <div className="px-4 pt-6 md:px-6 lg:px-8 lg:pt-10">
-        <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">{cat?.name ?? slug}</h1>
+        <h1 className="text-2xl font-bold uppercase tracking-wide md:text-3xl lg:text-4xl">
+          {cat?.name ?? slug}
+        </h1>
       </div>
 
       {chips.length > 0 ? (
@@ -29,7 +31,7 @@ export default function CategoryPage() {
             <Link
               key={chip.slug}
               href={`/c/${chip.slug}`}
-              className="chip shrink-0"
+              className="chip shrink-0 uppercase tracking-wide"
               data-active={chip.active ? "true" : "false"}
             >
               {chip.label}

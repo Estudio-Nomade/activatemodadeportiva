@@ -60,7 +60,7 @@ export default function QuienesSomosPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">
             Sobre nosotros
           </p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
+          <h1 className="mt-2 text-3xl font-bold uppercase tracking-wide text-white sm:text-4xl md:text-5xl">
             Quiénes somos
           </h1>
           <p className="mt-3 max-w-xl text-base italic leading-snug text-white/90 sm:text-lg md:text-xl">
@@ -79,7 +79,7 @@ export default function QuienesSomosPage() {
 
         <div className="my-10 h-px w-full bg-border" aria-hidden />
 
-        <h2 className="text-lg font-bold text-text md:text-xl">La marca</h2>
+        <h2 className="text-lg font-bold uppercase tracking-wide text-text md:text-xl">La marca</h2>
         <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-text md:text-base">
           {BRAND.map((p) => (
             <p key={p}>{p}</p>
@@ -122,10 +122,10 @@ export default function QuienesSomosPage() {
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted sm:text-[13px]">
           Movimiento · Estilo · Calidad
         </p>
-        <Link href={PRODUCTS_HREF} className="btn btn-primary max-w-xs">
+        <Link href={PRODUCTS_HREF} className="btn btn-primary max-w-xs uppercase tracking-wide">
           Ver productos
         </Link>
-        <Link href="/contacto" className="text-sm font-semibold text-accent">
+        <Link href="/contacto" className="text-sm font-semibold uppercase tracking-wide text-accent">
           Contacto
         </Link>
       </div>

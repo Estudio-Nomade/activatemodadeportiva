@@ -62,13 +62,13 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
             No encontramos resultados para “{submitted}”.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Link href="/c/mujer" className="chip">
+            <Link href="/c/mujer" className="chip uppercase tracking-wide">
               Mujer
             </Link>
-            <Link href="/c/hombre" className="chip">
+            <Link href="/c/hombre" className="chip uppercase tracking-wide">
               Hombre
             </Link>
-            <Link href="/c/accesorios" className="chip">
+            <Link href="/c/accesorios" className="chip uppercase tracking-wide">
               Accesorios
             </Link>
           </div>

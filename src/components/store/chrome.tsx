@@ -498,7 +498,7 @@ export function StoreFooter() {
             Instagram
           </a>
           <span className="text-xs text-muted">@activate.ropa.deportiva</span>
-          <Link href="/contacto" className="text-muted hover:text-text">
+          <Link href="/contacto" className="uppercase tracking-wide text-muted hover:text-text">
             Contacto
           </Link>
         </div>

@@ -9,7 +9,7 @@ import { trpc } from "@/lib/trpc/client";
 export function InfoShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <article className="mx-auto max-w-2xl px-4 py-8 md:px-6 lg:py-12">
-      <h1 className="text-2xl font-bold text-text md:text-3xl">{title}</h1>
+      <h1 className="text-2xl font-bold uppercase tracking-wide text-text md:text-3xl">{title}</h1>
       <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted md:text-[15px]">{children}</div>
     </article>
   );

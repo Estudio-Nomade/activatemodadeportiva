@@ -88,13 +88,13 @@ export default function HomePage() {
           <div className="mt-3 flex flex-wrap gap-3">
             <Link
               href="/quienes-somos"
-              className="btn type-cta h-11 max-w-[200px] border-0 bg-surface px-5 text-text"
+              className="btn type-cta h-11 max-w-[200px] border-0 bg-surface px-5 uppercase tracking-wide text-text"
             >
               Nosotros
             </Link>
             <Link
               href={primaryHref}
-              className="type-cta inline-flex h-11 items-center text-inverse underline-offset-2 hover:underline"
+              className="type-cta inline-flex h-11 items-center uppercase tracking-wide text-inverse underline-offset-2 hover:underline"
             >
               Ver catálogo
             </Link>

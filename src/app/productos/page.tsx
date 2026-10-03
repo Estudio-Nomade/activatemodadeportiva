@@ -79,7 +79,7 @@ export default function ProductosPage() {
   return (
     <div className="pb-8 md:pb-12">
       <div className="px-4 pt-6 md:px-6 lg:px-8 lg:pt-10">
-        <h1 className="text-2xl font-bold md:text-3xl lg:text-4xl">Productos</h1>
+        <h1 className="text-2xl font-bold uppercase tracking-wide md:text-3xl lg:text-4xl">Productos</h1>
         <p className="mt-1 text-sm text-muted">
           {filterSlug && activeCat
             ? `Filtrando: ${activeCat.name}`
@@ -91,7 +91,7 @@ export default function ProductosPage() {
       <div className="mt-3 flex gap-2 overflow-x-auto border-b border-border bg-surface px-4 py-3 md:mt-5 md:px-6 lg:px-8">
         <button
           type="button"
-          className="chip shrink-0"
+          className="chip shrink-0 uppercase tracking-wide"
           data-active={!filterSlug ? "true" : "false"}
           onClick={() => setFilterSlug(null)}
         >
@@ -101,7 +101,7 @@ export default function ProductosPage() {
           <button
             key={r.id}
             type="button"
-            className="chip shrink-0"
+            className="chip shrink-0 uppercase tracking-wide"
             data-active={
               activeRoot?.id === r.id || filterSlug === r.slug ? "true" : "false"
             }
@@ -117,7 +117,7 @@ export default function ProductosPage() {
         <div className="flex gap-2 overflow-x-auto border-b border-border bg-bg px-4 py-2.5 md:px-6 lg:px-8">
           <button
             type="button"
-            className="chip shrink-0"
+            className="chip shrink-0 uppercase tracking-wide"
             data-active={filterSlug === activeRoot.slug ? "true" : "false"}
             onClick={() => setFilterSlug(activeRoot.slug)}
           >
@@ -127,7 +127,7 @@ export default function ProductosPage() {
             <button
               key={ch.id}
               type="button"
-              className="chip shrink-0"
+              className="chip shrink-0 uppercase tracking-wide"
               data-active={filterSlug === ch.slug ? "true" : "false"}
               onClick={() => setFilterSlug(ch.slug)}
             >
@@ -136,7 +136,7 @@ export default function ProductosPage() {
           ))}
           <Link
             href={`/c/${activeRoot.slug}`}
-            className="chip shrink-0 text-accent"
+            className="chip shrink-0 uppercase tracking-wide text-accent"
           >
             Ver categoría ›
           </Link>
