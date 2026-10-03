@@ -37,13 +37,13 @@ export type Database = {
                   ]
                 },"categories": {
                   Row: {
-                    "id": string,"name": string,"parent_id": string | null,"slug": string,"sort_order": number
+                    "composition_care_text": string,"id": string,"name": string,"parent_id": string | null,"slug": string,"sort_order": number
                   }
                   Insert: {
-                    "id"?: string,"name": string,"parent_id"?: string | null,"slug": string,"sort_order"?: number
+                    "composition_care_text"?: string,"id"?: string,"name": string,"parent_id"?: string | null,"slug": string,"sort_order"?: number
                   }
                   Update: {
-                    "id"?: string,"name"?: string,"parent_id"?: string | null,"slug"?: string,"sort_order"?: number
+                    "composition_care_text"?: string,"id"?: string,"name"?: string,"parent_id"?: string | null,"slug"?: string,"sort_order"?: number
                   }
                   Relationships: [
                     {

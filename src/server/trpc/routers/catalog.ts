@@ -116,7 +116,8 @@ export const catalogRouter = createTRPCRouter({
           category_id, is_published, size_guide_id,
           product_variants(id, color, size, stock_on_hand),
           product_images(id, storage_path, alt, sort_order),
-          size_guides(id, name, storage_path)
+          size_guides(id, name, storage_path),
+          categories(composition_care_text)
         `,
         )
         .eq("slug", input.slug)
@@ -144,8 +145,24 @@ export const catalogRouter = createTRPCRouter({
       ).size_guides;
       const sizeGuide = guideRaw ? mapSizeGuide(guideRaw) : null;
 
+      const catEmbed = (
+        data as {
+          categories?: { composition_care_text?: string | null } | null;
+        }
+      ).categories;
+      const composition_care_text =
+        typeof catEmbed?.composition_care_text === "string"
+          ? catEmbed.composition_care_text
+          : "";
+
+      const { categories: _cat, ...rest } = mapped as typeof mapped & {
+        categories?: unknown;
+      };
+      void _cat;
+
       return {
-        ...mapped,
+        ...rest,
+        composition_care_text,
         product_variants: variants,
         size_guide: sizeGuide,
       };

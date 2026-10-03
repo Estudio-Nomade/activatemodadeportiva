@@ -5,8 +5,9 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { IconClose, IconZoom } from "@/components/store/icons";
 import { ProductImage } from "@/components/store/product-image";
+import { PdpInfoAccordions } from "@/components/store/pdp-info-accordions";
+import { PdpShippingEstimate } from "@/components/store/pdp-shipping-estimate";
 import { SizeGuideSheet } from "@/components/store/size-guide-sheet";
-import { buildPdpMetaChips } from "@/lib/catalog/pdp-meta";
 import { useCart } from "@/lib/cart/store";
 import { discountPercentFromBps } from "@/lib/format/promo";
 import { formatArsCents, unitPriceCents } from "@/lib/format/money";
@@ -23,7 +24,9 @@ export default function ProductPage() {
   const colors = useMemo(() => [...new Set(variants.map((v) => v.color))], [variants]);
   const [color, setColor] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
+  const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [addedQty, setAddedQty] = useState(0);
   const [guideOpen, setGuideOpen] = useState(false);
 
   const selectedColor = color ?? colors[0] ?? null;
@@ -44,11 +47,14 @@ export default function ProductPage() {
     variants.length === 0 || variants.every((v) => v.available <= 0);
   const comboOos = Boolean(variant && available <= 0);
   const discPct = discountPercentFromBps(settings.data?.payment_discount_bps ?? 1000);
-  const metaChips = buildPdpMetaChips(discPct);
+
   const hasPromo =
     product != null &&
     product.promo_price_cents != null &&
     product.promo_price_cents < product.list_price_cents;
+
+  const maxQty = Math.max(0, available);
+  const clampedQty = maxQty === 0 ? 1 : Math.min(Math.max(1, qty), maxQty);
 
   useEffect(() => {
     if (!zoom) return;
@@ -83,6 +89,12 @@ export default function ProductPage() {
       </div>
     );
   }
+
+  const decQty = () => setQty((q) => Math.max(1, q - 1));
+  const incQty = () => {
+    if (maxQty <= 0) return;
+    setQty((q) => Math.min(maxQty, q + 1));
+  };
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2 md:items-start md:gap-10 md:px-6 md:pb-14 lg:gap-14 lg:px-8">
@@ -131,7 +143,7 @@ export default function ProductPage() {
         ) : null}
       </div>
 
-      <div className="space-y-4 pb-24 md:max-w-xl md:pb-4 lg:pt-2">
+      <div className="space-y-4 pb-28 md:max-w-xl md:pb-4 lg:pt-2">
         <div>
           <h1 className="text-[22px] font-bold leading-snug md:text-3xl lg:text-4xl">
             {product.name}
@@ -148,6 +160,11 @@ export default function ProductPage() {
               <span className="text-xl font-bold text-text">{formatArsCents(price)}</span>
             )}
           </div>
+          {discPct > 0 ? (
+            <p className="mt-1.5 text-xs font-semibold text-accent md:text-sm">
+              {discPct}% off transferencia o efectivo
+            </p>
+          ) : null}
         </div>
 
         {productSoldOut ? (
@@ -193,6 +210,11 @@ export default function ProductPage() {
                 onClick={() => {
                   setColor(c);
                   setSize(null);
+                  const nextSizes = variants.filter((v) => v.color === c);
+                  const nextAvail = nextSizes[0]?.available ?? 0;
+                  if (nextAvail > 0) {
+                    setQty((q) => Math.min(Math.max(1, q), nextAvail));
+                  }
                 }}
               >
                 {c}
@@ -211,7 +233,12 @@ export default function ProductPage() {
                 className="chip chip-size"
                 data-active={v.size === selectedSize}
                 disabled={v.available <= 0}
-                onClick={() => setSize(v.size)}
+                onClick={() => {
+                  setSize(v.size);
+                  if (v.available > 0) {
+                    setQty((q) => Math.min(Math.max(1, q), v.available));
+                  }
+                }}
               >
                 {v.size}
               </button>
@@ -233,18 +260,57 @@ export default function ProductPage() {
           ) : null}
         </div>
 
-        {product.description ? (
-          <p className="text-[13px] leading-relaxed text-muted">{product.description}</p>
+        {!productSoldOut && available > 0 ? (
+          <div>
+            <p className="mb-2 text-[13px] font-semibold text-text">Cantidad</p>
+            <div className="inline-flex items-center rounded-[12px] border border-border">
+              <button
+                type="button"
+                className="grid h-12 w-12 place-items-center text-lg font-semibold text-text disabled:opacity-40"
+                onClick={decQty}
+                disabled={clampedQty <= 1}
+                aria-label="Restar cantidad"
+              >
+                −
+              </button>
+              <input
+                type="text"
+                inputMode="numeric"
+                className="h-12 w-12 border-x border-border bg-transparent text-center text-sm font-bold text-text outline-none"
+                value={clampedQty}
+                aria-label="Cantidad"
+                onChange={(e) => {
+                  const n = Number.parseInt(e.target.value.replace(/\D/g, ""), 10);
+                  if (!Number.isFinite(n)) {
+                    setQty(1);
+                    return;
+                  }
+                  setQty(Math.min(maxQty, Math.max(1, n)));
+                }}
+              />
+              <button
+                type="button"
+                className="grid h-12 w-12 place-items-center text-lg font-semibold text-text disabled:opacity-40"
+                onClick={incQty}
+                disabled={clampedQty >= maxQty}
+                aria-label="Sumar cantidad"
+              >
+                +
+              </button>
+            </div>
+          </div>
         ) : null}
 
-        <ul className="flex flex-col gap-2 text-xs text-muted md:text-sm">
-          {metaChips.map((line) => (
-            <li key={line} className="flex gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
-              <span>{line}</span>
-            </li>
-          ))}
-        </ul>
+        {!productSoldOut ? (
+          <PdpShippingEstimate
+            unitPriceCents={price}
+            qty={clampedQty}
+            paymentDiscountBps={settings.data?.payment_discount_bps ?? 1000}
+            andreaniFeeCents={settings.data?.andreani_fee_cents ?? 0}
+            freeShippingThresholdCents={settings.data?.free_shipping_threshold_cents ?? 0}
+            contactAddress={settings.data?.contact_address}
+          />
+        ) : null}
 
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface p-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-2 md:border-0 md:bg-transparent md:p-0">
           <button
@@ -253,6 +319,7 @@ export default function ProductPage() {
             disabled={!variant || available <= 0 || productSoldOut}
             onClick={() => {
               if (!variant || available <= 0) return;
+              const n = clampedQty;
               addLine({
                 variantId: variant.id,
                 productId: product.id,
@@ -263,18 +330,31 @@ export default function ProductPage() {
                 unitPriceCents: price,
                 maxAvailable: available,
                 imagePath: mainUrl,
-                qty: 1,
+                qty: n,
               });
+              setAddedQty(n);
               setAdded(true);
             }}
           >
             {productSoldOut ? "Agotado" : available > 0 ? "Sumar al carrito" : "Sin stock"}
           </button>
           {added ? (
-            <Link href="/carrito" className="btn btn-secondary mt-2 md:max-w-sm">
-              Ver carrito
-            </Link>
+            <div className="mt-2 space-y-2 md:max-w-sm">
+              <p className="text-center text-xs font-semibold text-accent md:text-left">
+                Agregado (x{addedQty})
+              </p>
+              <Link href="/carrito" className="btn btn-secondary">
+                Ver carrito
+              </Link>
+            </div>
           ) : null}
+        </div>
+
+        <div className="pt-2 md:pt-4">
+          <PdpInfoAccordions
+            description={product.description}
+            compositionCareText={product.composition_care_text}
+          />
         </div>
       </div>
 
