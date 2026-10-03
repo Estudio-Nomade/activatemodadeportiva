@@ -1,3 +1,28 @@
+/** Digits-only E.164-ish phone from free-form admin input (+, spaces, dashes OK). */
+export function whatsappDigits(value: string | null | undefined): string | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (/^https?:\/\//i.test(raw) || /^(wa\.me|api\.whatsapp\.com)\//i.test(raw)) {
+    return null; // URL path — not a bare phone
+  }
+  let digits = raw.replace(/[^\d]/g, "");
+  if (!digits) return null;
+  digits = digits.replace(/^00+/, "");
+  // AR local without country code (10 digits) → 54…
+  if (digits.length === 10) digits = `54${digits}`;
+  return digits;
+}
+
+/** Value stored in admin settings (phone digits or URL as typed). Always allows leading +. */
+export function normalizeWhatsappStored(value: string | null | undefined): string {
+  const raw = value?.trim() ?? "";
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^(wa\.me|api\.whatsapp\.com)\//i.test(raw)) return `https://${raw}`;
+  const digits = whatsappDigits(raw);
+  return digits ?? raw;
+}
+
 /** Normalize admin phone/URL into a clickable WhatsApp deep link. */
 export function whatsappHref(
   value: string | null | undefined,
@@ -13,12 +38,8 @@ export function whatsappHref(
   } else if (/^(wa\.me|api\.whatsapp\.com)\//i.test(raw)) {
     base = `https://${raw}`;
   } else {
-    let digits = raw.replace(/[^\d]/g, "");
+    const digits = whatsappDigits(raw);
     if (!digits) return null;
-    // international 00… → drop prefix
-    digits = digits.replace(/^00+/, "");
-    // AR local land/mobile without country (10 digits) → +54
-    if (digits.length === 10) digits = `54${digits}`;
     base = `https://wa.me/${digits}`;
   }
 

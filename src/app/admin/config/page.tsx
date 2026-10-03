@@ -111,8 +111,15 @@ export default function AdminConfigPage() {
             contact_address: form.contact_address,
           },
           {
-            onSuccess: async () => {
-              setMsg("Config guardada");
+            onSuccess: async (row) => {
+              const skipped =
+                row &&
+                typeof row === "object" &&
+                "_prefillSkipped" in row &&
+                typeof (row as { _prefillSkipped?: string })._prefillSkipped === "string"
+                  ? (row as { _prefillSkipped: string })._prefillSkipped
+                  : null;
+              setMsg(skipped ? `Config guardada. ${skipped}` : "Config guardada");
               setTouched(false);
               await settingsQ.refetch();
             },
@@ -139,13 +146,13 @@ export default function AdminConfigPage() {
           id="whatsapp_url_or_phone"
           value={form.whatsapp_url_or_phone}
           onChange={(e) => patch("whatsapp_url_or_phone", e.target.value)}
-          placeholder="54911… o +54 9 11 …"
+          placeholder="+54 9 11 1234-5678"
           inputMode="tel"
           autoComplete="tel"
         />
         <p className="text-xs text-muted">
-          Con solo el número alcanza (con código de país 54). También acepta link wa.me. Eso arma el
-          icono del footer y el botón flotante.
+          Podés poner el + sin problema (ej. +54911…). También vale con espacios o guiones. Se arma
+          solo el link del footer y el botón flotante.
         </p>
       </div>
 
