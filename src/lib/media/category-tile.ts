@@ -1,5 +1,5 @@
 const TILE_BY_SLUG: Record<string, string> = {
-  mujer: "/categories/mujer-tile.jpg",
+  mujer: "/categories/mujer-tile-v2.jpg",
   hombre: "/categories/hombre-tile.jpg",
   accesorios: "/categories/accesorios-products.jpg",
 };

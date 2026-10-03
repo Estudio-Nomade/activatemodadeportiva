@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v16-no-next-static";
+const CACHE = "activate-pwa-v18-hero-mujer-v2";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",

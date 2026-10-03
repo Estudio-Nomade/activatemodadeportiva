@@ -33,7 +33,7 @@ export default function HomePage() {
       */}
       <section className="home-hero relative z-0 w-full overflow-hidden">
         <Image
-          src="/home/hero-portada.jpg"
+          src="/home/hero-portada-v2.jpg"
           alt=""
           fill
           priority
@@ -71,7 +71,7 @@ export default function HomePage() {
 
       <section className="relative mx-0 mb-0 min-h-[220px] overflow-hidden bg-surface-soft md:mx-6 md:mb-14 md:rounded-[20px] lg:mx-8">
         <Image
-          src="/home/hero-portada.jpg"
+          src="/home/hero-portada-v2.jpg"
           alt=""
           fill
           className="home-hero__photo home-hero__photo--soft opacity-40"

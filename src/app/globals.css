@@ -258,6 +258,11 @@ span[data-nimg="fill"] > img {
   background: var(--surface);
 }
 
+/* Admin money: leave room for the $ prefix inside the field */
+.field input.admin-money-input {
+  padding-left: 28px;
+}
+
 .field textarea {
   min-height: 96px;
   resize: vertical;
@@ -363,16 +368,16 @@ span[data-nimg="fill"] > img {
 }
 
 /*
-  Hero / tiles: head-safe crop (no empty letterbox).
-  Bias object-position toward the top so faces stay in frame under object-fit: cover.
+  Hero / tiles crop.
+  Hero uses the mujer full-body shot — bias lower than face-only so more torso shows.
 */
 .home-hero__photo {
   object-fit: cover;
-  object-position: center 12%;
+  object-position: center 40%;
 }
 
 .home-hero__photo--soft {
-  object-position: center 20%;
+  object-position: center 36%;
 }
 
 .home-cat__photo {

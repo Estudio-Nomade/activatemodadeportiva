@@ -56,29 +56,41 @@ function buildDesktopNav(roots: Cat[]): { href: string; label: string }[] {
   ];
 }
 
-type LogoSize = "sm" | "md" | "lg";
+type LogoSize = "sm" | "md" | "lg" | "footer";
 
 /**
  * Circle monogram stacked above two-line wordmark (ACTIVATE / MODA DEPORTIVA).
  * Compact so it fits h-14 (mobile) / h-16 (desktop) without dominating.
+ * `footer` is slightly larger for the store footer only.
  */
 function BrandLogo({ size = "md" }: { size?: LogoSize }) {
-  // sm mobile header · md drawer/footer · lg desktop header
-  const markBox = size === "sm" ? "h-4 w-4" : size === "lg" ? "h-5 w-5" : "h-[18px] w-[18px]";
-  const px = size === "sm" ? 16 : size === "lg" ? 20 : 18;
+  // sm mobile header · md drawer · lg desktop header · footer store footer
+  const markBox =
+    size === "sm"
+      ? "h-4 w-4"
+      : size === "footer"
+        ? "h-7 w-7"
+        : size === "lg"
+          ? "h-5 w-5"
+          : "h-[18px] w-[18px]";
+  const px = size === "sm" ? 16 : size === "footer" ? 28 : size === "lg" ? 20 : 18;
   const title =
     size === "sm"
       ? "text-[11px] tracking-[0.12em]"
-      : size === "lg"
-        ? "text-[13px] tracking-[0.12em]"
-        : "text-[12px] tracking-[0.12em]";
+      : size === "footer"
+        ? "text-[15px] tracking-[0.12em]"
+        : size === "lg"
+          ? "text-[13px] tracking-[0.12em]"
+          : "text-[12px] tracking-[0.12em]";
   const sub =
     size === "sm"
       ? "text-[7px] tracking-[0.14em]"
-      : size === "lg"
-        ? "text-[8px] tracking-[0.16em]"
-        : "text-[7px] tracking-[0.14em]";
-  const gap = size === "lg" ? "gap-0.5" : "gap-px";
+      : size === "footer"
+        ? "text-[9px] tracking-[0.16em]"
+        : size === "lg"
+          ? "text-[8px] tracking-[0.16em]"
+          : "text-[7px] tracking-[0.14em]";
+  const gap = size === "lg" || size === "footer" ? "gap-0.5" : "gap-px";
 
   return (
     <span className={`brand-logo inline-flex max-w-full flex-col items-center ${gap}`}>
@@ -451,8 +463,8 @@ export function StoreFooter() {
     <footer className="mt-auto border-t border-border bg-surface-soft">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-3 md:px-6 lg:gap-12 lg:px-8 lg:py-14">
         <div>
-          <BrandLogo size="md" />
-          <p className="mt-3 text-sm text-muted">Moda deportiva · San Manuel</p>
+          <BrandLogo size="footer" />
+          <p className="mt-3 text-sm text-muted">San Manuel, Buenos Aires</p>
         </div>
         <div className="flex flex-col gap-2 text-sm uppercase tracking-wide text-muted">
           <Link href="/pedido" className="hover:text-text">
