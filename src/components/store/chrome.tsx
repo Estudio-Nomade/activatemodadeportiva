@@ -59,29 +59,29 @@ function buildDesktopNav(roots: Cat[]): { href: string; label: string }[] {
 type LogoSize = "sm" | "md" | "lg";
 
 /**
- * Circle monogram + two-line wordmark (ACTIVATE / MODA DEPORTIVA).
+ * Circle monogram stacked above two-line wordmark (ACTIVATE / MODA DEPORTIVA).
  * Compact so it fits h-14 (mobile) / h-16 (desktop) without dominating.
  */
 function BrandLogo({ size = "md" }: { size?: LogoSize }) {
-  // sm mobile header · md drawer · lg desktop header
-  const markBox = size === "sm" ? "h-5 w-5" : size === "lg" ? "h-[22px] w-[22px]" : "h-6 w-6";
-  const px = size === "sm" ? 20 : size === "lg" ? 22 : 24;
+  // sm mobile header · md drawer/footer · lg desktop header
+  const markBox = size === "sm" ? "h-4 w-4" : size === "lg" ? "h-5 w-5" : "h-[18px] w-[18px]";
+  const px = size === "sm" ? 16 : size === "lg" ? 20 : 18;
   const title =
     size === "sm"
-      ? "text-[13px] tracking-[0.12em]"
+      ? "text-[11px] tracking-[0.12em]"
       : size === "lg"
-        ? "text-[15px] tracking-[0.12em]"
-        : "text-[14px] tracking-[0.12em]";
+        ? "text-[13px] tracking-[0.12em]"
+        : "text-[12px] tracking-[0.12em]";
   const sub =
     size === "sm"
-      ? "text-[8px] tracking-[0.14em]"
+      ? "text-[7px] tracking-[0.14em]"
       : size === "lg"
-        ? "text-[9px] tracking-[0.16em]"
-        : "text-[8px] tracking-[0.14em]";
-  const gap = size === "lg" ? "gap-2" : "gap-1.5";
+        ? "text-[8px] tracking-[0.16em]"
+        : "text-[7px] tracking-[0.14em]";
+  const gap = size === "lg" ? "gap-0.5" : "gap-px";
 
   return (
-    <span className={`brand-logo inline-flex max-w-full items-center ${gap}`}>
+    <span className={`brand-logo inline-flex max-w-full flex-col items-center ${gap}`}>
       <Image
         src="/brand/logo-mark-circle-128.png"
         alt=""
@@ -91,7 +91,7 @@ function BrandLogo({ size = "md" }: { size?: LogoSize }) {
         priority
         sizes={`${px}px`}
       />
-      <span className="flex min-w-0 flex-col leading-none">
+      <span className="flex min-w-0 flex-col items-center leading-none">
         <span className={`font-display font-bold uppercase text-text ${title}`}>Activate</span>
         <span className={`mt-0.5 font-display font-semibold uppercase text-muted ${sub}`}>
           Moda deportiva

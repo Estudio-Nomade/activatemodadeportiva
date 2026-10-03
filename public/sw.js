@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v15-quienes-somos-lorena";
+const CACHE = "activate-pwa-v16-no-next-static";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",
@@ -35,8 +35,11 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Never cache tRPC / API / auth-ish paths
+  // Never cache Next runtime / HMR / RSC / API / admin
+  // (cache-first on /_next/static causes SSR↔client text mismatches in dev
+  // and stale bundles after deploys if filenames collide.)
   if (
+    url.pathname.startsWith("/_next/") ||
     url.pathname.startsWith("/api/") ||
     url.pathname.includes("trpc") ||
     url.pathname.startsWith("/admin")
@@ -66,15 +69,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets: cache-first
+  // Brand / icons only: cache-first (not Next bundles)
   if (
-    url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/brand/") ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".svg") ||
     url.pathname.endsWith(".ico") ||
-    url.pathname.endsWith(".webp")
+    url.pathname.endsWith(".webp") ||
+    url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".jpeg")
   ) {
     event.respondWith(
       caches.match(req).then((cached) => {
