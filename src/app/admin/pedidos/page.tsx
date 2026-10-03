@@ -66,10 +66,10 @@ function PedidosInner() {
             <button
               key={id}
               type="button"
-              className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
+              className={`shrink-0 rounded-full px-4 py-2.5 text-xs font-semibold transition-colors ${
                 on
-                  ? "bg-accent text-white shadow-sm"
-                  : "bg-surface-soft text-text hover:bg-border/60"
+                  ? "bg-accent text-inverse shadow-sm"
+                  : "border border-border bg-surface text-text hover:bg-surface-soft"
               }`}
               onClick={() => setTab(id)}
             >
