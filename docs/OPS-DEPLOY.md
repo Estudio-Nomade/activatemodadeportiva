@@ -61,11 +61,13 @@ Team / scope: **`activatemodadeportiva`** (project `prj_Y3Y72lOxoKIhdNpbxNbunly7
 | `EMAIL_FROM` | verified Resend sender or `onboarding@resend.dev` |
 | `RESEND_API_KEY` | optional until real email |
 
-`vercel.json` cron:
+`vercel.json` cron (Hobby-safe: **once daily** UTC 03:00 — not hourly; Pro needed for `0 * * * *`):
 
 ```json
-{ "path": "/api/cron/expire-reservations", "schedule": "0 * * * *" }
+{ "path": "/api/cron/expire-reservations", "schedule": "0 3 * * *" }
 ```
+
+Reservations last 24h; daily expire is enough on Hobby. Manual trigger anytime with `CRON_SECRET`.
 
 ### Local `.env.local` (2026-10-03 names only)
 
