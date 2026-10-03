@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { getAdminAccessToken, setAdminAccessToken } from "@/lib/trpc/provider";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 
@@ -26,6 +26,92 @@ export function useAdminToken() {
     () => getAdminAccessToken(),
     () => null,
   );
+}
+
+/** True when JWT `exp` is in the past (or unreadable). */
+export function isAccessTokenExpired(token: string | null | undefined): boolean {
+  if (!token) return true;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return true;
+    const json = JSON.parse(
+      atob(payload.replace(/-/g, "+").replace(/_/g, "/")),
+    ) as { exp?: number };
+    if (typeof json.exp !== "number") return true;
+    return json.exp * 1000 <= Date.now() + 30_000;
+  } catch {
+    return true;
+  }
+}
+
+export async function syncAdminSessionFromSupabase(): Promise<string | null> {
+  const sb = createBrowserSupabase();
+  const { data, error } = await sb.auth.getSession();
+  if (error) {
+    setAdminAccessToken(null);
+    notifyAdminTokenChange();
+    return null;
+  }
+  const access = data.session?.access_token ?? null;
+  if (!access || isAccessTokenExpired(access)) {
+    if (data.session?.refresh_token) {
+      const refreshed = await sb.auth.refreshSession();
+      const next = refreshed.data.session?.access_token ?? null;
+      if (next && !isAccessTokenExpired(next)) {
+        setAdminAccessToken(next);
+        notifyAdminTokenChange();
+        return next;
+      }
+    }
+    setAdminAccessToken(null);
+    notifyAdminTokenChange();
+    return null;
+  }
+  if (getAdminAccessToken() !== access) {
+    setAdminAccessToken(access);
+    notifyAdminTokenChange();
+  }
+  return access;
+}
+
+/** Keep localStorage JWT in sync with Supabase session for admin tRPC Bearer. */
+export function useAdminSessionSync(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) return;
+    let unsub: (() => void) | undefined;
+    let cancelled = false;
+
+    void (async () => {
+      const cached = getAdminAccessToken();
+      if (cached && isAccessTokenExpired(cached)) {
+        setAdminAccessToken(null);
+        notifyAdminTokenChange();
+      }
+      if (cancelled) return;
+      await syncAdminSessionFromSupabase();
+      if (cancelled) return;
+
+      const sb = createBrowserSupabase();
+      const { data } = sb.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_OUT") {
+          setAdminAccessToken(null);
+          notifyAdminTokenChange();
+          return;
+        }
+        const access = session?.access_token ?? null;
+        if (access) {
+          setAdminAccessToken(access);
+          notifyAdminTokenChange();
+        }
+      });
+      unsub = () => data.subscription.unsubscribe();
+    })();
+
+    return () => {
+      cancelled = true;
+      unsub?.();
+    };
+  }, [enabled]);
 }
 
 export async function adminLogin(email: string, password: string) {
