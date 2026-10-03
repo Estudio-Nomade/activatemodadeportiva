@@ -104,7 +104,7 @@ function EditForm({
   const [newColor, setNewColor] = useState("");
   const [newSize, setNewSize] = useState("");
   const [newSku, setNewSku] = useState("");
-  const [newStock, setNewStock] = useState("0");
+  const [newStock, setNewStock] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [skuDrafts, setSkuDrafts] = useState<Record<string, string>>(() => {
@@ -346,12 +346,21 @@ function EditForm({
                 <input
                   id={`stock-${v.id}`}
                   type="number"
+                  inputMode="numeric"
                   min={0}
+                  step={1}
+                  placeholder="0"
                   aria-label={`Stock ${v.color} ${v.size}`}
                   className="h-11 w-full min-w-0 rounded-md border border-border bg-surface px-3"
                   defaultValue={v.stock_on_hand}
                   onBlur={(e) => {
-                    const n = Number(e.target.value);
+                    const raw = e.target.value.trim();
+                    if (raw === "") {
+                      // Restore previous value if left blank — stock must be a number.
+                      e.target.value = String(v.stock_on_hand);
+                      return;
+                    }
+                    const n = Number(raw);
                     if (!Number.isFinite(n) || n === v.stock_on_hand) return;
                     setStock.mutate(
                       { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
@@ -405,9 +414,16 @@ function EditForm({
               <input
                 id="nv-stock"
                 type="number"
+                inputMode="numeric"
                 min={0}
+                step={1}
+                placeholder="0"
                 value={newStock}
-                onChange={(e) => setNewStock(e.target.value)}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  if (next !== "" && Number(next) < 0) return;
+                  setNewStock(next);
+                }}
               />
             </div>
             <div className="flex items-end">
@@ -432,7 +448,7 @@ function EditForm({
                         setNewColor("");
                         setNewSize("");
                         setNewSku("");
-                        setNewStock("0");
+                        setNewStock("");
                         setMsg("Variante agregada");
                         utils.admin.catalog.listProducts.invalidate();
                       },

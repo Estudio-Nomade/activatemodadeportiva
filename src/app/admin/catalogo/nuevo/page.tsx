@@ -12,9 +12,18 @@ type VariantDraft = {
   key: string;
   color: string;
   size: string;
-  stockOnHand: number;
+  /** Draft string so the field can be cleared while typing (avoids stuck "0"). */
+  stockOnHand: string;
   sku: string;
 };
+
+function parseStockOnHand(raw: string): number {
+  const trimmed = raw.trim();
+  if (trimmed === "") return 0;
+  const n = Number(trimmed);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.floor(n));
+}
 
 function cryptoRandom() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -36,7 +45,7 @@ export default function AdminNuevoProductoPage() {
   const [promoPrice, setPromoPrice] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [variants, setVariants] = useState<VariantDraft[]>([
-    { key: cryptoRandom(), color: "", size: "", stockOnHand: 0, sku: "" },
+    { key: cryptoRandom(), color: "", size: "", stockOnHand: "", sku: "" },
   ]);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +72,7 @@ export default function AdminNuevoProductoPage() {
       .map((v) => ({
         color: v.color.trim(),
         size: v.size.trim(),
-        stockOnHand: Math.max(0, Math.floor(v.stockOnHand) || 0),
+        stockOnHand: parseStockOnHand(v.stockOnHand),
         sku: v.sku.trim() || null,
       }))
       .filter((v) => v.color && v.size);
@@ -177,7 +186,7 @@ export default function AdminNuevoProductoPage() {
             onClick={() =>
               setVariants((vs) => [
                 ...vs,
-                { key: cryptoRandom(), color: "", size: "", stockOnHand: 0, sku: "" },
+                { key: cryptoRandom(), color: "", size: "", stockOnHand: "", sku: "" },
               ])
             }
           >
@@ -233,16 +242,19 @@ export default function AdminNuevoProductoPage() {
               <input
                 id={`nv-stock-${v.key}`}
                 type="number"
+                inputMode="numeric"
                 min={0}
+                step={1}
                 placeholder="0"
                 value={v.stockOnHand}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const next = e.target.value;
+                  // Allow empty while editing; block negatives only.
+                  if (next !== "" && Number(next) < 0) return;
                   setVariants((vs) =>
-                    vs.map((x, i) =>
-                      i === idx ? { ...x, stockOnHand: Number(e.target.value) || 0 } : x,
-                    ),
-                  )
-                }
+                    vs.map((x, i) => (i === idx ? { ...x, stockOnHand: next } : x)),
+                  );
+                }}
               />
             </div>
           </div>

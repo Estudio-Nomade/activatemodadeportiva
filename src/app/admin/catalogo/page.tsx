@@ -155,12 +155,20 @@ export default function AdminCatalogoPage() {
                       </span>
                       <input
                         type="number"
+                        inputMode="numeric"
                         min={0}
+                        step={1}
+                        placeholder="0"
                         aria-label={`Stock ${v.color} ${v.size}`}
                         className="h-10 w-full rounded-md border border-border bg-surface px-2 text-center"
                         defaultValue={v.stock_on_hand}
                         onBlur={(e) => {
-                          const n = Number(e.target.value);
+                          const raw = e.target.value.trim();
+                          if (raw === "") {
+                            e.target.value = String(v.stock_on_hand);
+                            return;
+                          }
+                          const n = Number(raw);
                           if (!Number.isFinite(n) || n === v.stock_on_hand) return;
                           setStock.mutate(
                             { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
