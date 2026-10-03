@@ -65,10 +65,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
       </div>
-      <p className="mt-4 text-center text-xs text-muted">
-        Usuario en Supabase Auth + fila en <code>admin_profiles</code>.
-      </p>
-      <Link href="/" className="mt-3 text-center text-sm font-semibold text-accent">
+      <Link href="/" className="mt-4 text-center text-sm font-semibold text-accent">
         ← Volver a la tienda
       </Link>
     </div>
