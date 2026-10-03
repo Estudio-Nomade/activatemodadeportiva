@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
-import { canRemoveVariant } from "@/server/domain/catalog/variant-ops";
+import { canRemoveProduct, canRemoveVariant } from "@/server/domain/catalog/variant-ops";
 import {
   isUniqueViolation,
   normalizeSku,
@@ -335,6 +335,80 @@ export const adminCatalogRouter = createTRPCRouter({
         });
       }
       return data;
+    }),
+
+  /**
+   * Hard-delete product + cascade images/variants.
+   * Blocked when any variant has reservations (RESTRICT) or order_items (keep history).
+   */
+  deleteProduct: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { data: product, error: pErr } = await ctx.db
+        .from("products")
+        .select("id")
+        .eq("id", input.id)
+        .maybeSingle();
+      if (pErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: pErr.message });
+      if (!product) throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
+
+      const { data: variants, error: vErr } = await ctx.db
+        .from("product_variants")
+        .select("id")
+        .eq("product_id", input.id);
+      if (vErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: vErr.message });
+      const variantIds = (variants ?? []).map((v) => v.id);
+
+      let reservationCount = 0;
+      let orderItemCount = 0;
+      if (variantIds.length > 0) {
+        const { count: resCount, error: rErr } = await ctx.db
+          .from("stock_reservations")
+          .select("id", { count: "exact", head: true })
+          .in("variant_id", variantIds);
+        if (rErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: rErr.message });
+        reservationCount = resCount ?? 0;
+
+        const { count: itemCount, error: iErr } = await ctx.db
+          .from("order_items")
+          .select("id", { count: "exact", head: true })
+          .in("variant_id", variantIds);
+        if (iErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: iErr.message });
+        orderItemCount = itemCount ?? 0;
+      }
+
+      const gate = canRemoveProduct({ reservationCount, orderItemCount });
+      if (!gate.ok) {
+        const msg =
+          gate.reason === "HAS_RESERVATIONS"
+            ? "No se puede borrar: hay reservas de stock. Cancelá o esperá que venzan, o despublicá el producto."
+            : "No se puede borrar: el producto figura en pedidos. Despublicá y poné stock 0 en su lugar.";
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: msg });
+      }
+
+      const { data: images } = await ctx.db
+        .from("product_images")
+        .select("storage_path")
+        .eq("product_id", input.id);
+      const storageKeys = (images ?? [])
+        .map((img) => normalizeStorageKey(img.storage_path))
+        .filter((key) => !/^https?:\/\//i.test(key) && key.startsWith("products/"));
+
+      const { error: delErr } = await ctx.db.from("products").delete().eq("id", input.id);
+      if (delErr) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: delErr.message });
+
+      if (storageKeys.length && ctx.storage.removeObjects) {
+        try {
+          await ctx.storage.removeObjects({
+            bucket: PRODUCT_IMAGES_BUCKET,
+            paths: storageKeys,
+          });
+        } catch {
+          /* orphan files ok */
+        }
+      }
+
+      return { ok: true as const };
     }),
 
   listProducts: adminProcedure.query(async ({ ctx }) => {

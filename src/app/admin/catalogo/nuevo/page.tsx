@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AdminMoneyField } from "@/components/admin/money-field";
 import { slugify, useAdminToken } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
@@ -17,6 +17,12 @@ type VariantDraft = {
   sku: string;
 };
 
+type PendingPhoto = {
+  key: string;
+  file: File;
+  previewUrl: string;
+};
+
 function parseStockOnHand(raw: string): number {
   const trimmed = raw.trim();
   if (trimmed === "") return 0;
@@ -30,11 +36,24 @@ function cryptoRandom() {
   return String(Math.random());
 }
 
+function revokePreviews(photos: PendingPhoto[]) {
+  for (const p of photos) {
+    try {
+      URL.revokeObjectURL(p.previewUrl);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 export default function AdminNuevoProductoPage() {
   const token = useAdminToken();
   const router = useRouter();
   const cats = trpc.catalog.listCategories.useQuery(undefined, { enabled: !!token });
   const create = trpc.admin.catalog.createProduct.useMutation();
+  const createUrl = trpc.admin.catalog.createImageUploadUrl.useMutation();
+  const attach = trpc.admin.catalog.attachProductImage.useMutation();
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -47,6 +66,8 @@ export default function AdminNuevoProductoPage() {
   const [variants, setVariants] = useState<VariantDraft[]>([
     { key: cryptoRandom(), color: "", size: "", stockOnHand: "", sku: "" },
   ]);
+  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const categoryOptions = useMemo(() => {
@@ -64,6 +85,70 @@ export default function AdminNuevoProductoPage() {
     }
     return out;
   }, [cats.data]);
+
+  function addPhotoFiles(files: FileList | null) {
+    if (!files?.length) return;
+    setError(null);
+    const next: PendingPhoto[] = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) {
+        setError(`Archivo no imagen: ${file.name}`);
+        revokePreviews(next);
+        return;
+      }
+      if (file.size > 8 * 1024 * 1024) {
+        setError(`Máx 8MB: ${file.name}`);
+        revokePreviews(next);
+        return;
+      }
+      next.push({
+        key: cryptoRandom(),
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+    }
+    setPhotos((prev) => [...prev, ...next]);
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  }
+
+  function removePhoto(key: string) {
+    setPhotos((prev) => {
+      const target = prev.find((p) => p.key === key);
+      if (target) {
+        try {
+          URL.revokeObjectURL(target.previewUrl);
+        } catch {
+          /* ignore */
+        }
+      }
+      return prev.filter((p) => p.key !== key);
+    });
+  }
+
+  async function uploadPendingPhotos(productId: string, queue: PendingPhoto[]) {
+    for (const item of queue) {
+      const up = await createUrl.mutateAsync({
+        productId,
+        fileName: item.file.name,
+        contentType: item.file.type,
+      });
+      const put = await fetch(up.signedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": item.file.type || "application/octet-stream",
+        },
+        body: item.file,
+      });
+      if (!put.ok) {
+        throw new Error(`No se pudo subir ${item.file.name} (${put.status})`);
+      }
+      await attach.mutateAsync({
+        productId,
+        storagePath: up.path,
+        alt: item.file.name.replace(/\.[^.]+$/, ""),
+      });
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -86,6 +171,7 @@ export default function AdminNuevoProductoPage() {
       return;
     }
 
+    setBusy(true);
     try {
       const product = await create.mutateAsync({
         name: name.trim(),
@@ -97,16 +183,39 @@ export default function AdminNuevoProductoPage() {
         isPublished,
         variants: cleanVariants,
       });
+
+      const queue = photos;
+      if (queue.length > 0) {
+        try {
+          await uploadPendingPhotos(product.id, queue);
+        } catch (uploadErr) {
+          // Product exists — send admin to editor to finish photos.
+          setError(
+            `${errorMessage(uploadErr, "Producto creado, pero falló una foto")}. Completá las fotos en el editor.`,
+          );
+          revokePreviews(queue);
+          setPhotos([]);
+          router.replace(`/admin/catalogo/${product.id}`);
+          return;
+        }
+      }
+
+      revokePreviews(queue);
+      setPhotos([]);
       router.replace(`/admin/catalogo/${product.id}`);
     } catch (err) {
       setError(errorMessage(err));
+    } finally {
+      setBusy(false);
     }
   }
+
+  const submitting = busy || create.isPending || createUrl.isPending || attach.isPending;
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 pb-6">
       <p className="text-sm text-muted">
-        Alta: datos + variantes. Después de crear vas al editor para subir fotos.
+        Alta: datos, variantes y fotos (podés sumar varias). Después seguís en el editor.
       </p>
 
       <div className="field">
@@ -176,6 +285,65 @@ export default function AdminNuevoProductoPage() {
         <label htmlFor="desc">Descripción</label>
         <textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
+
+      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-bold">Fotos</h2>
+          <button
+            type="button"
+            className="btn btn-secondary w-auto px-4"
+            disabled={submitting}
+            onClick={() => photoInputRef.current?.click()}
+          >
+            + Agregar fotos
+          </button>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => addPhotoFiles(e.target.files)}
+          />
+        </div>
+        <p className="text-xs text-muted">
+          JPG/PNG/WebP · máx 8MB c/u. Varias fotos OK: en la ficha se ven en carrusel. La primera
+          queda como portada (después se reordena en el editor).
+        </p>
+        {photos.length === 0 ? (
+          <div className="grid place-items-center rounded-[12px] border border-dashed border-border bg-surface-soft px-4 py-10 text-sm text-muted">
+            Todavía no hay fotos elegidas
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+            {photos.map((p, idx) => (
+              <li key={p.key} className="relative overflow-hidden rounded-[12px] border border-border">
+                <div className="aspect-square bg-surface-soft">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.previewUrl}
+                    alt={p.file.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                {idx === 0 ? (
+                  <span className="absolute left-1 top-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-inverse">
+                    Portada
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  className="absolute bottom-1 right-1 rounded-full bg-black/70 px-2 py-1 text-[10px] font-semibold text-white"
+                  disabled={submitting}
+                  onClick={() => removePhoto(p.key)}
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
         <div className="flex items-center justify-between gap-2">
@@ -249,7 +417,6 @@ export default function AdminNuevoProductoPage() {
                 value={v.stockOnHand}
                 onChange={(e) => {
                   const next = e.target.value;
-                  // Allow empty while editing; block negatives only.
                   if (next !== "" && Number(next) < 0) return;
                   setVariants((vs) =>
                     vs.map((x, i) => (i === idx ? { ...x, stockOnHand: next } : x)),
@@ -272,8 +439,14 @@ export default function AdminNuevoProductoPage() {
 
       {error ? <p className="text-sm text-danger">{error}</p> : null}
 
-      <button type="submit" className="btn btn-primary" disabled={create.isPending}>
-        {create.isPending ? "Creando…" : "Crear producto"}
+      <button type="submit" className="btn btn-primary" disabled={submitting}>
+        {submitting
+          ? photos.length
+            ? "Creando y subiendo fotos…"
+            : "Creando…"
+          : photos.length
+            ? `Crear producto (${photos.length} foto${photos.length === 1 ? "" : "s"})`
+            : "Crear producto"}
       </button>
     </form>
   );
