@@ -2,6 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
 import { canRemoveVariant } from "@/server/domain/catalog/variant-ops";
+import {
+  leafCategoriesForCare,
+  normalizeCompositionCareText,
+  type CategoryCareRow,
+} from "@/lib/catalog/composition-care";
 import { withImageUrls } from "@/lib/media/product-image";
 import {
   isValidSizeGuideStoragePath,
@@ -595,5 +600,60 @@ export const adminCatalogRouter = createTRPCRouter({
         if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
       }
       return { ok: true as const };
+    }),
+
+  listCategoriesForCare: adminProcedure.query(async ({ ctx }) => {
+    const { data, error } = await ctx.db
+      .from("categories")
+      .select("id, name, slug, parent_id, composition_care_text")
+      .order("sort_order", { ascending: true });
+    if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
+    const rows = (data ?? []) as CategoryCareRow[];
+    return leafCategoriesForCare(rows);
+  }),
+
+  updateCategoryCompositionCare: adminProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+        compositionCareText: z.string().max(20_000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const text = normalizeCompositionCareText(input.compositionCareText);
+
+      const { data: allCats, error: listError } = await ctx.db
+        .from("categories")
+        .select("id, name, slug, parent_id, composition_care_text");
+      if (listError) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: listError.message });
+      }
+      const rows = (allCats ?? []) as CategoryCareRow[];
+      const target = rows.find((c) => c.id === input.id);
+      if (!target) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Category not found" });
+      }
+      const leaves = leafCategoriesForCare(rows);
+      if (!leaves.some((l) => l.id === input.id)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only leaf categories can have composition and care text",
+        });
+      }
+
+      const { data, error } = await ctx.db
+        .from("categories")
+        .update({ composition_care_text: text })
+        .eq("id", input.id)
+        .select("id, name, slug, parent_id, composition_care_text")
+        .single();
+
+      if (error || !data) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: error?.message ?? "Failed to update category",
+        });
+      }
+      return data;
     }),
 });

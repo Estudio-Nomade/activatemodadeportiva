@@ -351,7 +351,10 @@ export default function ProductPage() {
         </div>
 
         <div className="pt-2 md:pt-4">
-          <PdpInfoAccordions description={product.description} />
+          <PdpInfoAccordions
+            description={product.description}
+            compositionCareText={product.composition_care_text}
+          />
         </div>
       </div>
 

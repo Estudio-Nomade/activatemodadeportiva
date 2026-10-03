@@ -51,9 +51,9 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ slug: string }` |
-| Output | product + `product_variants(…, available)` + `product_images` + `size_guide?: { id, name, storage_path, url }` |
+| Output | product + `product_variants(…, available)` + `product_images` + `size_guide?: { id, name, storage_path, url }` + `composition_care_text: string` (from leaf category; `""` if unset) |
 | Errors | `NOT_FOUND` if missing/unpublished |
-| Note | `available` = on_hand − active reservations (use this for add-to-cart, not raw on_hand alone) |
+| Note | `available` = on_hand − active reservations (use this for add-to-cart, not raw on_hand alone). Care text is category-level, not product-level. |
 
 ### `catalog.search`
 
@@ -137,6 +137,24 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 ---
 
 ## `admin.catalog` (admin)
+
+### `admin.catalog.listCategoriesForCare`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | leaf categories only: `{ id, name, slug, parent_id, parentName, composition_care_text, isLeaf: true }[]` |
+| Note | Parents with children are omitted. Used by `/admin/categorias`. |
+
+### `admin.catalog.updateCategoryCompositionCare`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id: uuid, compositionCareText: string }` (max 20_000; trimmed server-side) |
+| Output | category row `{ id, name, slug, parent_id, composition_care_text }` |
+| Errors | `NOT_FOUND`, `BAD_REQUEST` if category is not a leaf |
 
 ### `admin.catalog.createProduct`
 

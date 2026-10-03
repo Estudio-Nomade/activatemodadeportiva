@@ -9,26 +9,17 @@ import {
   TransferAliasCopy,
 } from "@/components/store/info-page";
 import { PdpAccordion, type PdpAccordionItem } from "@/components/store/pdp-accordion";
-
-const COMPOSITION_CARE = (
-  <>
-    <p>
-      Prendas deportivas pensadas para entrenamiento y uso diario. La composición exacta
-      (tejido, elastano, etc.) y las instrucciones de lavado figuran en el rótulo de cada
-      prenda.
-    </p>
-    <p>
-      Recomendación general: lavar con agua fría, no usar blanqueador, no planchar estampas y
-      secar a la sombra. Ante dudas, consultanos por WhatsApp.
-    </p>
-  </>
-);
+import {
+  normalizeCompositionCareText,
+  shouldShowCompositionCare,
+} from "@/lib/catalog/composition-care";
 
 type Props = {
   description?: string | null;
+  compositionCareText?: string | null;
 };
 
-export function PdpInfoAccordions({ description }: Props) {
+export function PdpInfoAccordions({ description, compositionCareText }: Props) {
   const items: PdpAccordionItem[] = [];
 
   const desc = description?.trim();
@@ -40,12 +31,19 @@ export function PdpInfoAccordions({ description }: Props) {
     });
   }
 
-  items.push(
-    {
+  if (shouldShowCompositionCare(compositionCareText)) {
+    items.push({
       id: "composition",
       title: "Composición y cuidados",
-      content: COMPOSITION_CARE,
-    },
+      content: (
+        <p className="whitespace-pre-wrap">
+          {normalizeCompositionCareText(compositionCareText)}
+        </p>
+      ),
+    });
+  }
+
+  items.push(
     {
       id: "payment",
       title: "Métodos de pago",
