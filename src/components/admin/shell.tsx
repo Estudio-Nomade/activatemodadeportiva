@@ -207,7 +207,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <Link
             href="/admin/catalogo/nuevo"
-            className="flex min-h-11 items-center gap-3 rounded-[12px] bg-accent px-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            className="flex min-h-11 items-center gap-3 rounded-[12px] bg-accent px-3 text-sm font-semibold text-inverse transition-opacity hover:opacity-90"
           >
             <IconPlus size={18} className="shrink-0" />
             Nuevo producto

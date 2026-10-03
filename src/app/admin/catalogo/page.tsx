@@ -131,30 +131,45 @@ export default function AdminCatalogoPage() {
                   Stock por talle
                 </p>
                 {(p.product_variants ?? []).map((v) => (
-                  <div key={v.id} className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="min-w-28 text-muted">
-                      {v.color} / {v.size}
-                      {v.sku ? ` · ${v.sku}` : ""}
-                    </span>
-                    <input
-                      type="number"
-                      min={0}
-                      aria-label={`Stock ${v.color} ${v.size}`}
-                      className="h-10 w-24 rounded-md border border-border px-2"
-                      defaultValue={v.stock_on_hand}
-                      onBlur={(e) => {
-                        const n = Number(e.target.value);
-                        if (!Number.isFinite(n) || n === v.stock_on_hand) return;
-                        setStock.mutate(
-                          { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
-                          {
-                            onSuccess: () => utils.admin.catalog.listProducts.invalidate(),
-                            onError: (err) => window.alert(errorMessage(err)),
-                          },
-                        );
-                      }}
-                    />
-                    <span className="text-xs text-muted">unidades</span>
+                  <div
+                    key={v.id}
+                    className="grid grid-cols-[minmax(0,1fr)_5.5rem] items-center gap-x-3 gap-y-1 rounded-[10px] border border-border/70 bg-bg/40 px-3 py-2.5 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-text">
+                        {v.color} / {v.size}
+                      </p>
+                      {v.sku ? (
+                        <p className="mt-0.5 truncate font-mono text-[11px] text-muted">
+                          Cód. {v.sku}
+                        </p>
+                      ) : (
+                        <p className="mt-0.5 text-[11px] text-muted">Sin código</p>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-stretch gap-0.5">
+                      <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                        Stock
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        aria-label={`Stock ${v.color} ${v.size}`}
+                        className="h-10 w-full rounded-md border border-border bg-surface px-2 text-center"
+                        defaultValue={v.stock_on_hand}
+                        onBlur={(e) => {
+                          const n = Number(e.target.value);
+                          if (!Number.isFinite(n) || n === v.stock_on_hand) return;
+                          setStock.mutate(
+                            { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
+                            {
+                              onSuccess: () => utils.admin.catalog.listProducts.invalidate(),
+                              onError: (err) => window.alert(errorMessage(err)),
+                            },
+                          );
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

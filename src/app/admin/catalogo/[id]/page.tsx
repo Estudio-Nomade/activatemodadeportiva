@@ -287,72 +287,86 @@ function EditForm({
           poné stock 0.
         </p>
         {(product.product_variants ?? []).map((v) => (
-          <div key={v.id} className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="min-w-28 font-medium">
-              {v.color} / {v.size}
-            </span>
-            <input
-              type="text"
-              aria-label={`Código ${v.color} ${v.size}`}
-              placeholder="Código"
-              className="h-10 w-32 rounded-md border border-border px-2"
-              value={skuDrafts[v.id] ?? v.sku ?? ""}
-              onChange={(e) =>
-                setSkuDrafts((prev) => ({ ...prev, [v.id]: e.target.value }))
-              }
-              onBlur={() => {
-                setError(null);
-                void persistSku(v.id, skuDrafts[v.id] ?? "")
-                  .then(async () => {
-                    setMsg("Código actualizado");
-                    await utils.admin.catalog.listProducts.invalidate();
-                  })
-                  .catch((err) => setError(errorMessage(err)));
-              }}
-            />
-            <input
-              type="number"
-              min={0}
-              aria-label={`Stock ${v.color} ${v.size}`}
-              className="h-10 w-24 rounded-md border border-border px-2"
-              defaultValue={v.stock_on_hand}
-              onBlur={(e) => {
-                const n = Number(e.target.value);
-                if (!Number.isFinite(n) || n === v.stock_on_hand) return;
-                setStock.mutate(
-                  { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
-                  {
-                    onSuccess: () => {
-                      setMsg("Stock actualizado");
-                      utils.admin.catalog.listProducts.invalidate();
+          <div
+            key={v.id}
+            className="rounded-[12px] border border-border bg-bg/50 p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-text">
+                {v.color} / {v.size}
+              </p>
+              <button
+                type="button"
+                className="shrink-0 text-xs font-semibold text-danger underline-offset-2 hover:underline disabled:opacity-40"
+                disabled={removeVariant.isPending}
+                onClick={() => {
+                  if (!window.confirm(`¿Borrar variante ${v.color} / ${v.size}?`)) return;
+                  setError(null);
+                  removeVariant.mutate(
+                    { variantId: v.id },
+                    {
+                      onSuccess: () => {
+                        setMsg("Variante eliminada");
+                        utils.admin.catalog.listProducts.invalidate();
+                      },
+                      onError: (err) => setError(errorMessage(err)),
                     },
-                    onError: (err) => setError(errorMessage(err)),
-                  },
-                );
-              }}
-            />
-            <span className="text-xs text-muted">unidades en stock</span>
-            <button
-              type="button"
-              className="text-xs font-semibold text-danger underline-offset-2 hover:underline disabled:opacity-40"
-              disabled={removeVariant.isPending}
-              onClick={() => {
-                if (!window.confirm(`¿Borrar variante ${v.color} / ${v.size}?`)) return;
-                setError(null);
-                removeVariant.mutate(
-                  { variantId: v.id },
-                  {
-                    onSuccess: () => {
-                      setMsg("Variante eliminada");
-                      utils.admin.catalog.listProducts.invalidate();
-                    },
-                    onError: (err) => setError(errorMessage(err)),
-                  },
-                );
-              }}
-            >
-              Borrar
-            </button>
+                  );
+                }}
+              >
+                Borrar
+              </button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="field min-w-0">
+                <label htmlFor={`sku-${v.id}`}>Código</label>
+                <input
+                  id={`sku-${v.id}`}
+                  type="text"
+                  aria-label={`Código ${v.color} ${v.size}`}
+                  placeholder="Código"
+                  className="h-11 w-full min-w-0 rounded-md border border-border bg-surface px-3"
+                  value={skuDrafts[v.id] ?? v.sku ?? ""}
+                  onChange={(e) =>
+                    setSkuDrafts((prev) => ({ ...prev, [v.id]: e.target.value }))
+                  }
+                  onBlur={() => {
+                    setError(null);
+                    void persistSku(v.id, skuDrafts[v.id] ?? "")
+                      .then(async () => {
+                        setMsg("Código actualizado");
+                        await utils.admin.catalog.listProducts.invalidate();
+                      })
+                      .catch((err) => setError(errorMessage(err)));
+                  }}
+                />
+              </div>
+              <div className="field min-w-0">
+                <label htmlFor={`stock-${v.id}`}>Stock</label>
+                <input
+                  id={`stock-${v.id}`}
+                  type="number"
+                  min={0}
+                  aria-label={`Stock ${v.color} ${v.size}`}
+                  className="h-11 w-full min-w-0 rounded-md border border-border bg-surface px-3"
+                  defaultValue={v.stock_on_hand}
+                  onBlur={(e) => {
+                    const n = Number(e.target.value);
+                    if (!Number.isFinite(n) || n === v.stock_on_hand) return;
+                    setStock.mutate(
+                      { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
+                      {
+                        onSuccess: () => {
+                          setMsg("Stock actualizado");
+                          utils.admin.catalog.listProducts.invalidate();
+                        },
+                        onError: (err) => setError(errorMessage(err)),
+                      },
+                    );
+                  }}
+                />
+              </div>
+            </div>
           </div>
         ))}
 

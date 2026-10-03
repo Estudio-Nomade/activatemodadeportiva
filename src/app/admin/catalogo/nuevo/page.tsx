@@ -185,47 +185,66 @@ export default function AdminNuevoProductoPage() {
           </button>
         </div>
         {variants.map((v, idx) => (
-          <div key={v.key} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <input
-              placeholder="Color"
-              value={v.color}
-              onChange={(e) =>
-                setVariants((vs) =>
-                  vs.map((x, i) => (i === idx ? { ...x, color: e.target.value } : x)),
-                )
-              }
-            />
-            <input
-              placeholder="Talle"
-              value={v.size}
-              onChange={(e) =>
-                setVariants((vs) =>
-                  vs.map((x, i) => (i === idx ? { ...x, size: e.target.value } : x)),
-                )
-              }
-            />
-            <input
-              placeholder="Código de stock"
-              value={v.sku}
-              onChange={(e) =>
-                setVariants((vs) =>
-                  vs.map((x, i) => (i === idx ? { ...x, sku: e.target.value } : x)),
-                )
-              }
-            />
-            <input
-              type="number"
-              min={0}
-              placeholder="Stock"
-              value={v.stockOnHand}
-              onChange={(e) =>
-                setVariants((vs) =>
-                  vs.map((x, i) =>
-                    i === idx ? { ...x, stockOnHand: Number(e.target.value) || 0 } : x,
-                  ),
-                )
-              }
-            />
+          <div
+            key={v.key}
+            className="grid gap-3 rounded-[12px] border border-border bg-bg/50 p-3 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            <div className="field min-w-0">
+              <label htmlFor={`nv-color-${v.key}`}>Color</label>
+              <input
+                id={`nv-color-${v.key}`}
+                placeholder="Negro"
+                value={v.color}
+                onChange={(e) =>
+                  setVariants((vs) =>
+                    vs.map((x, i) => (i === idx ? { ...x, color: e.target.value } : x)),
+                  )
+                }
+              />
+            </div>
+            <div className="field min-w-0">
+              <label htmlFor={`nv-size-${v.key}`}>Talle</label>
+              <input
+                id={`nv-size-${v.key}`}
+                placeholder="M"
+                value={v.size}
+                onChange={(e) =>
+                  setVariants((vs) =>
+                    vs.map((x, i) => (i === idx ? { ...x, size: e.target.value } : x)),
+                  )
+                }
+              />
+            </div>
+            <div className="field min-w-0">
+              <label htmlFor={`nv-sku-${v.key}`}>Código</label>
+              <input
+                id={`nv-sku-${v.key}`}
+                placeholder="Excel / SKU"
+                value={v.sku}
+                onChange={(e) =>
+                  setVariants((vs) =>
+                    vs.map((x, i) => (i === idx ? { ...x, sku: e.target.value } : x)),
+                  )
+                }
+              />
+            </div>
+            <div className="field min-w-0">
+              <label htmlFor={`nv-stock-${v.key}`}>Stock</label>
+              <input
+                id={`nv-stock-${v.key}`}
+                type="number"
+                min={0}
+                placeholder="0"
+                value={v.stockOnHand}
+                onChange={(e) =>
+                  setVariants((vs) =>
+                    vs.map((x, i) =>
+                      i === idx ? { ...x, stockOnHand: Number(e.target.value) || 0 } : x,
+                    ),
+                  )
+                }
+              />
+            </div>
           </div>
         ))}
       </section>
