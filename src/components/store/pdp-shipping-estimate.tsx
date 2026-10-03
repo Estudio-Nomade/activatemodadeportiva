@@ -125,8 +125,8 @@ export function PdpShippingEstimate({
             ) : null}
           </li>
           <li className="text-xs leading-relaxed">
-            CP {submitted}. Mismo costo Andreani a todo el país en v1 (no tarifa por zona). El
-            total final se confirma en el checkout.{" "}
+            CP {submitted}. Costo de referencia Andreani a todo el país (no varía por zona). El total
+            final se confirma en el checkout.{" "}
             <Link href="/envios" className="font-semibold text-accent underline underline-offset-2">
               Ver envíos
             </Link>

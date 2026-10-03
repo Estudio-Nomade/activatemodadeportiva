@@ -19,7 +19,7 @@ export default function MediosPagoPage() {
         <strong className="text-text">Efectivo:</strong> solo con retiro en local. Mismo descuento
         sobre productos. Se abona al retirar.
       </p>
-      <p>Tarjetas / Payway / Mercado Pago: fuera de alcance v1.</p>
+      <p>Por ahora no aceptamos tarjetas online. Si necesitás otra forma de pago, escribinos.</p>
     </InfoShell>
   );
 }

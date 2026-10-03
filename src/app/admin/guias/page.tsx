@@ -115,8 +115,8 @@ export default function AdminGuiasPage() {
   return (
     <div className="space-y-4 pb-4">
       <p className="text-sm text-muted">
-        Tablas de talles del PDP. Seed local: <code>public/size-guides/</code>. Uploads nuevos van al
-        bucket <code>size-guides</code> (JPEG/PNG/WebP, máx 5MB).
+        Tablas de talles que se muestran en la ficha del producto. Subí imagen JPEG/PNG/WebP (máx
+        5MB) y asignala desde el editor del producto.
       </p>
 
       {err ? (

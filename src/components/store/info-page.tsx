@@ -41,7 +41,7 @@ export function ContactLinks() {
       ) : null}
       {!wa && !email ? (
         <p className="text-sm text-muted">
-          WhatsApp / email se configuran en admin. Instagram ya está disponible arriba.
+          Pronto vas a poder contactarnos también por WhatsApp o email desde acá.
         </p>
       ) : null}
     </div>
@@ -55,7 +55,7 @@ export function StoreAddressBlock() {
   return (
     <p>
       <strong className="text-text">Local:</strong>{" "}
-      {address || "San Manuel (dirección en admin → Config)"}
+      {address || "San Manuel, Buenos Aires"}
     </p>
   );
 }
@@ -86,7 +86,7 @@ export function ShippingFeesCopy() {
             .
           </>
         ) : (
-          "costo configurable en la tienda (se calcula al checkout)."
+          "el costo se confirma en el checkout."
         )}
       </p>
     </>
@@ -101,6 +101,6 @@ export function TransferAliasCopy() {
       Alias / CBU: <strong className="text-text">{alias}</strong>
     </p>
   ) : (
-    <p>El alias/CBU se muestra al confirmar el pedido (configurado en admin).</p>
+    <p>El alias/CBU se muestra al confirmar el pedido.</p>
   );
 }

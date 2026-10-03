@@ -15,6 +15,7 @@
   --bar: #f3eee7;
   --success: #5c5346;
   --danger: #9a4540;
+  /* Outline-style FAB uses text/border; keep token for rare solid accents */
   --wa: #1a1816;
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -686,6 +687,8 @@ a.btn-primary svg {
 .wa-fab {
   bottom: calc(16px + var(--safe-bottom));
   right: calc(16px + var(--safe-right));
+  /* Keep readable over light and photo backgrounds */
+  background-color: color-mix(in srgb, var(--surface) 72%, transparent);
 }
 
 /* Admin chrome: mobile app bottom tabs + desktop sidebar dashboard. */
