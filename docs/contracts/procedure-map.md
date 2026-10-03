@@ -216,6 +216,16 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | `{ id, isPublished }` |
 | Output | product row |
 
+### `admin.catalog.deleteProduct`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id }` |
+| Output | `{ ok: true }` |
+| Errors | `NOT_FOUND`, `PRECONDITION_FAILED` if any variant has reservations or order_items (unpublish + stock 0 instead) |
+| Notes | Cascades `product_images` + `product_variants`. Best-effort remove of storage objects under `products/{id}/`. Multiple gallery images already supported via attach/remove/reorder. |
+
 ### `admin.catalog.listProducts`
 
 | | |

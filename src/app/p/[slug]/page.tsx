@@ -118,6 +118,40 @@ export default function ProductPage() {
               Agotado
             </span>
           ) : null}
+          {images.length > 1 ? (
+            <>
+              <button
+                type="button"
+                className="absolute left-2 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-lg font-bold text-text shadow-sm"
+                aria-label="Foto anterior"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setImgIdx((i) => (i - 1 + images.length) % images.length);
+                }}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="absolute right-2 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-lg font-bold text-text shadow-sm"
+                aria-label="Foto siguiente"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setImgIdx((i) => (i + 1) % images.length);
+                }}
+              >
+                ›
+              </button>
+              <div className="pointer-events-none absolute bottom-3 left-0 right-0 z-10 flex justify-center gap-1.5">
+                {images.map((img, i) => (
+                  <span
+                    key={img.id}
+                    className={`h-1.5 w-1.5 rounded-full ${i === imgIdx ? "bg-white" : "bg-white/45"}`}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
           <button
             type="button"
             className="absolute bottom-3 right-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-white/80 text-text shadow-sm"
@@ -135,6 +169,8 @@ export default function ProductPage() {
                 type="button"
                 className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 ${i === imgIdx ? "border-accent" : "border-transparent bg-surface-soft"}`}
                 onClick={() => setImgIdx(i)}
+                aria-label={`Ver foto ${i + 1}`}
+                aria-current={i === imgIdx}
               >
                 <ProductImage url={img.url} alt="" className="h-full w-full" />
               </button>
@@ -392,16 +428,34 @@ export default function ProductPage() {
             />
           </button>
           {images.length > 1 ? (
-            <div className="flex justify-center gap-2 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-              {images.map((img, i) => (
-                <button
-                  key={img.id}
-                  type="button"
-                  className={`h-2 w-2 rounded-full ${i === imgIdx ? "bg-white" : "bg-white/40"}`}
-                  aria-label={`Imagen ${i + 1}`}
-                  onClick={() => setImgIdx(i)}
-                />
-              ))}
+            <div className="flex items-center justify-between gap-3 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                className="grid h-12 w-12 place-items-center rounded-full text-2xl text-white"
+                aria-label="Foto anterior"
+                onClick={() => setImgIdx((i) => (i - 1 + images.length) % images.length)}
+              >
+                ‹
+              </button>
+              <div className="flex justify-center gap-2">
+                {images.map((img, i) => (
+                  <button
+                    key={img.id}
+                    type="button"
+                    className={`h-2 w-2 rounded-full ${i === imgIdx ? "bg-white" : "bg-white/40"}`}
+                    aria-label={`Imagen ${i + 1}`}
+                    onClick={() => setImgIdx(i)}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                className="grid h-12 w-12 place-items-center rounded-full text-2xl text-white"
+                aria-label="Foto siguiente"
+                onClick={() => setImgIdx((i) => (i + 1) % images.length)}
+              >
+                ›
+              </button>
             </div>
           ) : null}
         </div>

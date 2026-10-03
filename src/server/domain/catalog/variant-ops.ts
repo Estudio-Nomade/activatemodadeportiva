@@ -9,3 +9,16 @@ export function canRemoveVariant(input: {
   if (input.orderItemCount > 0) return { ok: false, reason: "HAS_ORDER_ITEMS" };
   return { ok: true };
 }
+
+export type RemoveProductBlock = RemoveVariantBlock;
+
+/**
+ * Hard-delete product only when no variant is tied to reservations or order lines.
+ * product_images / product_variants cascade; stock_reservations RESTRICT on variant.
+ */
+export function canRemoveProduct(input: {
+  reservationCount: number;
+  orderItemCount: number;
+}): { ok: true } | { ok: false; reason: RemoveProductBlock } {
+  return canRemoveVariant(input);
+}

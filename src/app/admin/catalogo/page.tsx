@@ -15,7 +15,9 @@ export default function AdminCatalogoPage() {
   const catalog = trpc.admin.catalog.listProducts.useQuery(undefined, { enabled: !!token });
   const setPublished = trpc.admin.catalog.setPublished.useMutation();
   const setStock = trpc.admin.catalog.setVariantStock.useMutation();
+  const deleteProduct = trpc.admin.catalog.deleteProduct.useMutation();
   const utils = trpc.useUtils();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const list = catalog.data ?? [];
@@ -155,12 +157,20 @@ export default function AdminCatalogoPage() {
                       </span>
                       <input
                         type="number"
+                        inputMode="numeric"
                         min={0}
+                        step={1}
+                        placeholder="0"
                         aria-label={`Stock ${v.color} ${v.size}`}
                         className="h-10 w-full rounded-md border border-border bg-surface px-2 text-center"
                         defaultValue={v.stock_on_hand}
                         onBlur={(e) => {
-                          const n = Number(e.target.value);
+                          const raw = e.target.value.trim();
+                          if (raw === "") {
+                            e.target.value = String(v.stock_on_hand);
+                            return;
+                          }
+                          const n = Number(raw);
                           if (!Number.isFinite(n) || n === v.stock_on_hand) return;
                           setStock.mutate(
                             { variantId: v.id, stockOnHand: Math.max(0, Math.floor(n)) },
@@ -176,12 +186,39 @@ export default function AdminCatalogoPage() {
                 ))}
               </div>
 
-              <Link
-                href={`/admin/catalogo/${p.id}`}
-                className="mt-3 inline-block text-sm font-semibold text-accent"
-              >
-                Editar producto →
-              </Link>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <Link
+                  href={`/admin/catalogo/${p.id}`}
+                  className="text-sm font-semibold text-accent"
+                >
+                  Editar producto →
+                </Link>
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-danger underline-offset-2 hover:underline disabled:opacity-40"
+                  disabled={deleteProduct.isPending && deletingId === p.id}
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        `¿Eliminar "${p.name}"? Se borran fotos y variantes. No se puede si ya salió en un pedido.`,
+                      )
+                    ) {
+                      return;
+                    }
+                    setDeletingId(p.id);
+                    deleteProduct.mutate(
+                      { id: p.id },
+                      {
+                        onSuccess: () => utils.admin.catalog.listProducts.invalidate(),
+                        onError: (err) => window.alert(errorMessage(err)),
+                        onSettled: () => setDeletingId(null),
+                      },
+                    );
+                  }}
+                >
+                  {deletingId === p.id ? "Eliminando…" : "Eliminar"}
+                </button>
+              </div>
             </li>
           );
         })}
