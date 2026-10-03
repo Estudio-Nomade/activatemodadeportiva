@@ -1,9 +1,28 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { useAdminToken } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
 import { trpc } from "@/lib/trpc/client";
+
+/** Match cloud bucket `file_size_limit` (5 MiB). */
+const MAX_GUIDE_BYTES = 5 * 1024 * 1024;
+
+function guideUploadError(err: unknown, fallback: string): string {
+  const raw = errorMessage(err, fallback);
+  const lower = raw.toLowerCase();
+  if (lower.includes("unauthorized") || lower.includes("forbidden")) {
+    return "Sesión admin inválida o vencida. Volvé a entrar en /admin/login e intentá de nuevo.";
+  }
+  if (lower.includes("bucket") && lower.includes("size-guides")) {
+    return raw;
+  }
+  if (lower.includes("bucket") || lower.includes("not found")) {
+    return `No se pudo usar el bucket size-guides. ${raw}`;
+  }
+  return raw;
+}
 
 export default function AdminGuiasPage() {
   const token = useAdminToken();
@@ -14,9 +33,9 @@ export default function AdminGuiasPage() {
   const uploadUrl = trpc.admin.catalog.createSizeGuideUploadUrl.useMutation();
   const utils = trpc.useUtils();
 
-  const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -42,7 +61,7 @@ export default function AdminGuiasPage() {
       setMsg("Guía creada — subí la imagen con el botón de cada fila");
       await refresh();
     } catch (e) {
-      setErr(errorMessage(e));
+      setErr(guideUploadError(e, "No se pudo crear la guía"));
     } finally {
       setBusy(false);
     }
@@ -50,15 +69,20 @@ export default function AdminGuiasPage() {
 
   async function onUpload(guideId: string, file: File | null) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setErr("Solo imágenes");
+    if (!token) {
+      setErr("No hay sesión admin. Entrá en /admin/login.");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setErr("Máx 8MB");
+    if (!file.type.startsWith("image/")) {
+      setErr("Solo JPEG, PNG, WebP o GIF");
+      return;
+    }
+    if (file.size > MAX_GUIDE_BYTES) {
+      setErr("Máx 5MB por imagen (límite del bucket size-guides)");
       return;
     }
     setBusy(true);
+    setUploadingId(guideId);
     setErr(null);
     setMsg(null);
     try {
@@ -71,24 +95,40 @@ export default function AdminGuiasPage() {
         headers: { "Content-Type": file.type || "application/octet-stream" },
         body: file,
       });
-      if (!put.ok) throw new Error(`Upload falló (${put.status})`);
+      if (!put.ok) {
+        const body = (await put.text().catch(() => "")).slice(0, 180);
+        throw new Error(
+          `Upload falló (HTTP ${put.status})${body ? `: ${body}` : ""}. Revisá tamaño ≤5MB y tipo image/*.`,
+        );
+      }
       await update.mutateAsync({ id: guideId, storagePath: up.path });
-      setMsg("Imagen actualizada");
+      setMsg("Imagen actualizada — preview a la derecha");
       await refresh();
     } catch (e) {
-      setErr(errorMessage(e, "Error al subir imagen"));
+      setErr(guideUploadError(e, "Error al subir imagen"));
     } finally {
       setBusy(false);
-      if (fileRef.current) fileRef.current.value = "";
+      setUploadingId(null);
     }
   }
 
   return (
     <div className="space-y-4 pb-4">
       <p className="text-sm text-muted">
-        Guías mostradas en PDP. Seed: Magher / Medias en <code>public/size-guides/</code>. Podés
-        crear nuevas y subir imagen al bucket <code>size-guides</code>.
+        Tablas de talles del PDP. Seed local: <code>public/size-guides/</code>. Uploads nuevos van al
+        bucket <code>size-guides</code> (JPEG/PNG/WebP, máx 5MB).
       </p>
+
+      {err ? (
+        <p className="rounded-[12px] border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger" role="alert">
+          {err}
+        </p>
+      ) : null}
+      {msg ? (
+        <p className="rounded-[12px] border border-border bg-surface-soft px-3 py-2 text-sm text-success">
+          {msg}
+        </p>
+      ) : null}
 
       <form onSubmit={onCreate} className="flex flex-wrap items-end gap-2 rounded-[16px] border border-border bg-surface p-4">
         <div className="field min-w-[200px] flex-1">
@@ -106,7 +146,15 @@ export default function AdminGuiasPage() {
       </form>
 
       {list.isLoading ? <p className="text-sm text-muted">Cargando…</p> : null}
-      {list.isError ? <p className="text-sm text-danger">{errorMessage(list.error)}</p> : null}
+      {list.isError ? (
+        <p className="text-sm text-danger" role="alert">
+          {guideUploadError(list.error, "No se pudieron listar las guías")}
+          {" · "}
+          <Link href="/admin/login" className="font-semibold underline">
+            Re-login
+          </Link>
+        </p>
+      ) : null}
 
       <ul className="space-y-3">
         {(list.data ?? []).map((g) => (
@@ -140,7 +188,7 @@ export default function AdminGuiasPage() {
                               setBusy(false);
                             },
                             onError: (e) => {
-                              setErr(errorMessage(e));
+                              setErr(guideUploadError(e, "No se pudo renombrar"));
                               setBusy(false);
                             },
                           },
@@ -193,14 +241,20 @@ export default function AdminGuiasPage() {
                 >
                   Renombrar
                 </button>
-                <label className="btn btn-secondary w-auto cursor-pointer px-3 text-sm">
-                  {busy ? "…" : "Subir imagen"}
+                <label
+                  className={`btn btn-secondary w-auto cursor-pointer px-3 text-sm ${busy ? "pointer-events-none opacity-60" : ""}`}
+                >
+                  {uploadingId === g.id ? "Subiendo…" : "Subir imagen"}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
                     className="hidden"
                     disabled={busy}
-                    onChange={(e) => void onUpload(g.id, e.target.files?.[0] ?? null)}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      e.target.value = "";
+                      void onUpload(g.id, f);
+                    }}
                   />
                 </label>
                 <button
@@ -221,7 +275,7 @@ export default function AdminGuiasPage() {
                           setBusy(false);
                         },
                         onError: (e) => {
-                          setErr(errorMessage(e));
+                          setErr(guideUploadError(e, "No se pudo eliminar"));
                           setBusy(false);
                         },
                       },
@@ -235,9 +289,6 @@ export default function AdminGuiasPage() {
           </li>
         ))}
       </ul>
-
-      {err ? <p className="text-sm text-danger">{err}</p> : null}
-      {msg ? <p className="text-sm text-success">{msg}</p> : null}
     </div>
   );
 }

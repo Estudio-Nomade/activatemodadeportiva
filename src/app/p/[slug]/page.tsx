@@ -202,18 +202,7 @@ export default function ProductPage() {
         </div>
 
         <div>
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <p className="text-[13px] font-semibold text-text">Talle</p>
-            {sizeGuide ? (
-              <button
-                type="button"
-                className="min-h-11 text-xs font-semibold text-accent underline-offset-2 hover:underline"
-                onClick={() => setGuideOpen(true)}
-              >
-                Guía de talles
-              </button>
-            ) : null}
-          </div>
+          <p className="mb-2 text-[13px] font-semibold text-text">Talle</p>
           <div className="flex flex-wrap gap-2">
             {sizesForColor.map((v) => (
               <button
@@ -228,6 +217,15 @@ export default function ProductPage() {
               </button>
             ))}
           </div>
+          {sizeGuide ? (
+            <button
+              type="button"
+              className="mt-2 min-h-11 text-left text-xs font-semibold text-accent underline underline-offset-2"
+              onClick={() => setGuideOpen(true)}
+            >
+              Tabla de talles
+            </button>
+          ) : null}
           {!productSoldOut ? (
             <p className="mt-2 text-sm text-muted">
               {available > 0 ? `${available} disponibles` : "Elegí otra combinación"}
@@ -330,7 +328,7 @@ export default function ProductPage() {
 
       <SizeGuideSheet
         open={guideOpen}
-        title={sizeGuide?.name ?? "Guía de talles"}
+        title={sizeGuide?.name ?? "Tabla de talles"}
         imageUrl={sizeGuide?.url ?? null}
         onClose={() => setGuideOpen(false)}
       />

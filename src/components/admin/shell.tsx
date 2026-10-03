@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { adminLogout, useAdminToken } from "@/lib/admin/auth";
+import { adminLogout, useAdminSessionSync, useAdminToken } from "@/lib/admin/auth";
 
 const NAV = [
   { href: "/admin", label: "Inicio", match: (p: string) => p === "/admin" },
@@ -18,6 +18,11 @@ const NAV = [
     match: (p: string) => p.startsWith("/admin/catalogo"),
   },
   {
+    href: "/admin/guias",
+    label: "Talles",
+    match: (p: string) => p.startsWith("/admin/guias"),
+  },
+  {
     href: "/admin/config",
     label: "Config",
     match: (p: string) => p.startsWith("/admin/config"),
@@ -29,6 +34,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const isLogin = pathname === "/admin/login";
+
+  // Refresh / clear stale JWT so admin.* tRPC Bearer matches Supabase session
+  useAdminSessionSync(!isLogin || !!token);
 
   useEffect(() => {
     if (token === null && !isLogin) {
@@ -51,15 +59,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  const title =
-    NAV.find((n) => n.match(pathname))?.label ??
-    (pathname.startsWith("/admin/guias")
-      ? "Guías de talles"
-      : pathname.includes("/nuevo")
+  const navHit = NAV.find((n) => n.match(pathname));
+  const title = pathname.startsWith("/admin/guias")
+    ? "Guías de talles"
+    : (navHit?.label ??
+      (pathname.includes("/nuevo")
         ? "Nuevo producto"
         : pathname.includes("/catalogo/")
           ? "Editar producto"
-          : "Admin");
+          : "Admin"));
 
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
@@ -92,7 +100,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <nav className="admin-bottom-nav fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto grid max-w-3xl grid-cols-4 gap-1 px-2 py-2">
+        <div className="mx-auto grid max-w-3xl grid-cols-5 gap-0.5 px-1 py-2 sm:gap-1 sm:px-2">
           {NAV.map((item) => {
             const active = item.match(pathname);
             return (

@@ -396,10 +396,23 @@ export const adminCatalogRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const safeName = input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 80);
       const path = `${Date.now()}-${safeName}`;
-      const signed = await ctx.storage.createSignedUploadUrl({
-        bucket: SIZE_GUIDES_BUCKET,
-        path,
-      });
+      let signed: Awaited<ReturnType<typeof ctx.storage.createSignedUploadUrl>>;
+      try {
+        signed = await ctx.storage.createSignedUploadUrl({
+          bucket: SIZE_GUIDES_BUCKET,
+          path,
+        });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Failed to create signed upload URL";
+        const lower = msg.toLowerCase();
+        if (lower.includes("bucket") || lower.includes("not found")) {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: `Bucket "${SIZE_GUIDES_BUCKET}" missing or inaccessible. Apply migration size_guides_bucket on this Supabase project.`,
+          });
+        }
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: msg });
+      }
       const key = normalizeSizeGuideStorageKey(signed.path || path);
       return {
         bucket: SIZE_GUIDES_BUCKET,
