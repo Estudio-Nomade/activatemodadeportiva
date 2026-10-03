@@ -107,6 +107,11 @@ function EditForm({
   const [newStock, setNewStock] = useState("0");
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [skuDrafts, setSkuDrafts] = useState<Record<string, string>>(() => {
+    const init: Record<string, string> = {};
+    for (const v of product.product_variants ?? []) init[v.id] = v.sku ?? "";
+    return init;
+  });
 
   const categoryOptions = useMemo(() => {
     const list = cats.data ?? [];
@@ -122,11 +127,30 @@ function EditForm({
     return out;
   }, [cats.data]);
 
+  async function persistSku(variantId: string, raw: string) {
+    const next = raw.trim();
+    const server = (product.product_variants ?? []).find((v) => v.id === variantId)?.sku ?? "";
+    if (next === server.trim()) return;
+    await updateVariant.mutateAsync({ variantId, sku: next || null });
+  }
+
+  async function flushDirtySkus() {
+    const variants = product.product_variants ?? [];
+    for (const v of variants) {
+      const draft = (skuDrafts[v.id] ?? "").trim();
+      const server = (v.sku ?? "").trim();
+      if (draft !== server) {
+        await updateVariant.mutateAsync({ variantId: v.id, sku: draft || null });
+      }
+    }
+  }
+
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setMsg(null);
     try {
+      await flushDirtySkus();
       await update.mutateAsync({
         id: product.id,
         name: name.trim(),
@@ -272,22 +296,18 @@ function EditForm({
               aria-label={`Código ${v.color} ${v.size}`}
               placeholder="Código"
               className="h-10 w-32 rounded-md border border-border px-2"
-              defaultValue={v.sku ?? ""}
-              onBlur={(e) => {
-                const next = e.target.value.trim();
-                const prev = (v.sku ?? "").trim();
-                if (next === prev) return;
+              value={skuDrafts[v.id] ?? v.sku ?? ""}
+              onChange={(e) =>
+                setSkuDrafts((prev) => ({ ...prev, [v.id]: e.target.value }))
+              }
+              onBlur={() => {
                 setError(null);
-                updateVariant.mutate(
-                  { variantId: v.id, sku: next || null },
-                  {
-                    onSuccess: () => {
-                      setMsg("Código actualizado");
-                      utils.admin.catalog.listProducts.invalidate();
-                    },
-                    onError: (err) => setError(errorMessage(err)),
-                  },
-                );
+                void persistSku(v.id, skuDrafts[v.id] ?? "")
+                  .then(async () => {
+                    setMsg("Código actualizado");
+                    await utils.admin.catalog.listProducts.invalidate();
+                  })
+                  .catch((err) => setError(errorMessage(err)));
               }}
             />
             <input
