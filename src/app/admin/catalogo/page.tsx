@@ -31,7 +31,8 @@ export default function AdminCatalogoPage() {
       <div className="grid gap-2 sm:grid-cols-2">
         <Link
           href="/admin/catalogo/nuevo"
-          className="btn btn-primary min-h-12 w-full justify-center px-4 text-center"
+          className="btn btn-primary min-h-12 w-full justify-center px-4 text-center !text-white"
+          style={{ color: "#ffffff" }}
         >
           Nuevo producto
         </Link>
@@ -75,7 +76,8 @@ export default function AdminCatalogoPage() {
           {!q.trim() ? (
             <Link
               href="/admin/catalogo/nuevo"
-              className="btn btn-primary mx-auto mt-5 max-w-[220px]"
+              className="btn btn-primary mx-auto mt-5 max-w-[220px] !text-white"
+              style={{ color: "#ffffff" }}
             >
               Nuevo producto
             </Link>

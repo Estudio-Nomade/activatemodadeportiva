@@ -68,9 +68,10 @@ function PedidosInner() {
               type="button"
               className={`shrink-0 rounded-full px-4 py-2.5 text-xs font-semibold transition-colors ${
                 on
-                  ? "bg-accent text-inverse shadow-sm"
+                  ? "bg-accent text-white shadow-sm"
                   : "border border-border bg-surface text-text hover:bg-surface-soft"
               }`}
+              style={on ? { color: "#ffffff" } : undefined}
               onClick={() => setTab(id)}
             >
               {label}
