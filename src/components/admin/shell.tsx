@@ -133,6 +133,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const [moreFor, setMoreFor] = useState<string | null>(null);
   const moreOpen = moreFor === pathname;
   const moreTitleId = useId();
+  /** Mobile virtual keyboard open → hide bottom tabs (fixed bars jump mid-screen on iOS/Android). */
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
   useAdminSessionSync(!isLogin || !!token);
 
@@ -154,6 +156,56 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("keydown", onKey);
     };
   }, [moreOpen]);
+
+  useEffect(() => {
+    if (isLogin || typeof window === "undefined") return;
+
+    const mq = window.matchMedia("(min-width: 768px)");
+    const isDesktop = () => mq.matches;
+
+    const measureKeyboard = () => {
+      if (isDesktop()) {
+        setKeyboardOpen(false);
+        return;
+      }
+      const vv = window.visualViewport;
+      if (!vv) return;
+      // Layout height shrinks when the soft keyboard is up; threshold avoids URL-bar noise.
+      const occluded = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardOpen(occluded > 120);
+    };
+
+    const onFocusIn = (e: FocusEvent) => {
+      if (isDesktop()) return;
+      const t = e.target;
+      if (!(t instanceof HTMLElement)) return;
+      if (t.matches("input, textarea, select, [contenteditable='true']")) {
+        // Delay until keyboard animation; visualViewport will confirm.
+        window.setTimeout(measureKeyboard, 300);
+      }
+    };
+    const onFocusOut = () => {
+      window.setTimeout(measureKeyboard, 300);
+    };
+
+    measureKeyboard();
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", measureKeyboard);
+    vv?.addEventListener("scroll", measureKeyboard);
+    window.addEventListener("resize", measureKeyboard);
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    mq.addEventListener("change", measureKeyboard);
+
+    return () => {
+      vv?.removeEventListener("resize", measureKeyboard);
+      vv?.removeEventListener("scroll", measureKeyboard);
+      window.removeEventListener("resize", measureKeyboard);
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+      mq.removeEventListener("change", measureKeyboard);
+    };
+  }, [isLogin]);
 
   if (isLogin) {
     return <main className="min-h-dvh bg-bg">{children}</main>;
@@ -178,7 +230,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="admin-shell flex min-h-dvh bg-bg md:flex-row">
+    <div className="admin-shell flex h-dvh max-h-dvh flex-col overflow-hidden bg-bg md:h-auto md:max-h-none md:min-h-dvh md:flex-row md:overflow-visible">
       {/* Desktop sidebar */}
       <aside className="admin-sidebar hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex lg:w-64">
         <div
@@ -231,10 +283,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Content column */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobile top bar + desktop content header */}
-        <header className="admin-top sticky top-0 z-20 border-b border-border bg-surface md:static md:z-auto">
+      {/* Content column — scrolls; tab bar stays in flow at bottom (not position:fixed) */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="admin-top sticky top-0 z-20 shrink-0 border-b border-border bg-surface md:static md:z-auto">
           <div
             className="flex items-center gap-3 px-3 py-2.5 sm:px-5 sm:py-3 md:px-6 md:py-4"
             style={{ paddingTop: "max(10px, env(safe-area-inset-top))" }}
@@ -262,40 +313,47 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="admin-main mx-auto w-full max-w-6xl flex-1 px-4 pt-4 sm:px-5 md:px-6 md:pt-6 lg:max-w-7xl">
+        <main className="admin-main mx-auto w-full max-w-6xl min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 pt-4 sm:px-5 md:px-6 md:pt-6 lg:max-w-7xl">
           {children}
         </main>
-      </div>
 
-      {/* Mobile bottom tab bar — single row */}
-      <nav className="admin-bottom-nav md:hidden" aria-label="Admin">
-        {PRIMARY_TABS.map((item) => {
-          const active = item.match(pathname);
-          const Icon = item.Icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={tabClass(active)}
-              aria-current={active ? "page" : undefined}
-            >
-              <Icon size={20} />
-              <span className={active ? "font-bold" : undefined}>{item.label}</span>
-            </Link>
-          );
-        })}
-        <button
-          type="button"
-          className={tabClass(moreOpen)}
-          aria-label="Más opciones"
-          aria-expanded={moreOpen}
-          aria-controls={moreTitleId}
-          onClick={toggleMore}
+        {/* Mobile bottom tabs: in-flow (not fixed) so soft keyboard can't pin them mid-viewport */}
+        <nav
+          className={`admin-bottom-nav shrink-0 md:hidden ${keyboardOpen ? "admin-bottom-nav--keyboard" : ""}`}
+          aria-label="Admin"
+          aria-hidden={keyboardOpen}
         >
-          <IconMore size={20} />
-          <span>Más</span>
-        </button>
-      </nav>
+          {PRIMARY_TABS.map((item) => {
+            const active = item.match(pathname);
+            const Icon = item.Icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={tabClass(active)}
+                aria-current={active ? "page" : undefined}
+                tabIndex={keyboardOpen ? -1 : undefined}
+              >
+                <Icon size={20} />
+                <span className={active ? "font-bold" : undefined}>{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            className={tabClass(moreOpen)}
+            aria-label="Más opciones"
+            aria-expanded={moreOpen}
+            aria-controls={moreTitleId}
+            onClick={toggleMore}
+            tabIndex={keyboardOpen ? -1 : undefined}
+            disabled={keyboardOpen}
+          >
+            <IconMore size={20} />
+            <span>Más</span>
+          </button>
+        </nav>
+      </div>
 
       {/* Más bottom sheet */}
       {moreOpen ? (

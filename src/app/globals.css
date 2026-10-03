@@ -697,9 +697,10 @@ a.btn-primary svg {
 }
 
 .admin-bottom-nav {
-  position: fixed;
-  inset-inline: 0;
-  bottom: 0;
+  /* In-flow footer of the admin shell (NOT position:fixed).
+     Fixed + soft keyboard on iOS/Android parks the bar mid-screen while scrolling forms. */
+  position: relative;
+  inset: auto;
   z-index: 30;
   display: flex;
   flex-wrap: nowrap;
@@ -711,11 +712,25 @@ a.btn-primary svg {
   padding-top: 6px;
   padding-bottom: max(8px, var(--safe-bottom));
   padding-inline: 4px;
+  /* Avoid iOS rubber-band painting the bar over content */
+  flex-shrink: 0;
+  transition: opacity 0.15s ease, max-height 0.2s ease, padding 0.2s ease, border-width 0.15s ease;
+  max-height: 6rem;
+  overflow: hidden;
+}
+
+.admin-bottom-nav.admin-bottom-nav--keyboard {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top-width: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .admin-main {
-  /* Clear single-row tab bar + safe area so Guardar stays visible */
-  padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  /* Tab bar is in-flow now — modest bottom pad only (safe area lives on the nav) */
+  padding-bottom: 1.5rem;
 }
 
 @media (min-width: 768px) {
