@@ -60,7 +60,6 @@ create table public.store_settings (
   free_shipping_threshold_cents int not null default 0 check (free_shipping_threshold_cents >= 0),
   season_label text not null default 'Moda deportiva',
   whatsapp_url_or_phone text not null default '',
-  whatsapp_prefill_message text not null default '',
   instagram_url text not null default '',
   contact_email text not null default '',
   contact_address text not null default '',
@@ -581,6 +580,22 @@ $$;
 revoke all on function public.cancel_order_tx(uuid, public.cancel_reason) from public;
 grant execute on function public.cancel_order_tx(uuid, public.cancel_reason) to service_role;
 
+-- ===== 20261001000000_size_guides_bucket.sql =====
+-- Public bucket for admin-uploaded size guide images (seed may still use /public paths).
+insert into storage.buckets (id, name, public)
+values ('size-guides', 'size-guides', true)
+on conflict (id) do nothing;
+
+-- ===== 20261003120000_category_composition_care.sql =====
+-- Leaf-category composition & care copy for PDP accordion (admin-editable).
+alter table public.categories
+  add column if not exists composition_care_text text not null default '';
+
+-- ===== 20261004120000_whatsapp_prefill_message.sql =====
+-- Prefill text for storefront WhatsApp deep links (footer, FAB, contacto).
+alter table public.store_settings
+  add column if not exists whatsapp_prefill_message text not null default '';
+
 -- ===== seed.sql =====
 -- Category tree (PRD) + sample product + store settings
 
@@ -617,10 +632,16 @@ insert into public.categories (id, slug, name, parent_id, sort_order) values
   ('11111111-1111-4111-a111-111111111036', 'accesorios-hockey', 'Hockey', '11111111-1111-4111-a111-111111111003', 6),
   ('11111111-1111-4111-a111-111111111037', 'accesorios-natacion', 'Natación', '11111111-1111-4111-a111-111111111003', 7);
 
+-- Size guides (static assets under public/size-guides)
+insert into public.size_guides (id, name, storage_path) values
+  ('55555555-5555-4555-a555-555555555001', 'Magher mujer', '/size-guides/magher-mujer.jpg'),
+  ('55555555-5555-4555-a555-555555555002', 'Magher hombre', '/size-guides/magher-hombre.jpg'),
+  ('55555555-5555-4555-a555-555555555003', 'Medias Sox', '/size-guides/medias-sox.jpg');
+
 -- Sample published product with two variants (stock 5 each)
 insert into public.products (
   id, name, slug, description, category_id,
-  list_price_cents, promo_price_cents, is_published
+  list_price_cents, promo_price_cents, is_published, size_guide_id
 ) values (
   '22222222-2222-4222-a222-222222222001',
   'Calza Performance',
@@ -629,12 +650,23 @@ insert into public.products (
   '11111111-1111-4111-a111-111111111011',
   4500000,
   null,
-  true
+  true,
+  '55555555-5555-4555-a555-555555555001'
 );
 
 insert into public.product_variants (id, product_id, color, size, stock_on_hand) values
   ('33333333-3333-4333-a333-333333333001', '22222222-2222-4222-a222-222222222001', 'Negro', 'M', 5),
   ('33333333-3333-4333-a333-333333333002', '22222222-2222-4222-a222-222222222001', 'Negro', 'L', 5);
+
+-- Demo image: absolute URL works without uploading to storage bucket
+insert into public.product_images (id, product_id, storage_path, alt, sort_order) values
+  (
+    '44444444-4444-4444-a444-444444444001',
+    '22222222-2222-4222-a222-222222222001',
+    'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=900&q=80',
+    'Calza Performance',
+    0
+  );
 
 -- Store settings overrides
 update public.store_settings set
@@ -642,7 +674,8 @@ update public.store_settings set
   payment_discount_bps = 1000,
   andreani_fee_cents = 450000,
   free_shipping_threshold_cents = 8000000,
-  season_label = 'Moda deportiva',
+  season_label = 'Colección Primavera / Verano',
+  instagram_url = 'https://www.instagram.com/activate.ropa.deportiva/',
   whatsapp_prefill_message = '¡Hola! Quiero consultar sobre una prenda'
 where id = 1;
 
