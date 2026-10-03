@@ -72,10 +72,9 @@ export default function AdminCategoriasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-text">Categorías</h1>
+        <p className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Composición y cuidados</p>
         <p className="mt-1 text-sm text-muted">
-          Composición y cuidados por categoría hoja. Se muestra en el acordeón del PDP de todos los
-          productos de esa categoría. Vacío = se oculta la sección.
+          Por categoría hoja. Se muestra en el acordeón del PDP. Vacío = se oculta la sección.
         </p>
       </div>
 

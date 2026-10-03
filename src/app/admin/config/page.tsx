@@ -93,7 +93,7 @@ export default function AdminConfigPage() {
 
   return (
     <form
-      className="space-y-3 rounded-[16px] border border-border bg-surface p-4"
+      className="space-y-4 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5"
       onSubmit={(e) => {
         e.preventDefault();
         setMsg(null);
@@ -222,9 +222,11 @@ export default function AdminConfigPage() {
 
       {msg ? <p className="text-sm text-muted">{msg}</p> : null}
 
-      <button type="submit" className="btn btn-primary" disabled={updateSettings.isPending}>
-        {updateSettings.isPending ? "Guardando…" : "Guardar"}
-      </button>
+      <div className="pt-1">
+        <button type="submit" className="btn btn-primary" disabled={updateSettings.isPending}>
+          {updateSettings.isPending ? "Guardando…" : "Guardar"}
+        </button>
+      </div>
     </form>
   );
 }

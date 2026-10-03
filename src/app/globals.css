@@ -670,16 +670,41 @@ span[data-nimg="fill"] > img {
   right: calc(16px + var(--safe-right));
 }
 
-/* Admin chrome: hamburger drawer on mobile — no fixed bottom bar. */
+/* Admin chrome: mobile app bottom tabs + desktop sidebar dashboard. */
+.admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
 .admin-bottom-nav {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0;
+  border-top: 1px solid var(--border, #e5dfd6);
+  background: var(--surface, #fff);
+  padding-top: 6px;
   padding-bottom: max(8px, var(--safe-bottom));
+  padding-inline: 4px;
 }
 
 .admin-main {
-  padding-bottom: calc(1.5rem + var(--safe-bottom));
+  /* Clear single-row tab bar + safe area so Guardar stays visible */
+  padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
+  .admin-bottom-nav {
+    display: none;
+  }
+
   .admin-main {
     padding-bottom: 2.5rem;
   }

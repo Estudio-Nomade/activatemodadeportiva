@@ -29,11 +29,11 @@ export default function AdminLoginPage() {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-12">
-      <div className="rounded-[16px] border border-border bg-surface p-5 shadow-sm">
-        <p className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-accent">
+      <div className="rounded-[20px] border border-border bg-surface p-6 shadow-sm">
+        <p className="text-center text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
           Activate
         </p>
-        <h1 className="mt-2 text-center text-2xl font-bold">Admin</h1>
+        <h1 className="mt-2 text-center text-2xl font-bold tracking-tight">Admin</h1>
         <p className="mt-1 text-center text-sm text-muted">Pedidos, catálogo y configuración</p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-3">

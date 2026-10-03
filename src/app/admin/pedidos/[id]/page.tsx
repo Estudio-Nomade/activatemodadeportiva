@@ -98,15 +98,21 @@ export default function AdminPedidoDetailPage() {
         ← Pedidos
       </button>
 
-      <section className="rounded-[16px] border border-border bg-surface p-4">
+      <section className="rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <p className="font-mono text-lg font-bold">{order.code}</p>
+            <p className="font-mono text-lg font-bold tracking-wide">{order.code}</p>
             <p className="mt-1 text-sm text-muted">
               {new Date(order.created_at).toLocaleString("es-AR")}
             </p>
           </div>
-          <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              order.status === "pendiente_pago"
+                ? "bg-promo/15 text-promo"
+                : "bg-accent-soft text-accent"
+            }`}
+          >
             {ORDER_STATUS_LABEL[order.status] ?? order.status}
           </span>
         </div>
@@ -117,8 +123,8 @@ export default function AdminPedidoDetailPage() {
         ) : null}
       </section>
 
-      <section className="space-y-1 rounded-[16px] border border-border bg-surface p-4 text-sm">
-        <h2 className="font-bold">Cliente</h2>
+      <section className="space-y-1 rounded-[16px] border border-border bg-surface p-4 text-sm shadow-sm md:p-5">
+        <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Cliente</h2>
         <p>{order.customer_name}</p>
         <p className="text-muted">{order.phone}</p>
         <p className="text-muted">{order.email}</p>
@@ -129,8 +135,8 @@ export default function AdminPedidoDetailPage() {
         {address ? <p className="text-muted">{address}</p> : null}
       </section>
 
-      <section className="space-y-2 rounded-[16px] border border-border bg-surface p-4 text-sm">
-        <h2 className="font-bold">Ítems</h2>
+      <section className="space-y-2 rounded-[16px] border border-border bg-surface p-4 text-sm shadow-sm md:p-5">
+        <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Ítems</h2>
         <ul className="space-y-2">
           {(order.order_items ?? []).map((it) => (
             <li key={it.id} className="flex justify-between gap-3">
@@ -153,8 +159,8 @@ export default function AdminPedidoDetailPage() {
         </div>
       </section>
 
-      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
-        <h2 className="font-bold">Comprobante</h2>
+      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
+        <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-muted">Comprobante</h2>
         {proofs.length === 0 ? (
           <p className="text-sm text-muted">Sin comprobante subido.</p>
         ) : (

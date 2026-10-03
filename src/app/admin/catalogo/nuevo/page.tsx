@@ -168,7 +168,7 @@ export default function AdminNuevoProductoPage() {
         <textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
 
-      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
+      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-bold">Variantes</h2>
           <button
