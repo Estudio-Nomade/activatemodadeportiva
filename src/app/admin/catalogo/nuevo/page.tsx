@@ -2,8 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { pesosToCents, slugify, useAdminToken } from "@/lib/admin/auth";
+import { AdminMoneyField } from "@/components/admin/money-field";
+import { slugify, useAdminToken } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
+import { pesosToCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
 type VariantDraft = { key: string; color: string; size: string; stockOnHand: number };
@@ -60,7 +62,7 @@ export default function AdminNuevoProductoPage() {
       .filter((v) => v.color && v.size);
 
     if (!name.trim() || !slug.trim() || !categoryId) {
-      setError("Completá nombre, slug y categoría.");
+      setError("Completá nombre y categoría.");
       return;
     }
     if (cleanVariants.length === 0) {
@@ -106,7 +108,7 @@ export default function AdminNuevoProductoPage() {
       </div>
 
       <div className="field">
-        <label htmlFor="slug">Slug</label>
+        <label htmlFor="slug">Enlace en la web</label>
         <input
           id="slug"
           value={slug}
@@ -116,6 +118,9 @@ export default function AdminNuevoProductoPage() {
           }}
           required
         />
+        <p className="text-xs text-muted">
+          Se completa solo al escribir el nombre. Es la URL del producto en la tienda.
+        </p>
       </div>
 
       <div className="field">
@@ -136,14 +141,19 @@ export default function AdminNuevoProductoPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="field">
-          <label htmlFor="list">Precio lista ($)</label>
-          <input id="list" value={listPrice} onChange={(e) => setListPrice(e.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="promo">Precio promo ($) opcional</label>
-          <input id="promo" value={promoPrice} onChange={(e) => setPromoPrice(e.target.value)} />
-        </div>
+        <AdminMoneyField
+          id="list"
+          label="Precio lista"
+          value={listPrice}
+          onChange={setListPrice}
+        />
+        <AdminMoneyField
+          id="promo"
+          label="Precio promo (opcional)"
+          value={promoPrice}
+          onChange={setPromoPrice}
+          optional
+        />
       </div>
 
       <div className="field">

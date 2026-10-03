@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { AdminMoneyField } from "@/components/admin/money-field";
 import { useAdminToken } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
+import { centsToPesosInput, pesosToCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
 type SettingsDraft = {
@@ -11,8 +13,9 @@ type SettingsDraft = {
   instagram_url: string;
   transfer_cbu_alias_text: string;
   payment_discount_bps: number;
-  andreani_fee_cents: number;
-  free_shipping_threshold_cents: number;
+  /** pesos string for UI; converted to cents on save */
+  andreani_fee_pesos: string;
+  free_shipping_threshold_pesos: string;
   contact_email: string;
   contact_address: string;
 };
@@ -29,8 +32,8 @@ export default function AdminConfigPage() {
     instagram_url: "",
     transfer_cbu_alias_text: "",
     payment_discount_bps: 1000,
-    andreani_fee_cents: 0,
-    free_shipping_threshold_cents: 0,
+    andreani_fee_pesos: "0",
+    free_shipping_threshold_pesos: "0",
     contact_email: "",
     contact_address: "",
   });
@@ -46,8 +49,10 @@ export default function AdminConfigPage() {
           instagram_url: remote.instagram_url ?? "",
           transfer_cbu_alias_text: remote.transfer_cbu_alias_text ?? "",
           payment_discount_bps: remote.payment_discount_bps ?? 1000,
-          andreani_fee_cents: remote.andreani_fee_cents ?? 0,
-          free_shipping_threshold_cents: remote.free_shipping_threshold_cents ?? 0,
+          andreani_fee_pesos: centsToPesosInput(remote.andreani_fee_cents ?? 0),
+          free_shipping_threshold_pesos: centsToPesosInput(
+            remote.free_shipping_threshold_cents ?? 0,
+          ),
           contact_email: remote.contact_email ?? "",
           contact_address: remote.contact_address ?? "",
         };
@@ -62,7 +67,25 @@ export default function AdminConfigPage() {
   }
 
   if (settingsQ.isError) {
-    return <p className="text-sm text-danger">{errorMessage(settingsQ.error)}</p>;
+    const errMsg = errorMessage(settingsQ.error);
+    const unauthorized =
+      errMsg === "UNAUTHORIZED" ||
+      /unauthorized/i.test(errMsg) ||
+      settingsQ.error.data?.code === "UNAUTHORIZED";
+    return (
+      <div className="space-y-2 text-sm">
+        <p className="text-danger">{errMsg}</p>
+        {unauthorized ? (
+          <p className="text-muted">
+            Sesión vencida o sin permiso. Salí y volvé a entrar en{" "}
+            <a className="font-semibold text-accent" href="/admin/login">
+              /admin/login
+            </a>
+            . Usuario: Auth de Supabase + fila en <code>admin_profiles</code>.
+          </p>
+        ) : null}
+      </div>
+    );
   }
 
   return (
@@ -71,14 +94,27 @@ export default function AdminConfigPage() {
       onSubmit={(e) => {
         e.preventDefault();
         setMsg(null);
-        updateSettings.mutate(form, {
-          onSuccess: async () => {
-            setMsg("Config guardada");
-            setTouched(false);
-            await settingsQ.refetch();
+        updateSettings.mutate(
+          {
+            season_label: form.season_label,
+            whatsapp_url_or_phone: form.whatsapp_url_or_phone,
+            instagram_url: form.instagram_url,
+            transfer_cbu_alias_text: form.transfer_cbu_alias_text,
+            payment_discount_bps: form.payment_discount_bps,
+            andreani_fee_cents: pesosToCents(form.andreani_fee_pesos),
+            free_shipping_threshold_cents: pesosToCents(form.free_shipping_threshold_pesos),
+            contact_email: form.contact_email,
+            contact_address: form.contact_address,
           },
-          onError: (err) => setMsg(errorMessage(err)),
-        });
+          {
+            onSuccess: async () => {
+              setMsg("Config guardada");
+              setTouched(false);
+              await settingsQ.refetch();
+            },
+            onError: (err) => setMsg(errorMessage(err)),
+          },
+        );
       }}
     >
       <div className="field">
@@ -109,40 +145,39 @@ export default function AdminConfigPage() {
       ))}
 
       <div className="field">
-        <label htmlFor="bps">Descuento transferencia/efectivo (bps, 1000 = 10%)</label>
+        <label htmlFor="bps">Descuento transferencia/efectivo (%)</label>
         <input
           id="bps"
           type="number"
           min={0}
-          value={form.payment_discount_bps}
-          onChange={(e) => patch("payment_discount_bps", Number(e.target.value) || 0)}
-        />
-      </div>
-
-      <div className="field">
-        <label htmlFor="fee">Costo fijo Andreani (centavos)</label>
-        <input
-          id="fee"
-          type="number"
-          min={0}
-          value={form.andreani_fee_cents}
-          onChange={(e) => patch("andreani_fee_cents", Number(e.target.value) || 0)}
+          max={100}
+          step={1}
+          value={Math.round((form.payment_discount_bps || 0) / 100)}
+          onChange={(e) => {
+            const pct = Math.max(0, Math.min(100, Math.floor(Number(e.target.value) || 0)));
+            patch("payment_discount_bps", pct * 100);
+          }}
         />
         <p className="text-xs text-muted">
-          Ej: $4500 → 450000 centavos. Se muestra en tienda vía quote.
+          Ej: 10 = 10% off. Se guarda en bps internamente ({form.payment_discount_bps}).
         </p>
       </div>
 
-      <div className="field">
-        <label htmlFor="thr">Envío gratis desde (centavos)</label>
-        <input
-          id="thr"
-          type="number"
-          min={0}
-          value={form.free_shipping_threshold_cents}
-          onChange={(e) => patch("free_shipping_threshold_cents", Number(e.target.value) || 0)}
-        />
-      </div>
+      <AdminMoneyField
+        id="fee"
+        label="Costo fijo Andreani"
+        value={form.andreani_fee_pesos}
+        onChange={(v) => patch("andreani_fee_pesos", v)}
+        hint="Escribí pesos, ej. 4500 = $ 4.500. Los centavos se calculan solos al guardar."
+      />
+
+      <AdminMoneyField
+        id="thr"
+        label="Envío gratis desde"
+        value={form.free_shipping_threshold_pesos}
+        onChange={(v) => patch("free_shipping_threshold_pesos", v)}
+        hint="Umbral en pesos (post descuento en quote). Ej. 80000 = $ 80.000."
+      />
 
       {msg ? <p className="text-sm text-muted">{msg}</p> : null}
 

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { AdminMoneyField } from "@/components/admin/money-field";
 import { AdminProductImages } from "@/components/admin/product-images";
-import { centsToPesosInput, pesosToCents, slugify, useAdminToken } from "@/lib/admin/auth";
+import { slugify, useAdminToken } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
+import { centsToPesosInput, pesosToCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
 type ProductImage = {
@@ -164,13 +166,16 @@ function EditForm({
       </div>
 
       <div className="field">
-        <label htmlFor="slug">Slug</label>
+        <label htmlFor="slug">Enlace en la web</label>
         <input
           id="slug"
           value={slug}
           onChange={(e) => setSlug(slugify(e.target.value))}
           required
         />
+        <p className="text-xs text-muted">
+          Se arma solo desde el nombre. Aparece en la URL del producto (ej. /p/calza-negra).
+        </p>
       </div>
 
       <div className="field">
@@ -208,14 +213,19 @@ function EditForm({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="field">
-          <label htmlFor="list">Precio lista ($)</label>
-          <input id="list" value={listPrice} onChange={(e) => setListPrice(e.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="promo">Precio promo ($) opcional</label>
-          <input id="promo" value={promoPrice} onChange={(e) => setPromoPrice(e.target.value)} />
-        </div>
+        <AdminMoneyField
+          id="list"
+          label="Precio lista"
+          value={listPrice}
+          onChange={setListPrice}
+        />
+        <AdminMoneyField
+          id="promo"
+          label="Precio promo (opcional)"
+          value={promoPrice}
+          onChange={setPromoPrice}
+          optional
+        />
       </div>
 
       <div className="field">
@@ -256,6 +266,7 @@ function EditForm({
             <input
               type="number"
               min={0}
+              aria-label={`Stock ${v.color} ${v.size}`}
               className="h-10 w-24 rounded-md border border-border px-2"
               defaultValue={v.stock_on_hand}
               onBlur={(e) => {
@@ -273,7 +284,7 @@ function EditForm({
                 );
               }}
             />
-            <span className="text-xs text-muted">on hand</span>
+            <span className="text-xs text-muted">unidades en stock</span>
             <button
               type="button"
               className="text-xs font-semibold text-danger underline-offset-2 hover:underline disabled:opacity-40"
