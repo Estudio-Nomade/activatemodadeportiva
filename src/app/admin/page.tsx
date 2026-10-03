@@ -55,6 +55,8 @@ export default function AdminHomePage() {
           <QuickLink href="/admin/pedidos?tab=pendientes" title="Ver pedidos pendientes" desc="Confirmar o cancelar" />
           <QuickLink href="/admin/catalogo" title="Catálogo" desc="Stock y publicación" />
           <QuickLink href="/admin/catalogo/nuevo" title="Nuevo producto" desc="Alta con variantes" />
+          <QuickLink href="/admin/categorias" title="Categorías" desc="Árbol mujer / hombre / accesorios" />
+          <QuickLink href="/admin/guias" title="Guías de talles" desc="Tablas Magher / Sox e imágenes" />
           <QuickLink href="/admin/config" title="Configuración" desc="Alias, descuentos, envíos" />
         </div>
       </section>

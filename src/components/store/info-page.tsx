@@ -21,7 +21,7 @@ export function usePublicStoreSettings() {
 
 export function ContactLinks() {
   const { data } = usePublicStoreSettings();
-  const wa = whatsappHref(data?.whatsapp);
+  const wa = whatsappHref(data?.whatsapp, data?.whatsapp_message);
   const ig = instagramHref(data?.instagram);
   const email = data?.contact_email?.trim();
   return (

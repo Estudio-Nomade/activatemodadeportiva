@@ -10,7 +10,7 @@ import { whatsappHref } from "@/lib/contact/whatsapp";
 
 export default function ContactoPage() {
   const { data, isLoading } = usePublicStoreSettings();
-  const waHref = whatsappHref(data?.whatsapp);
+  const waHref = whatsappHref(data?.whatsapp, data?.whatsapp_message);
   const email = data?.contact_email?.trim();
   const ig = instagramHref(data?.instagram);
 

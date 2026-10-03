@@ -670,8 +670,19 @@ span[data-nimg="fill"] > img {
   right: calc(16px + var(--safe-right));
 }
 
+/* Admin chrome: hamburger drawer on mobile — no fixed bottom bar. */
 .admin-bottom-nav {
   padding-bottom: max(8px, var(--safe-bottom));
+}
+
+.admin-main {
+  padding-bottom: calc(1.5rem + var(--safe-bottom));
+}
+
+@media (min-width: 768px) {
+  .admin-main {
+    padding-bottom: 2.5rem;
+  }
 }
 
 /* Prefer full-bleed on small screens; cap readable width on large */

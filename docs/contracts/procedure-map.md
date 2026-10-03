@@ -73,7 +73,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | none |
-| Output | `{ season_label, whatsapp, instagram, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address }` |
+| Output | `{ season_label, whatsapp, whatsapp_message, instagram, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address }` |
 
 ---
 
@@ -361,5 +361,5 @@ Input `{ id }` — `cancel_reason = admin`
 | | |
 |--|--|
 | Type | mutation |
-| Input | partial: `season_label, whatsapp_url_or_phone, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address` |
+| Input | partial: `season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address` |
 | Output | updated row |

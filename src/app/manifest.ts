@@ -43,5 +43,21 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
+    // Same PWA install; long-press / app shortcuts jump to admin login
+    shortcuts: [
+      {
+        name: "Admin",
+        short_name: "Admin",
+        description: "Panel de pedidos y catálogo",
+        url: "/admin/login",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
+      },
+      {
+        name: "Catálogo tienda",
+        short_name: "Catálogo",
+        url: "/productos",
+        icons: [{ src: "/icons/icon-192.png", sizes: "192x192" }],
+      },
+    ],
   };
 }

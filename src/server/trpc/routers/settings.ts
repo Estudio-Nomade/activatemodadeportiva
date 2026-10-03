@@ -6,7 +6,7 @@ export const settingsRouter = createTRPCRouter({
     const { data, error } = await ctx.db
       .from("store_settings")
       .select(
-        "season_label, whatsapp_url_or_phone, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address",
+        "season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address",
       )
       .eq("id", 1)
       .single();
@@ -21,6 +21,7 @@ export const settingsRouter = createTRPCRouter({
     return {
       season_label: data.season_label,
       whatsapp: data.whatsapp_url_or_phone,
+      whatsapp_message: data.whatsapp_prefill_message ?? "",
       instagram: data.instagram_url,
       transfer_cbu_alias_text: data.transfer_cbu_alias_text,
       payment_discount_bps: data.payment_discount_bps,

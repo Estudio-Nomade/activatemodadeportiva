@@ -60,6 +60,7 @@ create table public.store_settings (
   free_shipping_threshold_cents int not null default 0 check (free_shipping_threshold_cents >= 0),
   season_label text not null default 'Moda deportiva',
   whatsapp_url_or_phone text not null default '',
+  whatsapp_prefill_message text not null default '',
   instagram_url text not null default '',
   contact_email text not null default '',
   contact_address text not null default '',
@@ -641,6 +642,7 @@ update public.store_settings set
   payment_discount_bps = 1000,
   andreani_fee_cents = 450000,
   free_shipping_threshold_cents = 8000000,
-  season_label = 'Moda deportiva'
+  season_label = 'Moda deportiva',
+  whatsapp_prefill_message = '¡Hola! Quiero consultar sobre una prenda'
 where id = 1;
 

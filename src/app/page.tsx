@@ -80,7 +80,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-[#12100f99]" aria-hidden />
         <div className="relative z-10 flex min-h-[220px] flex-col items-start justify-center gap-2 px-6 py-10 md:px-12 md:py-14 lg:px-16">
           <p className="font-display max-w-[28ch] text-[22px] font-semibold leading-snug text-inverse md:text-[36px] md:leading-[1.2]">
-            Entrená cómoda. Viví a tu ritmo.
+            Inspirando cada paso
           </p>
           <p className="type-body text-[13px] text-inverse/85 md:text-base">
             Moda deportiva desde San Manuel · ACTIVATE

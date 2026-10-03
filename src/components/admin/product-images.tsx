@@ -131,7 +131,9 @@ export function AdminProductImages({ productId, images, onChanged }: Props) {
       </div>
 
       <p className="text-xs text-muted">
-        JPG/PNG/WebP · máx 8MB. La primera (Portada) sale en cards y PDP. Usá ↑↓ para reordenar.
+        JPG/PNG/WebP · máx 8MB. Ideal: cuadrado 1:1 ~1200×1200 px. Otras medidas también se
+        suben; en catálogo y ficha se recortan al centro para llenar el marco. La primera
+        (Portada) sale en cards y PDP. Usá ↑↓ para reordenar.
       </p>
 
       {sorted.length === 0 ? (

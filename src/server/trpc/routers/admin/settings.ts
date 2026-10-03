@@ -24,6 +24,7 @@ export const adminSettingsRouter = createTRPCRouter({
       z.object({
         season_label: z.string().optional(),
         whatsapp_url_or_phone: z.string().optional(),
+        whatsapp_prefill_message: z.string().max(500).optional(),
         instagram_url: z.string().optional(),
         transfer_cbu_alias_text: z.string().optional(),
         payment_discount_bps: z.number().int().nonnegative().optional(),

@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc/client";
 type SettingsDraft = {
   season_label: string;
   whatsapp_url_or_phone: string;
+  whatsapp_prefill_message: string;
   instagram_url: string;
   transfer_cbu_alias_text: string;
   payment_discount_bps: number;
@@ -29,6 +30,7 @@ export default function AdminConfigPage() {
   const [draft, setDraft] = useState<SettingsDraft>({
     season_label: "",
     whatsapp_url_or_phone: "",
+    whatsapp_prefill_message: "",
     instagram_url: "",
     transfer_cbu_alias_text: "",
     payment_discount_bps: 1000,
@@ -46,6 +48,7 @@ export default function AdminConfigPage() {
       : {
           season_label: remote.season_label ?? "",
           whatsapp_url_or_phone: remote.whatsapp_url_or_phone ?? "",
+          whatsapp_prefill_message: remote.whatsapp_prefill_message ?? "",
           instagram_url: remote.instagram_url ?? "",
           transfer_cbu_alias_text: remote.transfer_cbu_alias_text ?? "",
           payment_discount_bps: remote.payment_discount_bps ?? 1000,
@@ -98,6 +101,7 @@ export default function AdminConfigPage() {
           {
             season_label: form.season_label,
             whatsapp_url_or_phone: form.whatsapp_url_or_phone,
+            whatsapp_prefill_message: form.whatsapp_prefill_message,
             instagram_url: form.instagram_url,
             transfer_cbu_alias_text: form.transfer_cbu_alias_text,
             payment_discount_bps: form.payment_discount_bps,
@@ -129,9 +133,39 @@ export default function AdminConfigPage() {
         </p>
       </div>
 
+      <div className="field">
+        <label htmlFor="whatsapp_url_or_phone">WhatsApp (número o URL)</label>
+        <input
+          id="whatsapp_url_or_phone"
+          value={form.whatsapp_url_or_phone}
+          onChange={(e) => patch("whatsapp_url_or_phone", e.target.value)}
+          placeholder="54911… o +54 9 11 …"
+          inputMode="tel"
+          autoComplete="tel"
+        />
+        <p className="text-xs text-muted">
+          Con solo el número alcanza (con código de país 54). También acepta link wa.me. Eso arma el
+          icono del footer y el botón flotante.
+        </p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="whatsapp_prefill_message">Mensaje inicial de WhatsApp</label>
+        <textarea
+          id="whatsapp_prefill_message"
+          rows={3}
+          value={form.whatsapp_prefill_message}
+          onChange={(e) => patch("whatsapp_prefill_message", e.target.value)}
+          placeholder="¡Hola! Quiero consultar sobre una prenda"
+          className="min-h-[4.5rem] w-full resize-y"
+        />
+        <p className="text-xs text-muted">
+          Texto que se abre ya escrito al tocar WhatsApp (opcional, máx. 500).
+        </p>
+      </div>
+
       {(
         [
-          ["whatsapp_url_or_phone", "WhatsApp (url o teléfono)"],
           ["instagram_url", "Instagram URL"],
           ["transfer_cbu_alias_text", "Alias / CBU"],
           ["contact_email", "Email de contacto"],

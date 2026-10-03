@@ -15,6 +15,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconClose,
+  IconInstagram,
   IconMenu,
   IconWhatsApp,
 } from "@/components/store/icons";
@@ -136,7 +137,7 @@ export function StoreHeader() {
     : undefined;
   const expandedChildren = expandedRoot ? childrenOf(expandedRoot.id) : [];
 
-  const wa = whatsappHref(settings.data?.whatsapp);
+  const wa = whatsappHref(settings.data?.whatsapp, settings.data?.whatsapp_message);
   const season = settings.data?.season_label?.trim() || "Colección Primavera / Verano";
   // Productos → full catalog; roots still used for category drill-down in drawer
   const productsHref = PRODUCTS_HREF;
@@ -456,7 +457,7 @@ export function StoreHeader() {
 
 export function StoreFooter() {
   const settings = trpc.settings.getPublic.useQuery();
-  const wa = whatsappHref(settings.data?.whatsapp);
+  const wa = whatsappHref(settings.data?.whatsapp, settings.data?.whatsapp_message);
   const ig = instagramHref(settings.data?.instagram);
 
   return (
@@ -486,30 +487,29 @@ export function StoreFooter() {
             Privacidad
           </Link>
         </div>
-        <div className="flex flex-col gap-2 text-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted">Redes</p>
-          {wa ? (
+        <div className="flex flex-col gap-3 text-sm">
+          <div className="flex items-center gap-3">
+            {wa ? (
+              <a
+                href={wa}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="WhatsApp"
+                className="grid h-11 w-11 place-items-center rounded-full border border-text/20 bg-transparent text-text transition-opacity hover:opacity-70"
+              >
+                <IconWhatsApp size={20} />
+              </a>
+            ) : null}
             <a
-              href={wa}
+              href={ig}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 font-semibold text-accent"
+              aria-label="Instagram"
+              className="grid h-11 w-11 place-items-center rounded-full border border-text/20 bg-transparent text-text transition-opacity hover:opacity-70"
             >
-              <IconWhatsApp size={18} />
-              WhatsApp
+              <IconInstagram size={20} />
             </a>
-          ) : (
-            <span className="text-muted">WhatsApp (configurar en admin)</span>
-          )}
-          <a
-            href={ig}
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-accent hover:opacity-90"
-          >
-            Instagram
-          </a>
-          <span className="text-xs text-muted">@activate.ropa.deportiva</span>
+          </div>
           <Link href="/contacto" className="uppercase tracking-wide text-muted hover:text-text">
             Contacto
           </Link>
@@ -522,7 +522,7 @@ export function StoreFooter() {
 export function WhatsAppFab({ hideOnHome = false }: { hideOnHome?: boolean }) {
   const pathname = usePathname();
   const settings = trpc.settings.getPublic.useQuery();
-  const href = whatsappHref(settings.data?.whatsapp);
+  const href = whatsappHref(settings.data?.whatsapp, settings.data?.whatsapp_message);
   if (!href) return null;
   if (hideOnHome && pathname === "/") return null;
   return (
