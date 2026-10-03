@@ -1,5 +1,6 @@
 /** Shape safe to return for buyer tracking by code (no magic token). */
 export function toPublicOrderByCode<T extends Record<string, unknown>>(order: T) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strip secret
   const { access_token: _token, ...rest } = order;
   return rest;
 }

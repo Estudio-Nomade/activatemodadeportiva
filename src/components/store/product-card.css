@@ -1,0 +1,41 @@
+/* Nike-like PLP hover: image zoom + card lift (fine pointer only). */
+
+.product-card {
+  display: block;
+}
+
+.product-card:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.product-card__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface-soft);
+  transition:
+    transform 0.35s ease-out,
+    box-shadow 0.35s ease-out;
+}
+
+.product-card__img {
+  height: 100%;
+  width: 100%;
+  transition: transform 0.4s ease-out;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .product-card:hover .product-card__media,
+  .product-card:focus-visible .product-card__media {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px -10px rgb(18 16 15 / 0.2);
+  }
+
+  .product-card:hover .product-card__img,
+  .product-card:focus-visible .product-card__img {
+    transform: scale(1.06);
+  }
+}

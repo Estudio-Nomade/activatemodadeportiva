@@ -41,5 +41,13 @@ export function createSupabaseStorage(db: ServiceClient): StoragePort {
 
       return { signedUrl: data.signedUrl };
     },
+
+    async removeObjects({ bucket, paths }) {
+      if (!paths.length) return;
+      const { error } = await db.storage.from(bucket).remove(paths);
+      if (error) {
+        throw new Error(error.message ?? "Failed to remove storage objects");
+      }
+    },
   };
 }

@@ -50,3 +50,8 @@ next-env.d.ts
 
 # local git worktrees
 .worktrees/
+
+# catch-all env dumps (keep !.env.example above effective)
+.env*.local
+.env.local.*
+!.env.example

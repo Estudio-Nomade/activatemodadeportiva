@@ -1,26 +1,704 @@
 @import "tailwindcss";
 
+/* Brand SoT: Identidad visual — Montserrat display + Inter body. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f3eee7;
+  --surface: #faf7f3;
+  --surface-soft: #e8e0d6;
+  --text: #12100f;
+  --text-muted: #7a736c;
+  --text-inverse: #faf7f3;
+  --accent: #1a1816;
+  --accent-soft: #ede6dd;
+  --promo: #8f5e4a;
+  --border: #d6cdc3;
+  --bar: #f3eee7;
+  --success: #5c5346;
+  --danger: #9a4540;
+  --wa: #1a1816;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --header-offset: calc(var(--safe-top) + 0px);
+  --bottom-nav-h: calc(64px + var(--safe-bottom));
+
+  --font-display: var(--font-montserrat), "Montserrat", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --text-h1: 52px;
+  --lh-h1: 1.1;
+  --text-h2: 36px;
+  --lh-h2: 1.2;
+  --text-h3: 26px;
+  --lh-h3: 1.25;
+  --text-body: 16px;
+  --lh-body: 1.5;
+  --text-caption: 12px;
+  --lh-caption: 1.5;
+  --text-cta: 14px;
+  --lh-cta: 1.25;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-inverse: var(--text-inverse);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-promo: var(--promo);
+  --color-border: var(--border);
+  --color-bar: var(--bar);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-wa: var(--wa);
+  --font-sans: var(--font-body);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  margin: 0;
+  min-height: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* Type scale */
+.type-h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-h1);
+  line-height: var(--lh-h1);
+}
+
+.type-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h2);
+  line-height: var(--lh-h2);
+}
+
+.type-h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-h3);
+  line-height: var(--lh-h3);
+}
+
+.type-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: var(--lh-body);
+}
+
+.type-caption {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: var(--text-caption);
+  line-height: var(--lh-caption);
+}
+
+.type-cta {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-cta);
+  line-height: var(--lh-cta);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Mobile-first touch targets & iOS quirks */
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Prevent iOS zoom on focus (needs >=16px on inputs) */
+.field input,
+.field select,
+.field textarea,
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* next/image fill must keep explicit height */
+img[style*="position:absolute"],
+span[data-nimg="fill"] > img {
+  max-width: none;
+  height: 100%;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-cta);
+  line-height: var(--lh-cta);
+  border-radius: var(--radius-pill);
+  padding: 0 20px;
+  min-height: 48px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--text-inverse);
+  width: 100%;
+  min-height: 52px;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  width: 100%;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  min-height: 42px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  line-height: var(--lh-caption);
+  color: var(--text-muted);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  background: var(--surface);
+}
+
+/* Admin money: leave room for the $ prefix inside the field */
+.field input.admin-money-input {
+  padding-left: 28px;
+}
+
+.field textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 48px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  background: var(--surface-soft);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip[data-active="true"] {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--text-inverse);
+}
+
+/* PDP size tiles (Pencil 02) */
+.chip-size {
+  min-width: 48px;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.chip-size[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--text-inverse);
+}
+
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Sticky store chrome: opaque stack — hero never paints through */
+.store-chrome {
+  background-color: var(--surface);
+  isolation: isolate;
+}
+
+.store-promo {
+  background-color: var(--bg);
+  padding-top: max(8px, var(--safe-top));
+  padding-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  line-height: var(--lh-caption);
+}
+
+.store-header {
+  position: relative;
+  background-color: #ffffff;
+  background-color: var(--surface);
+}
+
+/* Header search: expands left from magnifier (desktop + mobile) */
+.header-search__field {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.header-search__field--open {
+  max-width: 280px;
+  opacity: 1;
+  pointer-events: auto;
+  margin-right: 0.125rem;
+}
+
+.header-search__field--mobile.header-search__field--open {
+  max-width: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+}
+
+.header-search input[type="search"]::-webkit-search-decoration,
+.header-search input[type="search"]::-webkit-search-cancel-button,
+.header-search input[type="search"]::-webkit-search-results-button,
+.header-search input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.brand-logo__mark {
+  max-width: none;
+  object-fit: contain;
+}
+
+/*
+  Hero / tiles crop.
+  Hero uses the mujer full-body shot — bias lower than face-only so more torso shows.
+*/
+.home-hero__photo {
+  object-fit: cover;
+  object-position: center 40%;
+}
+
+.home-hero__photo--soft {
+  object-position: center 36%;
+}
+
+.home-cat__photo {
+  object-fit: cover;
+  object-position: center 8%;
+}
+
+/* Accesorios: asset is product-cropped; pin top + taller mobile strip */
+.home-cat__photo--accesorios {
+  object-position: center top;
+}
+
+@media (max-width: 767px) {
+  .home-cat__block--accesorios .home-cat__tile,
+  .home-cat__tile--accesorios {
+    height: 7.5rem; /* 120px — more vertical room for product stills */
+  }
+}
+
+/* Hero: shorter on mobile so category tiles fit first screen */
+.home-hero {
+  min-height: 44vh;
+}
+
+.home-hero__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  min-height: 44vh;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .home-hero {
+    min-height: 72vh;
+  }
+
+  .home-hero__content {
+    min-height: 72vh;
+    gap: 2rem;
+    padding-top: 2.5rem;
+    padding-bottom: 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero {
+    min-height: min(78vh, 720px);
+  }
+
+  .home-hero__content {
+    min-height: min(78vh, 720px);
+  }
+}
+
+/* Home category accordion tiles */
+.home-cat__tile {
+  position: relative;
+  display: block;
+  /* Taller band = less aggressive vertical crop on faces */
+  height: 6.25rem; /* 100px mobile */
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .home-cat__tile {
+    height: 13.5rem; /* 216px */
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-cat__tile {
+    height: 15rem; /* 240px */
+  }
+}
+
+.home-cat__panel[hidden] {
+  display: none;
+}
+
+.home-hero__claim {
+  margin-right: auto;
+  margin-left: 0;
+  text-align: left;
+  max-width: min(100%, 20rem);
+}
+
+.home-hero__season {
+  margin: 0 0 0.625rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text-inverse) 88%, transparent);
+}
+
+.home-hero__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 7.2vw, 2.25rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-inverse);
+}
+
+.home-hero__title > span {
+  display: block;
+  white-space: nowrap;
+}
+
+.home-hero__sub {
+  margin-top: 0.75rem;
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--text-inverse) 95%, transparent);
+}
+
+.home-hero__sub > span {
+  display: block;
+}
+
+.home-hero__cta {
+  align-self: flex-start;
+}
+
+@media (min-width: 640px) {
+  .home-hero__season {
+    font-size: 0.8125rem;
+  }
+
+  .home-hero__title {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+  }
+
+  .home-hero__sub {
+    font-size: var(--text-body);
+  }
+
+  .home-hero__claim {
+    max-width: min(100%, 22rem);
+  }
+}
+
+@media (min-width: 768px) {
+  .home-hero__season {
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.12em;
+  }
+
+  .home-hero__title {
+    font-size: clamp(2.5rem, 4.5vw, 2.75rem);
+  }
+
+  .home-hero__sub {
+    margin-top: 1rem;
+  }
+
+  .home-hero__claim {
+    max-width: min(100%, 24rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-hero__title {
+    font-size: var(--text-h1);
+    line-height: var(--lh-h1);
+  }
+
+  .home-hero__claim {
+    max-width: min(100%, 28rem);
+  }
+}
+
+/* Home benefits strip — mockup flat icons + labels, no cards */
+.home-benefits {
+  background: var(--bg);
+  padding: 1.75rem 1rem 2rem;
+}
+
+.home-benefits__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.home-benefits__item {
+  margin: 0;
+  min-width: 0;
+}
+
+.home-benefits__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  min-height: 100%;
+}
+
+.home-benefits__link:hover .home-benefits__label {
+  opacity: 0.85;
+}
+
+.home-benefits__icon {
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.home-benefits__label {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  max-width: 16ch;
+}
+
+@media (min-width: 768px) {
+  .home-benefits {
+    padding: 2.25rem 1.5rem 2.75rem;
+  }
+
+  .home-benefits__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem 2rem;
+  }
+
+  .home-benefits__label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    max-width: 18ch;
+  }
+
+  .home-benefits__icon svg {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home-benefits {
+    padding: 2.5rem 2rem 3rem;
+  }
+
+  .home-benefits__label {
+    font-size: 0.75rem;
+    max-width: 20ch;
+  }
+}
+
+/* Pencil 07/35 — drawer slides from left */
+.menu-drawer {
+  animation: menu-drawer-in 0.2s ease-out;
+}
+
+@keyframes menu-drawer-in {
+  from {
+    transform: translateX(-12px);
+    opacity: 0.92;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.wa-fab {
+  bottom: calc(16px + var(--safe-bottom));
+  right: calc(16px + var(--safe-right));
+}
+
+/* Admin chrome: hamburger drawer on mobile — no fixed bottom bar. */
+.admin-bottom-nav {
+  padding-bottom: max(8px, var(--safe-bottom));
+}
+
+.admin-main {
+  padding-bottom: calc(1.5rem + var(--safe-bottom));
+}
+
+@media (min-width: 768px) {
+  .admin-main {
+    padding-bottom: 2.5rem;
+  }
+}
+
+/* Prefer full-bleed on small screens; cap readable width on large */
+.page-pad {
+  padding-left: max(16px, var(--safe-left));
+  padding-right: max(16px, var(--safe-right));
+}
+
+@media (display-mode: standalone) {
+  body {
+    /* subtle polish when installed as app */
+    user-select: none;
+  }
+
+  input,
+  textarea {
+    user-select: text;
+  }
 }

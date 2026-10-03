@@ -37,13 +37,13 @@ export type Database = {
                   ]
                 },"categories": {
                   Row: {
-                    "id": string,"name": string,"parent_id": string | null,"slug": string,"sort_order": number
+                    "composition_care_text": string,"id": string,"name": string,"parent_id": string | null,"slug": string,"sort_order": number
                   }
                   Insert: {
-                    "id"?: string,"name": string,"parent_id"?: string | null,"slug": string,"sort_order"?: number
+                    "composition_care_text"?: string,"id"?: string,"name": string,"parent_id"?: string | null,"slug": string,"sort_order"?: number
                   }
                   Update: {
-                    "id"?: string,"name"?: string,"parent_id"?: string | null,"slug"?: string,"sort_order"?: number
+                    "composition_care_text"?: string,"id"?: string,"name"?: string,"parent_id"?: string | null,"slug"?: string,"sort_order"?: number
                   }
                   Relationships: [
                     {
@@ -214,13 +214,13 @@ isOneToOne: false
                   ]
                 },"store_settings": {
                   Row: {
-                    "andreani_fee_cents": number,"contact_address": string,"contact_email": string,"free_shipping_threshold_cents": number,"id": number,"instagram_url": string,"payment_discount_bps": number,"season_label": string,"transfer_cbu_alias_text": string,"updated_at": string,"whatsapp_url_or_phone": string
+                    "andreani_fee_cents": number,"contact_address": string,"contact_email": string,"free_shipping_threshold_cents": number,"id": number,"instagram_url": string,"payment_discount_bps": number,"season_label": string,"transfer_cbu_alias_text": string,"updated_at": string,"whatsapp_prefill_message": string,"whatsapp_url_or_phone": string
                   }
                   Insert: {
-                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_url_or_phone"?: string
+                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_prefill_message"?: string,"whatsapp_url_or_phone"?: string
                   }
                   Update: {
-                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_url_or_phone"?: string
+                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_prefill_message"?: string,"whatsapp_url_or_phone"?: string
                   }
                   Relationships: [
                     

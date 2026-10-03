@@ -28,13 +28,22 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | none |
 | Output | `{ id, name, slug, parent_id, sort_order }[]` |
 
+### `catalog.listSizeGuides`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | `{ id, name, storage_path, url }[]` |
+
 ### `catalog.listProducts`
 
 | | |
 |--|--|
 | Type | query |
 | Input | `{ categorySlug?: string }` |
-| Output | published products + `product_images` |
+| Output | published products + `product_images` (with `url`) + `is_sold_out: boolean` |
+| Note | If `categorySlug` is a root, includes products in that category **and descendants**. `is_sold_out` = no variants or all variants `available <= 0` (on_hand − active reservations). |
 
 ### `catalog.getProduct`
 
@@ -42,9 +51,9 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ slug: string }` |
-| Output | product + `product_variants(id, color, size, stock_on_hand, available)` + `product_images` |
+| Output | product + `product_variants(…, available)` + `product_images` + `size_guide?: { id, name, storage_path, url }` + `composition_care_text: string` (from leaf category; `""` if unset) |
 | Errors | `NOT_FOUND` if missing/unpublished |
-| Note | `available` = on_hand − active reservations (use this for add-to-cart, not raw on_hand alone) |
+| Note | `available` = on_hand − active reservations (use this for add-to-cart, not raw on_hand alone). Care text is category-level, not product-level. |
 
 ### `catalog.search`
 
@@ -52,7 +61,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ q: string }` (min 1) |
-| Output | published products matching name or category name (deduped) |
+| Output | published products matching name or category name (deduped) + `product_images` + `is_sold_out: boolean` |
 
 ---
 
@@ -64,7 +73,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | none |
-| Output | `{ season_label, whatsapp, instagram, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents }` |
+| Output | `{ season_label, whatsapp, whatsapp_message, instagram, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address }` |
 
 ---
 
@@ -129,6 +138,24 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 
 ## `admin.catalog` (admin)
 
+### `admin.catalog.listCategoriesForCare`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | leaf categories only: `{ id, name, slug, parent_id, parentName, composition_care_text, isLeaf: true }[]` |
+| Note | Parents with children are omitted. Used by `/admin/categorias`. |
+
+### `admin.catalog.updateCategoryCompositionCare`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id: uuid, compositionCareText: string }` (max 20_000; trimmed server-side) |
+| Output | category row `{ id, name, slug, parent_id, composition_care_text }` |
+| Errors | `NOT_FOUND`, `BAD_REQUEST` if category is not a leaf |
+
 ### `admin.catalog.createProduct`
 
 | | |
@@ -153,6 +180,24 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | `{ variantId, stockOnHand }` |
 | Output | variant row |
 
+### `admin.catalog.addVariant`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, color, size, stockOnHand? }` |
+| Output | variant row `{ id, product_id, color, size, stock_on_hand }` |
+| Errors | `NOT_FOUND`, `CONFLICT` if unique `(product_id, color, size)` |
+
+### `admin.catalog.removeVariant`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ variantId }` |
+| Output | `{ ok: true }` |
+| Errors | `NOT_FOUND`, `PRECONDITION_FAILED` if reservations or order_items reference the variant (use stock 0 instead) |
+
 ### `admin.catalog.setPublished`
 
 | | |
@@ -167,7 +212,83 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | none |
-| Output | all products + variants (published and draft) |
+| Output | all products + variants + `product_images` (with resolved `url` when mapped) |
+
+### `admin.catalog.listSizeGuides`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | `{ id, name, storage_path, url }[]` |
+
+### `admin.catalog.createSizeGuide`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ name, storagePath? }` — path = site `/size-guides/…` or object key in bucket `size-guides` |
+| Output | `{ id, name, storage_path, url }` |
+
+### `admin.catalog.updateSizeGuide`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id, name?, storagePath? }` (`storagePath` null clears image) |
+| Output | `{ id, name, storage_path, url }` |
+
+### `admin.catalog.createSizeGuideUploadUrl`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ fileName, contentType? }` |
+| Output | `{ bucket: "size-guides", path, signedUrl, token?, publicUrl }` |
+
+### `admin.catalog.deleteSizeGuide`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ id }` |
+| Output | `{ ok: true }` |
+| Note | Products with this guide get `size_guide_id` null (FK ON DELETE SET NULL). Storage object removed when path is a bucket key (not `/public` site path). |
+
+### `admin.catalog.createImageUploadUrl`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, fileName, contentType? }` |
+| Output | `{ bucket: "product-images", path, signedUrl, token?, productId, publicUrl }` |
+| Notes | path is `products/{productId}/{ts}-{safeName}` |
+
+### `admin.catalog.attachProductImage`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, storagePath, alt?, sortOrder? }` |
+| Output | image row + `url` |
+| Domain | `storagePath` must be under `products/{productId}/` |
+
+### `admin.catalog.removeProductImage`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ imageId }` |
+| Output | `{ ok: true }` |
+| Notes | deletes DB row; best-effort remove of storage object if path is under `products/` |
+
+### `admin.catalog.reorderProductImages`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ productId, orderedIds: uuid[] }` |
+| Output | `{ ok: true }` |
 
 ---
 
@@ -188,6 +309,16 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Type | query |
 | Input | `{ id: uuid }` |
 | Output | full order + items + proofs + stock_reservations |
+
+### `admin.orders.getProofDownloadUrl`
+
+| | |
+|--|--|
+| Type | query |
+| Input | `{ proofId: uuid }` |
+| Output | `{ proofId, orderId, storagePath, signedUrl, expiresIn }` |
+| Errors | `NOT_FOUND`, `BAD_REQUEST` if path not under `payment-proofs/{orderId}/` |
+| Note | Private bucket `payment-proofs`; signed download (~15 min). Path re-validated server-side. |
 
 ### `admin.orders.confirmPayment` → `{ ok: true }`
 
@@ -230,5 +361,5 @@ Input `{ id }` — `cancel_reason = admin`
 | | |
 |--|--|
 | Type | mutation |
-| Input | partial: `season_label, whatsapp_url_or_phone, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address` |
+| Input | partial: `season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address` |
 | Output | updated row |

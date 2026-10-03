@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="Sin foto">
+  <rect width="800" height="1000" fill="#EFEAE3"/>
+  <rect x="80" y="80" width="640" height="840" rx="32" fill="#FFFFFF" stroke="#E5DFD6" stroke-width="4"/>
+  <circle cx="400" cy="380" r="90" fill="#E4F0EE"/>
+  <path d="M250 620c40-70 110-110 150-110s110 40 150 110" fill="none" stroke="#2F6F6A" stroke-width="18" stroke-linecap="round"/>
+  <text x="400" y="740" text-anchor="middle" font-family="system-ui,sans-serif" font-size="28" font-weight="700" fill="#7A756E">ACTIVATE</text>
+  <text x="400" y="780" text-anchor="middle" font-family="system-ui,sans-serif" font-size="18" fill="#7A756E">Sin foto</text>
+</svg>
