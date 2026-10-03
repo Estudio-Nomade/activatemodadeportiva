@@ -20,7 +20,7 @@ export function StoreShell({ children }: { children: React.ReactNode }) {
       </div>
       <main className="relative z-0 w-full flex-1">{children}</main>
       <StoreFooter />
-      <WhatsAppFab hideOnHome={pathname === "/"} />
+      <WhatsAppFab />
     </div>
   );
 }

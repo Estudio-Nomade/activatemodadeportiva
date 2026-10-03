@@ -59,7 +59,7 @@ export function PdpInfoAccordions({ description, compositionCareText }: Props) {
             <strong className="text-text">Efectivo:</strong> solo retiro en local. Mismo descuento.
             Se abona al retirar.
           </p>
-          <p>Tarjetas / Payway / Mercado Pago: fuera de alcance v1.</p>
+          <p>Por ahora no aceptamos tarjetas online. Si necesitás otra forma de pago, escribinos.</p>
           <p>
             <Link
               href="/medios-de-pago"
@@ -95,11 +95,11 @@ export function PdpInfoAccordions({ description, compositionCareText }: Props) {
       content: (
         <>
           <p>
-            En v1 la gestión de cambios es offline (local / WhatsApp). No hay solicitud online de
+            Los cambios se gestionan por WhatsApp o en el local. No hay solicitud online de
             devolución.
           </p>
           <p>
-            Escribinos por WhatsApp o acercate al local con el pedido y el producto en condiciones.
+            Escribinos o acercate con el pedido y el producto en condiciones.
           </p>
           <StoreAddressBlock />
           <ContactLinks />

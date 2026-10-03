@@ -267,7 +267,7 @@ function EditForm({
           <Link href="/admin/guias" className="font-semibold text-accent">
             Guías de talles
           </Link>
-          . Seed: Magher / Medias en <code>public/size-guides/</code>.
+          .
         </p>
       </div>
 

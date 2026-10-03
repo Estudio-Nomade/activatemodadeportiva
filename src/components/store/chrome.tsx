@@ -519,18 +519,16 @@ export function StoreFooter() {
   );
 }
 
-export function WhatsAppFab({ hideOnHome = false }: { hideOnHome?: boolean }) {
-  const pathname = usePathname();
+export function WhatsAppFab() {
   const settings = trpc.settings.getPublic.useQuery();
   const href = whatsappHref(settings.data?.whatsapp, settings.data?.whatsapp_message);
   if (!href) return null;
-  if (hideOnHome && pathname === "/") return null;
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="wa-fab fixed z-40 grid h-[52px] w-[52px] place-items-center rounded-full bg-wa text-white shadow-lg"
+      className="wa-fab fixed z-40 grid h-[52px] w-[52px] place-items-center rounded-full border-2 border-text bg-transparent text-text shadow-sm backdrop-blur-[2px] transition-opacity hover:opacity-80"
       aria-label="WhatsApp"
     >
       <IconWhatsApp size={24} />

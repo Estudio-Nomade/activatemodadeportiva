@@ -25,16 +25,12 @@ export default function ContactoPage() {
             {email}
           </a>
         </p>
-      ) : (
-        <p>Email de contacto: configurar en admin → Config.</p>
-      )}
+      ) : null}
       {waHref ? (
         <a href={waHref} target="_blank" rel="noreferrer" className="btn btn-primary max-w-xs">
           WhatsApp
         </a>
-      ) : (
-        <p className="text-sm">WhatsApp aún no configurado en admin.</p>
-      )}
+      ) : null}
       <a href={ig} target="_blank" rel="noreferrer" className="font-semibold text-accent">
         Instagram · @activate.ropa.deportiva
       </a>

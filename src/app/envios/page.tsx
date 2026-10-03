@@ -13,7 +13,9 @@ export default function EnviosPage() {
       <p>
         No hay envío a domicilio dentro de San Manuel: si estás en la zona, retirás en el local.
       </p>
-      <p>El total de envío se calcula en el checkout (servidor); no uses importes de esta página para cobrar.</p>
+      <p>
+        El costo de envío se confirma en el checkout según tu compra y el medio de pago.
+      </p>
     </InfoShell>
   );
 }
