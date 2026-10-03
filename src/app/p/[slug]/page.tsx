@@ -312,10 +312,11 @@ export default function ProductPage() {
           />
         ) : null}
 
-        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface p-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-2 md:border-0 md:bg-transparent md:p-0">
+        {/* In-flow CTA (not fixed) so mobile scroll doesn't keep a floating bar chasing the viewport */}
+        <div className="mt-2 space-y-2 md:max-w-sm">
           <button
             type="button"
-            className="btn btn-primary tracking-[0.06em] md:max-w-sm"
+            className="btn btn-primary tracking-[0.06em]"
             disabled={!variant || available <= 0 || productSoldOut}
             onClick={() => {
               if (!variant || available <= 0) return;
@@ -339,7 +340,7 @@ export default function ProductPage() {
             {productSoldOut ? "Agotado" : available > 0 ? "Sumar al carrito" : "Sin stock"}
           </button>
           {added ? (
-            <div className="mt-2 space-y-2 md:max-w-sm">
+            <div className="space-y-2">
               <p className="text-center text-xs font-semibold text-accent md:text-left">
                 Agregado (x{addedQty})
               </p>
