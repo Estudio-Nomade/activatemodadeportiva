@@ -13,7 +13,7 @@ const orderSelect = `
   shipping_method, payment_method, subtotal_cents, discount_cents,
   shipping_cents, total_cents, shipping_address, reservation_expires_at,
   cancel_reason, created_at, updated_at, cancelled_at,
-  order_items(id, product_name, color, size, unit_price_cents, qty, variant_id),
+  order_items(id, product_name, color, size, unit_price_cents, qty, variant_id, sku),
   payment_proofs(id, storage_path, uploaded_at)
 ` as const;
 

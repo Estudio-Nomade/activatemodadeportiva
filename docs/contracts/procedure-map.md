@@ -161,8 +161,9 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ name, slug, description?, categoryId, listPriceCents, promoPriceCents?, isPublished?, sizeGuideId?, variants?: { color, size, stockOnHand? }[] }` |
+| Input | `{ name, slug, description?, categoryId, listPriceCents, promoPriceCents?, isPublished?, sizeGuideId?, variants?: { color, size, stockOnHand?, sku? }[] }` |
 | Output | product row |
+| Notes | `sku` = optional external stock code (Excel); trim; empty → null; max 64; unique case-insensitive when set |
 
 ### `admin.catalog.updateProduct`
 
@@ -185,9 +186,18 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ productId, color, size, stockOnHand? }` |
-| Output | variant row `{ id, product_id, color, size, stock_on_hand }` |
-| Errors | `NOT_FOUND`, `CONFLICT` if unique `(product_id, color, size)` |
+| Input | `{ productId, color, size, stockOnHand?, sku? }` |
+| Output | variant row `{ id, product_id, color, size, stock_on_hand, sku }` |
+| Errors | `NOT_FOUND`, `CONFLICT` if unique `(product_id, color, size)` or duplicate `sku` |
+
+### `admin.catalog.updateVariant`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ variantId, sku? }` (`sku` null/empty clears code) |
+| Output | variant row `{ id, product_id, color, size, stock_on_hand, sku }` |
+| Errors | `NOT_FOUND`, `CONFLICT` if sku already used on another variant, `BAD_REQUEST` if nothing to update |
 
 ### `admin.catalog.removeVariant`
 
@@ -212,7 +222,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | none |
-| Output | all products + variants + `product_images` (with resolved `url` when mapped) |
+| Output | all products + variants (`id, color, size, stock_on_hand, sku`) + `product_images` (with resolved `url` when mapped) |
 
 ### `admin.catalog.listSizeGuides`
 
@@ -308,7 +318,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ id: uuid }` |
-| Output | full order + items + proofs + stock_reservations |
+| Output | full order + items (`…, sku` snapshot) + proofs + stock_reservations |
 
 ### `admin.orders.getProofDownloadUrl`
 

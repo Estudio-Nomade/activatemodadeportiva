@@ -109,6 +109,7 @@ export async function placeOrder(
       size: l.size,
       unit_price_cents: l.unitPriceCents,
       qty: l.qty,
+      sku: l.sku,
     })),
   };
 

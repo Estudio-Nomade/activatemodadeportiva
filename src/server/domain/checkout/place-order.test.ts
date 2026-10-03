@@ -100,4 +100,32 @@ describe("placeOrder", () => {
       ),
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
   });
+
+  it("snapshots variant sku onto order_items", async () => {
+    const db = createServiceClient();
+    await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("product_variants").update({ stock_on_hand: 5, sku: "CALZA-NEG-M" }).eq("id", VARIANT_M);
+
+    const order = await placeOrder(
+      {
+        customerName: "Sku Buyer",
+        phone: "+54944444444",
+        email: "sku@example.com",
+        shippingMethod: "pickup",
+        paymentMethod: "transfer",
+        shippingAddress: null,
+        lines: [{ variantId: VARIANT_M, qty: 1 }],
+      },
+      { db, email: consoleEmail },
+    );
+
+    const { data: items, error } = await db
+      .from("order_items")
+      .select("sku, qty")
+      .eq("order_id", order.id);
+    expect(error).toBeNull();
+    expect(items).toEqual([{ sku: "CALZA-NEG-M", qty: 1 }]);
+  });
 });

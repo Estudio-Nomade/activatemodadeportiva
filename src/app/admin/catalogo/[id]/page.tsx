@@ -29,7 +29,9 @@ type ProductRow = {
   is_published: boolean;
   size_guide_id?: string | null;
   updated_at?: string;
-  product_variants: { id: string; color: string; size: string; stock_on_hand: number }[] | null;
+  product_variants:
+    | { id: string; color: string; size: string; stock_on_hand: number; sku: string | null }[]
+    | null;
   product_images?: ProductImage[] | null;
 };
 
@@ -83,6 +85,7 @@ function EditForm({
   const guides = trpc.admin.catalog.listSizeGuides.useQuery();
   const update = trpc.admin.catalog.updateProduct.useMutation();
   const setStock = trpc.admin.catalog.setVariantStock.useMutation();
+  const updateVariant = trpc.admin.catalog.updateVariant.useMutation();
   const addVariant = trpc.admin.catalog.addVariant.useMutation();
   const removeVariant = trpc.admin.catalog.removeVariant.useMutation();
   const setPublished = trpc.admin.catalog.setPublished.useMutation();
@@ -100,6 +103,7 @@ function EditForm({
   const [isPublished, setIsPublished] = useState(product.is_published);
   const [newColor, setNewColor] = useState("");
   const [newSize, setNewSize] = useState("");
+  const [newSku, setNewSku] = useState("");
   const [newStock, setNewStock] = useState("0");
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -264,6 +268,29 @@ function EditForm({
               {v.color} / {v.size}
             </span>
             <input
+              type="text"
+              aria-label={`Código ${v.color} ${v.size}`}
+              placeholder="Código"
+              className="h-10 w-32 rounded-md border border-border px-2"
+              defaultValue={v.sku ?? ""}
+              onBlur={(e) => {
+                const next = e.target.value.trim();
+                const prev = (v.sku ?? "").trim();
+                if (next === prev) return;
+                setError(null);
+                updateVariant.mutate(
+                  { variantId: v.id, sku: next || null },
+                  {
+                    onSuccess: () => {
+                      setMsg("Código actualizado");
+                      utils.admin.catalog.listProducts.invalidate();
+                    },
+                    onError: (err) => setError(errorMessage(err)),
+                  },
+                );
+              }}
+            />
+            <input
               type="number"
               min={0}
               aria-label={`Stock ${v.color} ${v.size}`}
@@ -311,7 +338,7 @@ function EditForm({
 
         <div className="border-t border-border pt-3">
           <p className="mb-2 text-sm font-semibold">Agregar variante</p>
-          <div className="grid gap-2 sm:grid-cols-4">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
             <div className="field">
               <label htmlFor="nv-color">Color</label>
               <input
@@ -328,6 +355,15 @@ function EditForm({
                 value={newSize}
                 onChange={(e) => setNewSize(e.target.value)}
                 placeholder="M"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="nv-sku">Código</label>
+              <input
+                id="nv-sku"
+                value={newSku}
+                onChange={(e) => setNewSku(e.target.value)}
+                placeholder="Excel"
               />
             </div>
             <div className="field">
@@ -354,12 +390,14 @@ function EditForm({
                     return;
                   }
                   const stockOnHand = Math.max(0, Math.floor(Number(newStock)) || 0);
+                  const sku = newSku.trim() || null;
                   addVariant.mutate(
-                    { productId: product.id, color, size, stockOnHand },
+                    { productId: product.id, color, size, stockOnHand, sku },
                     {
                       onSuccess: () => {
                         setNewColor("");
                         setNewSize("");
+                        setNewSku("");
                         setNewStock("0");
                         setMsg("Variante agregada");
                         utils.admin.catalog.listProducts.invalidate();
