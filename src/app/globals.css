@@ -212,11 +212,29 @@ span[data-nimg="fill"] > img {
   cursor: not-allowed;
 }
 
-.btn-primary {
+/* Accent is near-black (#1a1816). Force pure white on primary CTAs —
+   Links use `a { color: inherit }` (body text) which can beat a weak inverse token
+   and make "Nuevo producto" etc. unreadable (black on black). */
+.btn-primary,
+a.btn-primary,
+a.btn-primary:visited,
+button.btn-primary {
   background: var(--accent);
-  color: var(--text-inverse);
+  color: #ffffff;
   width: 100%;
   min-height: 52px;
+}
+
+.btn-primary:hover,
+a.btn-primary:hover,
+button.btn-primary:hover {
+  color: #ffffff;
+}
+
+.btn-primary svg,
+a.btn-primary svg {
+  color: #ffffff;
+  stroke: currentColor;
 }
 
 .btn-secondary {
