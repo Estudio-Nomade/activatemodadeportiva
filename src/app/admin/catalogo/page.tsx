@@ -134,6 +134,7 @@ export default function AdminCatalogoPage() {
                   <div key={v.id} className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="min-w-28 text-muted">
                       {v.color} / {v.size}
+                      {v.sku ? ` · ${v.sku}` : ""}
                     </span>
                     <input
                       type="number"

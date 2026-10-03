@@ -3,6 +3,12 @@ import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
 import { canRemoveVariant } from "@/server/domain/catalog/variant-ops";
 import {
+  isUniqueViolation,
+  normalizeSku,
+  SKU_MAX_LEN,
+  skuConflictMessage,
+} from "@/server/domain/catalog/normalize-sku";
+import {
   leafCategoriesForCare,
   normalizeCompositionCareText,
   type CategoryCareRow,
@@ -65,6 +71,7 @@ export const adminCatalogRouter = createTRPCRouter({
               color: z.string().min(1),
               size: z.string().min(1),
               stockOnHand: z.number().int().nonnegative().default(0),
+              sku: z.string().max(SKU_MAX_LEN).nullable().optional(),
             }),
           )
           .optional(),
@@ -100,10 +107,19 @@ export const adminCatalogRouter = createTRPCRouter({
             color: v.color,
             size: v.size,
             stock_on_hand: v.stockOnHand,
+            sku: normalizeSku(v.sku),
           })),
         );
         if (vError) {
-          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: vError.message });
+          const skuMsg = skuConflictMessage(vError);
+          throw new TRPCError({
+            code: skuMsg || isUniqueViolation(vError) ? "CONFLICT" : "INTERNAL_SERVER_ERROR",
+            message:
+              skuMsg ??
+              (isUniqueViolation(vError)
+                ? "Ya existe esa combinación color/talle"
+                : vError.message),
+          });
         }
       }
 
@@ -184,6 +200,7 @@ export const adminCatalogRouter = createTRPCRouter({
         color: z.string().min(1).max(80),
         size: z.string().min(1).max(40),
         stockOnHand: z.number().int().nonnegative().default(0),
+        sku: z.string().max(SKU_MAX_LEN).nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -208,17 +225,51 @@ export const adminCatalogRouter = createTRPCRouter({
           color,
           size,
           stock_on_hand: input.stockOnHand,
+          sku: normalizeSku(input.sku),
         })
-        .select("id, product_id, color, size, stock_on_hand")
+        .select("id, product_id, color, size, stock_on_hand, sku")
         .single();
 
       if (error || !data) {
-        const dup = error?.code === "23505" || error?.message?.toLowerCase().includes("unique");
+        const skuMsg = skuConflictMessage(error);
+        const dup = isUniqueViolation(error);
         throw new TRPCError({
-          code: dup ? "CONFLICT" : "INTERNAL_SERVER_ERROR",
-          message: dup
-            ? "Ya existe esa combinación color/talle"
-            : (error?.message ?? "Failed to add variant"),
+          code: skuMsg || dup ? "CONFLICT" : "INTERNAL_SERVER_ERROR",
+          message:
+            skuMsg ??
+            (dup
+              ? "Ya existe esa combinación color/talle"
+              : (error?.message ?? "Failed to add variant")),
+        });
+      }
+      return data;
+    }),
+
+  updateVariant: adminProcedure
+    .input(
+      z.object({
+        variantId: z.string().uuid(),
+        sku: z.string().max(SKU_MAX_LEN).nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.sku === undefined) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Nothing to update" });
+      }
+      const { data, error } = await ctx.db
+        .from("product_variants")
+        .update({ sku: normalizeSku(input.sku) })
+        .eq("id", input.variantId)
+        .select("id, product_id, color, size, stock_on_hand, sku")
+        .single();
+
+      if (error || !data) {
+        const skuMsg = skuConflictMessage(error);
+        throw new TRPCError({
+          code: skuMsg ? "CONFLICT" : error ? "INTERNAL_SERVER_ERROR" : "NOT_FOUND",
+          message:
+            skuMsg ??
+            (error?.message ?? "Variant not found"),
         });
       }
       return data;
@@ -293,7 +344,7 @@ export const adminCatalogRouter = createTRPCRouter({
         `
         id, name, slug, description, list_price_cents, promo_price_cents,
         category_id, is_published, created_at, updated_at, size_guide_id,
-        product_variants(id, color, size, stock_on_hand),
+        product_variants(id, color, size, stock_on_hand, sku),
         product_images(id, storage_path, alt, sort_order)
       `,
       )

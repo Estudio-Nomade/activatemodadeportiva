@@ -55,9 +55,9 @@ insert into public.products (
   '55555555-5555-4555-a555-555555555001'
 );
 
-insert into public.product_variants (id, product_id, color, size, stock_on_hand) values
-  ('33333333-3333-4333-a333-333333333001', '22222222-2222-4222-a222-222222222001', 'Negro', 'M', 5),
-  ('33333333-3333-4333-a333-333333333002', '22222222-2222-4222-a222-222222222001', 'Negro', 'L', 5);
+insert into public.product_variants (id, product_id, color, size, stock_on_hand, sku) values
+  ('33333333-3333-4333-a333-333333333001', '22222222-2222-4222-a222-222222222001', 'Negro', 'M', 5, 'CALZA-NEG-M'),
+  ('33333333-3333-4333-a333-333333333002', '22222222-2222-4222-a222-222222222001', 'Negro', 'L', 5, 'CALZA-NEG-L');
 
 -- Demo image: absolute URL works without uploading to storage bucket
 insert into public.product_images (id, product_id, storage_path, alt, sort_order) values

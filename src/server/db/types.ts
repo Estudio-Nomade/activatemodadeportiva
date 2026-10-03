@@ -56,13 +56,13 @@ isOneToOne: false
                   ]
                 },"order_items": {
                   Row: {
-                    "color": string,"id": string,"order_id": string,"product_name": string,"qty": number,"size": string,"unit_price_cents": number,"variant_id": string | null
+                    "color": string,"id": string,"order_id": string,"product_name": string,"qty": number,"size": string,"sku": string | null,"unit_price_cents": number,"variant_id": string | null
                   }
                   Insert: {
-                    "color": string,"id"?: string,"order_id": string,"product_name": string,"qty": number,"size": string,"unit_price_cents": number,"variant_id"?: string | null
+                    "color": string,"id"?: string,"order_id": string,"product_name": string,"qty": number,"size": string,"sku"?: string | null,"unit_price_cents": number,"variant_id"?: string | null
                   }
                   Update: {
-                    "color"?: string,"id"?: string,"order_id"?: string,"product_name"?: string,"qty"?: number,"size"?: string,"unit_price_cents"?: number,"variant_id"?: string | null
+                    "color"?: string,"id"?: string,"order_id"?: string,"product_name"?: string,"qty"?: number,"size"?: string,"sku"?: string | null,"unit_price_cents"?: number,"variant_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -132,13 +132,13 @@ isOneToOne: false
                   ]
                 },"product_variants": {
                   Row: {
-                    "color": string,"id": string,"product_id": string,"size": string,"stock_on_hand": number
+                    "color": string,"id": string,"product_id": string,"size": string,"sku": string | null,"stock_on_hand": number
                   }
                   Insert: {
-                    "color": string,"id"?: string,"product_id": string,"size": string,"stock_on_hand"?: number
+                    "color": string,"id"?: string,"product_id": string,"size": string,"sku"?: string | null,"stock_on_hand"?: number
                   }
                   Update: {
-                    "color"?: string,"id"?: string,"product_id"?: string,"size"?: string,"stock_on_hand"?: number
+                    "color"?: string,"id"?: string,"product_id"?: string,"size"?: string,"sku"?: string | null,"stock_on_hand"?: number
                   }
                   Relationships: [
                     {

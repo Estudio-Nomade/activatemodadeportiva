@@ -27,6 +27,7 @@ export type QuoteLineResult = {
   productName: string;
   color: string;
   size: string;
+  sku: string | null;
   unitPriceCents: number;
   qty: number;
   available: number;
@@ -45,6 +46,7 @@ type VariantRow = {
   product_id: string;
   color: string;
   size: string;
+  sku: string | null;
   stock_on_hand: number;
   products: {
     id: string;
@@ -81,7 +83,7 @@ export async function quote(
   const { data: variants, error: variantsError } = await deps.db
     .from("product_variants")
     .select(
-      "id, product_id, color, size, stock_on_hand, products(id, name, list_price_cents, promo_price_cents, is_published)",
+      "id, product_id, color, size, sku, stock_on_hand, products(id, name, list_price_cents, promo_price_cents, is_published)",
     )
     .in("id", variantIds);
 
@@ -128,6 +130,7 @@ export async function quote(
       productName: variant.products.name,
       color: variant.color,
       size: variant.size,
+      sku: variant.sku ?? null,
       unitPriceCents,
       qty: line.qty,
       available,

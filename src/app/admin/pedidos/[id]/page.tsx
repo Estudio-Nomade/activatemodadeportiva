@@ -136,6 +136,7 @@ export default function AdminPedidoDetailPage() {
             <li key={it.id} className="flex justify-between gap-3">
               <span>
                 {it.product_name} · {it.color}/{it.size} × {it.qty}
+                {it.sku ? ` · Cód. ${it.sku}` : ""}
               </span>
               <span className="font-semibold">{formatArsCents(it.unit_price_cents * it.qty)}</span>
             </li>

@@ -8,7 +8,13 @@ import { errorMessage } from "@/lib/errors";
 import { pesosToCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
-type VariantDraft = { key: string; color: string; size: string; stockOnHand: number };
+type VariantDraft = {
+  key: string;
+  color: string;
+  size: string;
+  stockOnHand: number;
+  sku: string;
+};
 
 function cryptoRandom() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
@@ -30,7 +36,7 @@ export default function AdminNuevoProductoPage() {
   const [promoPrice, setPromoPrice] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [variants, setVariants] = useState<VariantDraft[]>([
-    { key: cryptoRandom(), color: "", size: "", stockOnHand: 0 },
+    { key: cryptoRandom(), color: "", size: "", stockOnHand: 0, sku: "" },
   ]);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +64,7 @@ export default function AdminNuevoProductoPage() {
         color: v.color.trim(),
         size: v.size.trim(),
         stockOnHand: Math.max(0, Math.floor(v.stockOnHand) || 0),
+        sku: v.sku.trim() || null,
       }))
       .filter((v) => v.color && v.size);
 
@@ -170,7 +177,7 @@ export default function AdminNuevoProductoPage() {
             onClick={() =>
               setVariants((vs) => [
                 ...vs,
-                { key: cryptoRandom(), color: "", size: "", stockOnHand: 0 },
+                { key: cryptoRandom(), color: "", size: "", stockOnHand: 0, sku: "" },
               ])
             }
           >
@@ -178,7 +185,7 @@ export default function AdminNuevoProductoPage() {
           </button>
         </div>
         {variants.map((v, idx) => (
-          <div key={v.key} className="grid gap-2 sm:grid-cols-3">
+          <div key={v.key} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             <input
               placeholder="Color"
               value={v.color}
@@ -194,6 +201,15 @@ export default function AdminNuevoProductoPage() {
               onChange={(e) =>
                 setVariants((vs) =>
                   vs.map((x, i) => (i === idx ? { ...x, size: e.target.value } : x)),
+                )
+              }
+            />
+            <input
+              placeholder="Código de stock"
+              value={v.sku}
+              onChange={(e) =>
+                setVariants((vs) =>
+                  vs.map((x, i) => (i === idx ? { ...x, sku: e.target.value } : x)),
                 )
               }
             />
