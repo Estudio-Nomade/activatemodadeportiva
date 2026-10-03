@@ -36,9 +36,9 @@ type Cat = { id: string; name: string; slug: string; parent_id: string | null; s
 
 /** Desktop header categories — labels fixed; href from catalog roots when available. */
 const DESKTOP_CAT_KEYS = [
-  { key: "mujer", label: "Mujer", fallback: "/c/mujer" },
-  { key: "hombre", label: "Hombre", fallback: "/c/hombre" },
-  { key: "accesorios", label: "Accesorios", fallback: "/c/accesorios" },
+  { key: "mujer", label: "MUJER", fallback: "/c/mujer" },
+  { key: "hombre", label: "HOMBRE", fallback: "/c/hombre" },
+  { key: "accesorios", label: "ACCESORIOS", fallback: "/c/accesorios" },
 ] as const;
 
 function buildDesktopNav(roots: Cat[]): { href: string; label: string }[] {
@@ -52,7 +52,7 @@ function buildDesktopNav(roots: Cat[]): { href: string; label: string }[] {
       const root = findRoot(key);
       return { href: root ? `/c/${root.slug}` : fallback, label };
     }),
-    { href: "/quienes-somos", label: "Quienes Somos" },
+    { href: "/quienes-somos", label: "QUIENES SOMOS" },
   ];
 }
 
@@ -221,7 +221,7 @@ export function StoreHeader() {
             <BrandLogo size="lg" />
           </Link>
 
-          <nav className="flex flex-1 items-center justify-center gap-6 font-body text-[13px] font-semibold tracking-wide text-text xl:gap-8">
+          <nav className="flex flex-1 items-center justify-center gap-6 font-body text-[13px] font-semibold uppercase tracking-wide text-text xl:gap-8">
             {desktopNav.map((item) => {
               const active = navActive(item.href);
               return (
@@ -281,7 +281,7 @@ export function StoreHeader() {
                   aria-label="Volver al menú"
                 >
                   <IconChevronLeft size={18} />
-                  {expandedRoot.name}
+                  <span className="uppercase tracking-wide">{expandedRoot.name}</span>
                 </button>
               ) : (
                 <div className="min-w-0 pt-1">
@@ -306,7 +306,7 @@ export function StoreHeader() {
                 <div className="flex flex-col">
                   <Link
                     href={`/c/${expandedRoot.slug}`}
-                    className="flex min-h-12 items-center justify-between py-3 text-[15px] font-bold text-text"
+                    className="flex min-h-12 items-center justify-between py-3 text-[15px] font-bold uppercase tracking-wide text-text"
                     onClick={closeMenu}
                   >
                     Ver todo {expandedRoot.name}
@@ -316,7 +316,7 @@ export function StoreHeader() {
                     <Link
                       key={ch.id}
                       href={`/c/${ch.slug}`}
-                      className="flex min-h-12 items-center justify-between py-3 text-[15px] font-medium text-text"
+                      className="flex min-h-12 items-center justify-between py-3 text-[15px] font-medium uppercase tracking-wide text-text"
                       onClick={closeMenu}
                     >
                       {ch.name}
@@ -329,14 +329,14 @@ export function StoreHeader() {
                   <Link
                     href="/"
                     onClick={closeMenu}
-                    className="flex min-h-12 items-center py-3.5 text-lg font-bold text-text"
+                    className="flex min-h-12 items-center py-3.5 text-lg font-bold uppercase tracking-wide text-text"
                   >
                     Inicio
                   </Link>
                   <Link
                     href={productsHref}
                     onClick={closeMenu}
-                    className="flex min-h-12 items-center justify-between py-3.5 text-lg font-bold text-text"
+                    className="flex min-h-12 items-center justify-between py-3.5 text-lg font-bold uppercase tracking-wide text-text"
                   >
                     Productos
                     <IconChevronRight size={18} className="text-muted" />
@@ -348,7 +348,7 @@ export function StoreHeader() {
                         <button
                           key={r.id}
                           type="button"
-                          className="flex min-h-12 w-full items-center justify-between py-3.5 text-left text-lg font-bold text-text"
+                          className="flex min-h-12 w-full items-center justify-between py-3.5 text-left text-lg font-bold uppercase tracking-wide text-text"
                           onClick={() => setExpandedRootId(r.id)}
                         >
                           {r.name}
@@ -360,7 +360,7 @@ export function StoreHeader() {
                       <Link
                         key={r.id}
                         href={`/c/${r.slug}`}
-                        className="flex min-h-12 items-center justify-between py-3.5 text-lg font-bold text-text"
+                        className="flex min-h-12 items-center justify-between py-3.5 text-lg font-bold uppercase tracking-wide text-text"
                         onClick={closeMenu}
                       >
                         {r.name}
@@ -373,21 +373,21 @@ export function StoreHeader() {
                     <Link
                       href="/buscar"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-text"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-text"
                     >
                       Buscar
                     </Link>
                     <Link
                       href="/quienes-somos"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-text"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-text"
                     >
                       Nosotros
                     </Link>
                     <Link
                       href="/contacto"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-text"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-text"
                     >
                       Contacto
                     </Link>
@@ -396,7 +396,7 @@ export function StoreHeader() {
                         href={wa}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex min-h-12 items-center gap-2 py-3 text-[15px] font-medium text-text"
+                        className="flex min-h-12 items-center gap-2 py-3 text-[15px] font-medium uppercase tracking-wide text-text"
                         onClick={closeMenu}
                       >
                         <IconWhatsApp size={18} className="text-wa" />
@@ -406,28 +406,28 @@ export function StoreHeader() {
                     <Link
                       href="/pedido"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-muted"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-muted"
                     >
                       Consultar pedido
                     </Link>
                     <Link
                       href="/envios"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-muted"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-muted"
                     >
                       Envíos
                     </Link>
                     <Link
                       href="/medios-de-pago"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-muted"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-muted"
                     >
                       Medios de pago
                     </Link>
                     <Link
                       href="/cambios-y-devoluciones"
                       onClick={closeMenu}
-                      className="flex min-h-12 items-center py-3 text-[15px] font-medium text-muted"
+                      className="flex min-h-12 items-center py-3 text-[15px] font-medium uppercase tracking-wide text-muted"
                     >
                       Cambios y devoluciones
                     </Link>
@@ -454,7 +454,7 @@ export function StoreFooter() {
           <BrandLogo size="md" />
           <p className="mt-3 text-sm text-muted">Moda deportiva · San Manuel</p>
         </div>
-        <div className="flex flex-col gap-2 text-sm text-muted">
+        <div className="flex flex-col gap-2 text-sm uppercase tracking-wide text-muted">
           <Link href="/pedido" className="hover:text-text">
             Consultar pedido
           </Link>

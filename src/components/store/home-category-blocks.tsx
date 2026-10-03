@@ -95,7 +95,7 @@ export function HomeCategoryBlocks({ categories, isError }: Props) {
                   <li>
                     <Link
                       href={href}
-                      className="flex min-h-12 items-center px-4 py-3 font-display text-[15px] font-semibold text-text hover:bg-surface-soft"
+                      className="flex min-h-12 items-center px-4 py-3 font-display text-[15px] font-semibold uppercase tracking-wide text-text hover:bg-surface-soft"
                     >
                       Ver todo {root.name}
                     </Link>
@@ -104,7 +104,7 @@ export function HomeCategoryBlocks({ categories, isError }: Props) {
                     <li key={ch.id}>
                       <Link
                         href={`/c/${ch.slug}`}
-                        className="flex min-h-12 items-center px-4 py-3 text-[15px] text-text hover:bg-surface-soft"
+                        className="flex min-h-12 items-center px-4 py-3 text-[15px] uppercase tracking-wide text-text hover:bg-surface-soft"
                       >
                         {ch.name}
                       </Link>
@@ -146,7 +146,7 @@ function TileFace({
         }`}
         sizes="(min-width: 768px) 33vw, 100vw"
       />
-      <span className="absolute inset-0 z-[1] flex items-center justify-between bg-[#12100f66] px-4 font-display text-lg font-semibold text-inverse md:text-xl lg:text-2xl">
+      <span className="absolute inset-0 z-[1] flex items-center justify-between bg-[#12100f66] px-4 font-display text-lg font-semibold uppercase tracking-wide text-inverse md:text-xl lg:text-2xl">
         {name}
         {chevron ? (
           <span aria-hidden className="text-lg opacity-90">
