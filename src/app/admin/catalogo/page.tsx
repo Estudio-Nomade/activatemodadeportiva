@@ -88,7 +88,7 @@ export default function AdminCatalogoPage() {
           const stockTotal = (p.product_variants ?? []).reduce((n, v) => n + v.stock_on_hand, 0);
           const thumb = primaryProductImageUrl(p.product_images);
           return (
-            <li key={p.id} className="rounded-[16px] border border-border bg-surface p-4">
+            <li key={p.id} className="rounded-[16px] border border-border bg-surface p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="flex min-w-0 items-start gap-3">
                   <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-surface-soft">

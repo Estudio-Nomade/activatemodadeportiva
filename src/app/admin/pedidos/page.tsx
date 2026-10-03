@@ -53,24 +53,30 @@ function PedidosInner() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-1">
         {(
           [
             ["pendientes", "Pendientes"],
             ["en-curso", "En curso"],
             ["todos", "Todos"],
           ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className="chip"
-            data-active={tab === id}
-            onClick={() => setTab(id)}
-          >
-            {label}
-          </button>
-        ))}
+        ).map(([id, label]) => {
+          const on = tab === id;
+          return (
+            <button
+              key={id}
+              type="button"
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
+                on
+                  ? "bg-accent text-white shadow-sm"
+                  : "bg-surface-soft text-text hover:bg-border/60"
+              }`}
+              onClick={() => setTab(id)}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {orders.isLoading ? <p className="text-sm text-muted">Cargando pedidos…</p> : null}
@@ -79,8 +85,8 @@ function PedidosInner() {
       ) : null}
 
       {!orders.isLoading && filtered.length === 0 ? (
-        <div className="rounded-[16px] border border-border bg-surface px-4 py-12 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-surface-soft text-2xl">
+        <div className="rounded-[16px] border border-border bg-surface px-4 py-12 text-center shadow-sm">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent-soft text-2xl text-accent">
             ✓
           </div>
           <p className="mt-4 font-semibold">Sin pedidos en esta vista</p>
@@ -90,24 +96,38 @@ function PedidosInner() {
 
       <ul className="space-y-3">
         {filtered.map((o) => (
-          <li key={o.id} className="rounded-[16px] border border-border bg-surface p-4">
+          <li
+            key={o.id}
+            className="rounded-[16px] border border-border bg-surface p-4 shadow-sm transition-colors hover:border-accent-soft"
+          >
             <Link href={`/admin/pedidos/${o.id}`} className="block">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <p className="font-mono text-sm font-bold">{o.code}</p>
-                  <p className="mt-1 text-sm text-muted">
-                    {o.customer_name} · {o.payment_method} / {o.shipping_method}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-sm font-bold tracking-wide">{o.code}</p>
+                  <p className="mt-1.5 text-sm text-muted">
+                    {o.customer_name}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {o.payment_method} · {o.shipping_method}
                   </p>
                 </div>
-                <span className="rounded-full bg-accent-soft px-2 py-1 text-[11px] font-semibold text-accent">
-                  {ORDER_STATUS_LABEL[o.status] ?? o.status}
-                </span>
+                <div className="flex shrink-0 flex-col items-end gap-2">
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                      o.status === "pendiente_pago"
+                        ? "bg-promo/15 text-promo"
+                        : "bg-accent-soft text-accent"
+                    }`}
+                  >
+                    {ORDER_STATUS_LABEL[o.status] ?? o.status}
+                  </span>
+                  <p className="text-base font-bold text-text">{formatArsCents(o.total_cents)}</p>
+                </div>
               </div>
-              <p className="mt-2 text-base font-bold text-accent">{formatArsCents(o.total_cents)}</p>
             </Link>
 
             {o.status === "pendiente_pago" ? (
-              <div className="mt-3 flex gap-2">
+              <div className="mt-4 flex gap-2">
                 <button
                   type="button"
                   className="btn btn-primary flex-1"
@@ -126,10 +146,7 @@ function PedidosInner() {
                 </button>
               </div>
             ) : (
-              <Link
-                href={`/admin/pedidos/${o.id}`}
-                className="btn btn-secondary mt-3"
-              >
+              <Link href={`/admin/pedidos/${o.id}`} className="btn btn-secondary mt-4">
                 Ver detalle
               </Link>
             )}

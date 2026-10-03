@@ -280,7 +280,7 @@ function EditForm({
         />
       </label>
 
-      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
+      <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
         <h2 className="font-bold">Variantes y stock</h2>
         <p className="text-xs text-muted">
           Sumá color/talle acá. Si la variante ya salió en un pedido o tiene reserva, no se borra:

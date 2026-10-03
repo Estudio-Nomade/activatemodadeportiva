@@ -130,7 +130,7 @@ export default function AdminGuiasPage() {
         </p>
       ) : null}
 
-      <form onSubmit={onCreate} className="flex flex-wrap items-end gap-2 rounded-[16px] border border-border bg-surface p-4">
+      <form onSubmit={onCreate} className="flex flex-wrap items-end gap-2 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5">
         <div className="field min-w-[200px] flex-1">
           <label htmlFor="guide-name">Nueva guía</label>
           <input
@@ -160,7 +160,7 @@ export default function AdminGuiasPage() {
         {(list.data ?? []).map((g) => (
           <li
             key={g.id}
-            className="space-y-3 rounded-[16px] border border-border bg-surface p-4"
+            className="space-y-3 rounded-[16px] border border-border bg-surface p-4 shadow-sm md:p-5"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
