@@ -174,7 +174,8 @@ export async function placeOrder(
       .eq("id", order.id);
 
     const app = baseUrl(deps.appBaseUrl);
-    const returnUrl = `${app}/pedido?token=${encodeURIComponent(order.access_token)}`;
+    // Payway checkout rejects success/cancel URLs longer than 100 chars (misleading cancel_url error).
+    const returnUrl = `${app}/pedido?code=${encodeURIComponent(order.code)}`;
 
     try {
       const link = await deps.payway.createCheckoutLink({

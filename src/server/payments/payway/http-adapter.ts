@@ -1,6 +1,6 @@
 import { DomainError } from "@/server/domain/errors";
 import { centsToPaywayAmount, paywayAmountToCents } from "./amount";
-import type { PaywayConfig } from "./config";
+import { paywayXSourceHeader, type PaywayConfig } from "./config";
 import type {
   CreateCheckoutLinkInput,
   CreateCheckoutLinkResult,
@@ -14,23 +14,42 @@ function asRecord(v: unknown): Record<string, unknown> {
   return v && typeof v === "object" ? (v as Record<string, unknown>) : {};
 }
 
+function stringField(v: unknown): string | null {
+  if (typeof v === "string" && v.trim()) return v.trim();
+  if (typeof v === "number" && Number.isFinite(v)) return String(v);
+  return null;
+}
+
+/** Payway returns payment_link only; id is the last path segment. */
+function paymentIdFromLink(link: string): string | undefined {
+  try {
+    const path = new URL(link).pathname.replace(/\/+$/, "");
+    const seg = path.split("/").filter(Boolean).pop();
+    return seg || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function createPaywayHttpAdapter(
   config: PaywayConfig,
   deps?: { fetch?: FetchFn },
 ): PaywayPort {
   const fetchImpl = deps?.fetch ?? fetch;
+  const xSource = paywayXSourceHeader(config.grouper, config.developer);
 
   async function request(
     method: string,
-    path: string,
+    url: string,
     body?: unknown,
     apiKey: string = config.privateKey,
   ): Promise<{ status: number; json: unknown }> {
-    const res = await fetchImpl(`${config.apiBaseUrl}${path}`, {
+    const res = await fetchImpl(url, {
       method,
       headers: {
         "Content-Type": "application/json",
         apikey: apiKey,
+        "X-Source": xSource,
       },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
@@ -49,30 +68,28 @@ export function createPaywayHttpAdapter(
   return {
     async createCheckoutLink(input: CreateCheckoutLinkInput): Promise<CreateCheckoutLinkResult> {
       const total = centsToPaywayAmount(input.amountCents);
-      const payload = {
+      // Payway rejects products + payment_description together; use description only.
+      const payload: Record<string, unknown> = {
         site: config.siteId,
         template_id: config.templateId,
         total_price: total,
         currency: input.currency,
-        payment_method_id: 1,
         installments: [input.installments],
         payment_description: input.description,
         public_apikey: config.publicKey,
         success_url: input.successUrl,
         cancel_url: input.cancelUrl,
-        redirect_url: input.successUrl,
         notifications_url: input.notificationsUrl,
+        origin_platform: "SDK-Node",
+        plan_gobierno: false,
         site_transaction_id: input.siteTransactionId,
-        customer_email: input.customerEmail,
-        products: input.products.map((p) => ({
-          id: p.id,
-          quantity: p.quantity,
-          value: centsToPaywayAmount(p.valueCents),
-          description: p.description,
-        })),
       };
 
-      const { status, json } = await request("POST", "/payments/link", payload);
+      const { status, json } = await request(
+        "POST",
+        `${config.checkoutBaseUrl}/link`,
+        payload,
+      );
       if (status < 200 || status >= 300) {
         throw new DomainError(
           "PAYWAY_LINK_FAILED",
@@ -81,23 +98,42 @@ export function createPaywayHttpAdapter(
       }
 
       const row = asRecord(json);
-      const paymentLink = stringField(
-        row.payment_link ?? row.paymentLink ?? row.link ?? row.url,
+      const nested = asRecord(row.data);
+      let paymentLink = stringField(
+        row.payment_link ?? row.paymentLink ?? row.link ?? row.url ?? nested.payment_link,
       );
+      let paymentId =
+        stringField(row.id ?? row.payment_id ?? row.paymentId ?? nested.id) ?? undefined;
+
+      if (!paymentLink && paymentId) {
+        const host =
+          config.env === "production"
+            ? "https://live.decidir.com"
+            : "https://developers.decidir.com";
+        paymentLink = `${host}/web/checkout/${paymentId}`;
+      }
       if (!paymentLink) {
-        throw new DomainError("PAYWAY_LINK_FAILED", "Payway response missing payment_link");
+        throw new DomainError(
+          "PAYWAY_LINK_FAILED",
+          `Payway response missing payment_link/id: ${JSON.stringify(json)}`,
+        );
+      }
+      if (!paymentId) {
+        paymentId = paymentIdFromLink(paymentLink);
       }
 
-      const paywayPaymentId = stringField(row.id ?? row.payment_id ?? row.paymentId) ?? undefined;
-      return { paymentLink, paywayPaymentId };
+      return { paymentLink, paywayPaymentId: paymentId };
     },
 
     async getPayment(paywayPaymentId: string): Promise<PaywayPaymentInfo> {
-      const { status, json } = await request("GET", `/payments/${encodeURIComponent(paywayPaymentId)}`);
+      const { status, json } = await request(
+        "GET",
+        `${config.apiBaseUrl}/payments/${encodeURIComponent(paywayPaymentId)}`,
+      );
       if (status < 200 || status >= 300) {
         throw new DomainError(
           "PAYWAY_NOTIFICATION_INVALID",
-          `Payway getPayment failed (${status})`,
+          `Payway getPayment failed (${status}): ${JSON.stringify(json)}`,
         );
       }
       const row = asRecord(json);
@@ -120,10 +156,4 @@ export function createPaywayHttpAdapter(
       };
     },
   };
-}
-
-function stringField(v: unknown): string | null {
-  if (typeof v === "string" && v.trim()) return v.trim();
-  if (typeof v === "number" && Number.isFinite(v)) return String(v);
-  return null;
 }
