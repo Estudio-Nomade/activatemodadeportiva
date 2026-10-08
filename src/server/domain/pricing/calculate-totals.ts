@@ -1,6 +1,6 @@
 import { DomainError } from "../errors";
 
-export type PaymentMethod = "transfer" | "cash";
+export type PaymentMethod = "payway" | "transfer" | "cash";
 export type ShippingMethod = "pickup" | "andreani";
 
 export type CalculateTotalsInput = {
@@ -32,7 +32,10 @@ export function calculateTotals(input: CalculateTotalsInput): CalculateTotalsRes
     0,
   );
 
-  const discountCents = Math.floor((subtotalCents * input.paymentDiscountBps) / 10_000);
+  const discountCents =
+    input.paymentMethod === "payway"
+      ? 0
+      : Math.floor((subtotalCents * input.paymentDiscountBps) / 10_000);
 
   let shippingCents = 0;
   if (input.shippingMethod !== "pickup") {

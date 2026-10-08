@@ -3,7 +3,50 @@ import { calculateTotals } from "./calculate-totals";
 import { DomainError } from "../errors";
 
 describe("calculateTotals", () => {
-  it("applies 10% discount only on products; andreani fee when under threshold", () => {
+  it("payway: no payment discount; andreani fee under threshold", () => {
+    const result = calculateTotals({
+      lines: [{ unitPriceCents: 1_000_000, qty: 1 }],
+      paymentMethod: "payway",
+      shippingMethod: "andreani",
+      paymentDiscountBps: 1000, // ignored for payway
+      andreaniFeeCents: 450_000,
+      freeShippingThresholdCents: 8_000_000,
+    });
+    expect(result.subtotalCents).toBe(1_000_000);
+    expect(result.discountCents).toBe(0);
+    expect(result.shippingCents).toBe(450_000);
+    expect(result.totalCents).toBe(1_450_000);
+  });
+
+  it("payway: free andreani when subtotal >= threshold (no discount)", () => {
+    const result = calculateTotals({
+      lines: [{ unitPriceCents: 8_000_000, qty: 1 }],
+      paymentMethod: "payway",
+      shippingMethod: "andreani",
+      paymentDiscountBps: 1000,
+      andreaniFeeCents: 450_000,
+      freeShippingThresholdCents: 8_000_000,
+    });
+    expect(result.discountCents).toBe(0);
+    expect(result.shippingCents).toBe(0);
+    expect(result.totalCents).toBe(8_000_000);
+  });
+
+  it("payway + pickup: shipping 0", () => {
+    const result = calculateTotals({
+      lines: [{ unitPriceCents: 500_000, qty: 2 }],
+      paymentMethod: "payway",
+      shippingMethod: "pickup",
+      paymentDiscountBps: 1000,
+      andreaniFeeCents: 450_000,
+      freeShippingThresholdCents: 8_000_000,
+    });
+    expect(result.shippingCents).toBe(0);
+    expect(result.discountCents).toBe(0);
+    expect(result.totalCents).toBe(1_000_000);
+  });
+
+  it("applies 10% discount only on products for transfer; andreani fee when under threshold", () => {
     const result = calculateTotals({
       lines: [{ unitPriceCents: 1_000_000, qty: 1 }],
       paymentMethod: "transfer",
@@ -18,7 +61,7 @@ describe("calculateTotals", () => {
     expect(result.totalCents).toBe(1_000_000 - 100_000 + 450_000);
   });
 
-  it("grants free andreani shipping when post-discount base >= threshold", () => {
+  it("grants free andreani shipping when post-discount base >= threshold (transfer)", () => {
     const result = calculateTotals({
       lines: [{ unitPriceCents: 10_000_000, qty: 1 }],
       paymentMethod: "transfer",

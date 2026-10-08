@@ -104,7 +104,7 @@ Useful scripts: `pnpm test`, `pnpm build`, `pnpm lint`, `pnpm jobs:expire`.
 
 ## What NOT to do
 
-- Do not add Payway / Mercado Pago / buyer accounts in v1 (out of PRD scope).
+- Payway hosted checkout is in scope (env keys + webhook). Do not add Mercado Pago / buyer accounts without product confirmation.
 - Do not put business rules only inside tRPC routers or React components.
 - Do not open broad anon RLS write policies for orders; server uses **service role** after domain checks.
 - Do not recalculate shipping/discount differently in the UI for charging.

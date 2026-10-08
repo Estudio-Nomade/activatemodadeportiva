@@ -58,7 +58,8 @@ Without a valid admin profile → tRPC `UNAUTHORIZED` or `FORBIDDEN`.
 const quote = await client.checkout.quote.mutate({
   lines: [{ variantId: "...", qty: 1 }],
   shippingMethod: "pickup",
-  paymentMethod: "transfer",
+  paymentMethod: "payway",
+  installments: 1,
 });
 // use quote.totalCents for display only — never send totals back to charge
 ```
@@ -69,7 +70,8 @@ const quote = await client.checkout.quote.mutate({
 const order = await client.checkout.placeOrder.mutate({
   lines: [{ variantId: "...", qty: 1 }],
   shippingMethod: "andreani",
-  paymentMethod: "transfer",
+  paymentMethod: "payway",
+  installments: 1,
   customerName: "Ana",
   phone: "+54...",
   email: "ana@example.com",

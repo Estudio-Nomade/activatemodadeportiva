@@ -129,9 +129,17 @@ export default function AdminPedidoDetailPage() {
         <p className="text-muted">{order.phone}</p>
         <p className="text-muted">{order.email}</p>
         <p className="pt-2">
-          Pago: <strong>{order.payment_method}</strong> · Envío:{" "}
-          <strong>{order.shipping_method}</strong>
+          Pago: <strong>{order.payment_method}</strong>
+          {order.installments != null ? ` · ${order.installments} cuota(s)` : ""}
+          {" · "}
+          Envío: <strong>{order.shipping_method}</strong>
         </p>
+        {order.payway_payment_id ? (
+          <p className="text-xs text-muted">Payway id: {order.payway_payment_id}</p>
+        ) : null}
+        {order.payway_site_transaction_id ? (
+          <p className="text-xs text-muted">site_tx: {order.payway_site_transaction_id}</p>
+        ) : null}
         {address ? <p className="text-muted">{address}</p> : null}
       </section>
 
@@ -197,12 +205,14 @@ export default function AdminPedidoDetailPage() {
       <section className="space-y-2 pb-4">
         <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Acciones</h2>
         <div className="grid gap-2 sm:grid-cols-2">
-          <Action
-            label="Confirmar pago"
-            primary
-            disabled={busy}
-            onClick={() => run(() => confirmPay.mutateAsync({ id }), "Pago confirmado")}
-          />
+          {order.payment_method !== "payway" ? (
+            <Action
+              label="Confirmar pago"
+              primary
+              disabled={busy}
+              onClick={() => run(() => confirmPay.mutateAsync({ id }), "Pago confirmado")}
+            />
+          ) : null}
           <Action
             label="Preparando"
             disabled={busy}

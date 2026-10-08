@@ -81,13 +81,26 @@ isOneToOne: false
                   ]
                 },"orders": {
                   Row: {
-                    "access_token": string,"cancel_reason": Database["public"]['Enums']["cancel_reason"] | null,"cancelled_at": string | null,"code": string,"created_at": string,"customer_name": string,"discount_cents": number,"email": string,"id": string,"payment_method": Database["public"]['Enums']["payment_method"],"phone": string,"reservation_expires_at": string | null,"shipping_address": Json | null,"shipping_cents": number,"shipping_method": Database["public"]['Enums']["shipping_method"],"status": Database["public"]['Enums']["order_status"],"subtotal_cents": number,"total_cents": number,"updated_at": string
+                    "access_token": string,"cancel_reason": Database["public"]['Enums']["cancel_reason"] | null,"cancelled_at": string | null,"code": string,"created_at": string,"customer_name": string,"discount_cents": number,"email": string,"id": string,"installments": number,"payment_method": Database["public"]['Enums']["payment_method"],"payway_link_attempt": number,"payway_payment_id": string | null,"payway_site_transaction_id": string | null,"phone": string,"reservation_expires_at": string | null,"shipping_address": Json | null,"shipping_cents": number,"shipping_method": Database["public"]['Enums']["shipping_method"],"status": Database["public"]['Enums']["order_status"],"subtotal_cents": number,"total_cents": number,"updated_at": string
                   }
                   Insert: {
-                    "access_token": string,"cancel_reason"?: Database["public"]['Enums']["cancel_reason"] | null,"cancelled_at"?: string | null,"code": string,"created_at"?: string,"customer_name": string,"discount_cents": number,"email": string,"id"?: string,"payment_method": Database["public"]['Enums']["payment_method"],"phone": string,"reservation_expires_at"?: string | null,"shipping_address"?: Json | null,"shipping_cents": number,"shipping_method": Database["public"]['Enums']["shipping_method"],"status"?: Database["public"]['Enums']["order_status"],"subtotal_cents": number,"total_cents": number,"updated_at"?: string
+                    "access_token": string,"cancel_reason"?: Database["public"]['Enums']["cancel_reason"] | null,"cancelled_at"?: string | null,"code": string,"created_at"?: string,"customer_name": string,"discount_cents": number,"email": string,"id"?: string,"installments"?: number,"payment_method": Database["public"]['Enums']["payment_method"],"payway_link_attempt"?: number,"payway_payment_id"?: string | null,"payway_site_transaction_id"?: string | null,"phone": string,"reservation_expires_at"?: string | null,"shipping_address"?: Json | null,"shipping_cents": number,"shipping_method": Database["public"]['Enums']["shipping_method"],"status"?: Database["public"]['Enums']["order_status"],"subtotal_cents": number,"total_cents": number,"updated_at"?: string
                   }
                   Update: {
-                    "access_token"?: string,"cancel_reason"?: Database["public"]['Enums']["cancel_reason"] | null,"cancelled_at"?: string | null,"code"?: string,"created_at"?: string,"customer_name"?: string,"discount_cents"?: number,"email"?: string,"id"?: string,"payment_method"?: Database["public"]['Enums']["payment_method"],"phone"?: string,"reservation_expires_at"?: string | null,"shipping_address"?: Json | null,"shipping_cents"?: number,"shipping_method"?: Database["public"]['Enums']["shipping_method"],"status"?: Database["public"]['Enums']["order_status"],"subtotal_cents"?: number,"total_cents"?: number,"updated_at"?: string
+                    "access_token"?: string,"cancel_reason"?: Database["public"]['Enums']["cancel_reason"] | null,"cancelled_at"?: string | null,"code"?: string,"created_at"?: string,"customer_name"?: string,"discount_cents"?: number,"email"?: string,"id"?: string,"installments"?: number,"payment_method"?: Database["public"]['Enums']["payment_method"],"payway_link_attempt"?: number,"payway_payment_id"?: string | null,"payway_site_transaction_id"?: string | null,"phone"?: string,"reservation_expires_at"?: string | null,"shipping_address"?: Json | null,"shipping_cents"?: number,"shipping_method"?: Database["public"]['Enums']["shipping_method"],"status"?: Database["public"]['Enums']["order_status"],"subtotal_cents"?: number,"total_cents"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"payway_webhook_events": {
+                  Row: {
+                    "error": string | null,"id": string,"order_id": string | null,"payload": Json,"processed_at": string | null,"received_at": string
+                  }
+                  Insert: {
+                    "error"?: string | null,"id"?: string,"order_id"?: string | null,"payload": Json,"processed_at"?: string | null,"received_at"?: string
+                  }
+                  Update: {
+                    "error"?: string | null,"id"?: string,"order_id"?: string | null,"payload"?: Json,"processed_at"?: string | null,"received_at"?: string
                   }
                   Relationships: [
                     
@@ -214,13 +227,13 @@ isOneToOne: false
                   ]
                 },"store_settings": {
                   Row: {
-                    "andreani_fee_cents": number,"contact_address": string,"contact_email": string,"free_shipping_threshold_cents": number,"id": number,"instagram_url": string,"payment_discount_bps": number,"season_label": string,"transfer_cbu_alias_text": string,"updated_at": string,"whatsapp_prefill_message": string,"whatsapp_url_or_phone": string
+                    "andreani_fee_cents": number,"contact_address": string,"contact_email": string,"free_shipping_threshold_cents": number,"id": number,"instagram_url": string,"payment_discount_bps": number,"payway_installments": number[],"season_label": string,"transfer_cbu_alias_text": string,"updated_at": string,"whatsapp_prefill_message": string,"whatsapp_url_or_phone": string
                   }
                   Insert: {
-                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_prefill_message"?: string,"whatsapp_url_or_phone"?: string
+                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"payway_installments"?: number[],"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_prefill_message"?: string,"whatsapp_url_or_phone"?: string
                   }
                   Update: {
-                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_prefill_message"?: string,"whatsapp_url_or_phone"?: string
+                    "andreani_fee_cents"?: number,"contact_address"?: string,"contact_email"?: string,"free_shipping_threshold_cents"?: number,"id"?: number,"instagram_url"?: string,"payment_discount_bps"?: number,"payway_installments"?: number[],"season_label"?: string,"transfer_cbu_alias_text"?: string,"updated_at"?: string,"whatsapp_prefill_message"?: string,"whatsapp_url_or_phone"?: string
                   }
                   Relationships: [
                     
@@ -242,7 +255,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "cancel_reason": "admin"|"expired","order_status": "pendiente_pago"|"pago_confirmado"|"preparando"|"listo_retiro"|"enviado"|"entregado"|"cancelado","payment_method": "transfer"|"cash","reservation_status": "active"|"consumed"|"released","shipping_method": "pickup"|"andreani"
+            "cancel_reason": "admin"|"expired","order_status": "pendiente_pago"|"pago_confirmado"|"preparando"|"listo_retiro"|"enviado"|"entregado"|"cancelado","payment_method": "transfer"|"cash"|"payway","reservation_status": "active"|"consumed"|"released","shipping_method": "pickup"|"andreani"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -362,7 +375,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "cancel_reason": ["admin", "expired"],"order_status": ["pendiente_pago", "pago_confirmado", "preparando", "listo_retiro", "enviado", "entregado", "cancelado"],"payment_method": ["transfer", "cash"],"reservation_status": ["active", "consumed", "released"],"shipping_method": ["pickup", "andreani"]
+            "cancel_reason": ["admin", "expired"],"order_status": ["pendiente_pago", "pago_confirmado", "preparando", "listo_retiro", "enviado", "entregado", "cancelado"],"payment_method": ["transfer", "cash", "payway"],"reservation_status": ["active", "consumed", "released"],"shipping_method": ["pickup", "andreani"]
           }
         }
 } as const

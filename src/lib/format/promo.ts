@@ -4,8 +4,9 @@ export function discountPercentFromBps(bps: number): number {
   return Math.floor(bps / 100);
 }
 
-/** Promo bar copy (ES-AR) from payment discount bps. */
+/** Promo bar copy (ES-AR). Empty when no payment discount (Payway checkout). */
 export function formatPromoBarCopy(paymentDiscountBps: number): string {
   const pct = discountPercentFromBps(paymentDiscountBps);
-  return `${pct}% DE DESCUENTO CON TRANSFERENCIA`;
+  if (pct <= 0) return "";
+  return `${pct}% DE DESCUENTO`;
 }

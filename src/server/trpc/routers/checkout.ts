@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createPaymentLink } from "@/server/domain/checkout/create-payment-link";
 import { placeOrder } from "@/server/domain/checkout/place-order";
 import { quote } from "@/server/domain/checkout/quote";
 import { createTRPCRouter, publicProcedure, rethrowDomain } from "../init";
@@ -9,7 +10,7 @@ const lineSchema = z.object({
 });
 
 const shippingMethodSchema = z.enum(["pickup", "andreani"]);
-const paymentMethodSchema = z.enum(["transfer", "cash"]);
+const paymentMethodSchema = z.enum(["payway"]);
 
 const shippingAddressSchema = z
   .object({
@@ -31,6 +32,7 @@ export const checkoutRouter = createTRPCRouter({
           shippingMethod: shippingMethodSchema,
           paymentMethod: paymentMethodSchema,
           shippingAddress: shippingAddressSchema.nullable().optional(),
+          installments: z.number().int().positive().optional(),
         })
         .superRefine((val, ctx) => {
           if (val.shippingMethod === "andreani" && !val.shippingAddress) {
@@ -65,6 +67,7 @@ export const checkoutRouter = createTRPCRouter({
           lines: z.array(lineSchema).min(1),
           shippingMethod: shippingMethodSchema,
           paymentMethod: paymentMethodSchema,
+          installments: z.number().int().positive().default(1),
           customerName: z.string().min(1),
           phone: z.string().min(1),
           email: z.string().email(),
@@ -87,12 +90,35 @@ export const checkoutRouter = createTRPCRouter({
             lines: input.lines,
             shippingMethod: input.shippingMethod,
             paymentMethod: input.paymentMethod,
+            installments: input.installments,
             customerName: input.customerName,
             phone: input.phone,
             email: input.email,
             shippingAddress: input.shippingAddress ?? null,
           },
-          { db: ctx.db, email: ctx.email },
+          {
+            db: ctx.db,
+            email: ctx.email,
+            payway: ctx.payway,
+            appBaseUrl: ctx.appBaseUrl,
+          },
+        );
+      } catch (e) {
+        rethrowDomain(e);
+      }
+    }),
+
+  createPaymentLink: publicProcedure
+    .input(z.object({ token: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await createPaymentLink(
+          { token: input.token },
+          {
+            db: ctx.db,
+            payway: ctx.payway,
+            appBaseUrl: ctx.appBaseUrl,
+          },
         );
       } catch (e) {
         rethrowDomain(e);

@@ -25,10 +25,12 @@ export const PRODUCTS_HREF = "/productos";
 
 export function PromoBar() {
   const settings = trpc.settings.getPublic.useQuery();
-  const bps = settings.data?.payment_discount_bps ?? 1000;
+  const bps = settings.data?.payment_discount_bps ?? 0;
+  const copy = formatPromoBarCopy(bps);
+  if (!copy) return null;
   return (
     <div className="store-promo type-caption border-b border-border bg-bg px-4 py-2 text-center font-semibold tracking-[0.04em] text-text">
-      {formatPromoBarCopy(bps)}
+      {copy}
     </div>
   );
 }

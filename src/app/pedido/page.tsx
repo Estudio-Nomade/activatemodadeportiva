@@ -69,6 +69,7 @@ function TrackInner() {
 
   const createUpload = trpc.orders.createProofUploadUrl.useMutation();
   const confirmProof = trpc.orders.uploadPaymentProof.useMutation();
+  const payLinkMut = trpc.checkout.createPaymentLink.useMutation();
 
   const tokenForActions = useMemo(() => {
     if (activeToken) return activeToken;
@@ -240,11 +241,41 @@ function TrackInner() {
               <span>{formatArsCents(order.total_cents)}</span>
             </div>
             <p className="pt-1 text-xs text-muted">
-              {order.payment_method === "cash" ? "Efectivo" : "Transferencia"}
+              {order.payment_method === "payway"
+                ? "Payway"
+                : order.payment_method === "cash"
+                  ? "Efectivo"
+                  : "Transferencia"}
               {" · "}
               {order.shipping_method === "pickup" ? "Retiro en local" : "Andreani"}
             </p>
           </div>
+
+          {order.status === "pendiente_pago" &&
+          order.payment_method === "payway" &&
+          tokenForActions ? (
+            <div className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
+              <p className="text-sm font-semibold">Completar pago</p>
+              <p className="text-xs text-muted">
+                Te redirigimos al formulario seguro de Payway.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={payLinkMut.isPending}
+                onClick={async () => {
+                  try {
+                    const res = await payLinkMut.mutateAsync({ token: tokenForActions });
+                    window.location.assign(res.payment_link);
+                  } catch (e) {
+                    setToast(errorMessage(e, "No se pudo abrir Payway"));
+                  }
+                }}
+              >
+                {payLinkMut.isPending ? "Abriendo…" : "Pagar con Payway"}
+              </button>
+            </div>
+          ) : null}
 
           {order.status === "pendiente_pago" && order.payment_method === "transfer" ? (
             <div className="space-y-3 rounded-[16px] border border-border bg-surface p-4">

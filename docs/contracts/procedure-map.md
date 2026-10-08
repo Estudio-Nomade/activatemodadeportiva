@@ -99,6 +99,18 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 
 ---
 
+| Procedure | `checkout.createPaymentLink` |
+| --- | --- |
+| Input | `{ token: string }` (order access_token) |
+| Output | `{ payment_link: string }` |
+| Errors | `ORDER_NOT_FOUND`, `ORDER_NOT_PENDING`, `RESERVATION_EXPIRED`, `PAYWAY_*` |
+| Note | Only `pendiente_pago` + `payment_method=payway` |
+
+| HTTP | `POST /api/payway/notifications` |
+| --- | --- |
+| Body | Payway notification JSON |
+| Behavior | Verify payment via API; confirm order; idempotent |
+
 ## `orders`
 
 ### `orders.getByCode`

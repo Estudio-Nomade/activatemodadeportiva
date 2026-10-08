@@ -2,9 +2,19 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createServiceClient } from "@/server/db/supabase";
 import { consoleEmail } from "@/server/email/console";
 import { placeOrder } from "@/server/domain/checkout/place-order";
+import type { PaywayPort } from "@/server/payments/payway/port";
 import { expireReservations } from "./expire-reservations";
 
 const VARIANT_L = "33333333-3333-4333-a333-333333333002";
+
+const payway: PaywayPort = {
+  async createCheckoutLink() {
+    return { paymentLink: "https://example.com/pay", paywayPaymentId: "x" };
+  },
+  async getPayment() {
+    return { status: "approved", amountCents: 0, siteTransactionId: "" };
+  },
+};
 
 describe("expireReservations", () => {
   beforeAll(async () => {
@@ -27,11 +37,12 @@ describe("expireReservations", () => {
         phone: "+54933333333",
         email: "expire@example.com",
         shippingMethod: "pickup",
-        paymentMethod: "transfer",
+        paymentMethod: "payway",
+        installments: 1,
         shippingAddress: null,
         lines: [{ variantId: VARIANT_L, qty: 1 }],
       },
-      { db, email: consoleEmail },
+      { db, email: consoleEmail, payway, appBaseUrl: "http://localhost:3000" },
     );
 
     const past = new Date(Date.now() - 60_000).toISOString();
