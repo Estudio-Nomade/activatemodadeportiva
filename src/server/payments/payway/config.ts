@@ -7,8 +7,13 @@ export type PaywayConfig = {
   siteId: string;
   templateId: number;
   env: "developer" | "production";
+  /** REST API v2 (payments, health) */
   apiBaseUrl: string;
+  /** Checkout payment-button base (…/checkout-payment-button) — POST /link */
+  checkoutBaseUrl: string;
   installmentsFallback: number[];
+  grouper: string;
+  developer: string;
 };
 
 export function loadPaywayConfig(env: NodeJS.ProcessEnv = process.env): PaywayConfig {
@@ -30,6 +35,11 @@ export function loadPaywayConfig(env: NodeJS.ProcessEnv = process.env): PaywayCo
       ? "https://ventasonline.payway.com.ar/api/v2"
       : "https://developers.decidir.com/api/v2";
 
+  const checkoutBaseUrl =
+    ambient === "production"
+      ? "https://ventasonline.payway.com.ar/api/v1/checkout-payment-button"
+      : "https://developers.decidir.com/api/v1/checkout-payment-button";
+
   return {
     publicKey,
     privateKey,
@@ -37,6 +47,18 @@ export function loadPaywayConfig(env: NodeJS.ProcessEnv = process.env): PaywayCo
     templateId: Number.isInteger(templateId) && templateId > 0 ? templateId : 1,
     env: ambient,
     apiBaseUrl,
+    checkoutBaseUrl,
     installmentsFallback: parseInstallmentsAllowList(env.PAYWAY_INSTALLMENTS ?? "1"),
+    grouper: env.PAYWAY_GROUPER?.trim() || "ActivateModaDeportiva",
+    developer: env.PAYWAY_DEVELOPER?.trim() || "Activate",
   };
+}
+
+export function paywayXSourceHeader(grouper: string, developer: string): string {
+  const payload = JSON.stringify({
+    service: "SDK-NODE",
+    grouper,
+    developer,
+  });
+  return Buffer.from(payload, "utf8").toString("base64");
 }

@@ -48,7 +48,8 @@ export async function createPaymentLink(
   const siteTransactionId = order.payway_site_transaction_id ?? order.id;
   const attempt = (order.payway_link_attempt ?? 0) + 1;
   const app = baseUrl(deps.appBaseUrl);
-  const returnUrl = `${app}/pedido?token=${encodeURIComponent(order.access_token)}`;
+  // Payway checkout rejects success/cancel URLs longer than 100 chars (misleading cancel_url error).
+  const returnUrl = `${app}/pedido?code=${encodeURIComponent(order.code)}`;
 
   const { data: items } = await deps.db
     .from("order_items")

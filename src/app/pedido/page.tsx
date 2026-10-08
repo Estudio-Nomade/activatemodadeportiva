@@ -131,21 +131,31 @@ function TrackInner() {
 
       <form
         onSubmit={onLookup}
-        className="flex flex-col gap-3 rounded-[16px] border border-border bg-surface p-4 sm:flex-row"
+        className="rounded-[16px] border border-border bg-surface p-4"
+        role="search"
       >
-        <div className="field flex-1">
-          <label htmlFor="code">Código de pedido</label>
+        <label
+          htmlFor="code"
+          className="mb-2 block text-xs font-semibold uppercase tracking-wide text-muted"
+        >
+          Código de pedido
+        </label>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <input
             id="code"
             value={codeInput}
             onChange={(e) => setCodeInput(e.target.value)}
             placeholder="ACT-…"
             autoComplete="off"
+            className="box-border min-h-12 w-full min-w-0 rounded-[12px] border border-border bg-surface px-4 font-mono text-base tracking-wide text-text outline-none placeholder:font-sans placeholder:tracking-normal placeholder:text-muted focus:border-accent"
           />
+          <button
+            type="submit"
+            className="btn btn-primary !h-12 !min-h-12 !w-full shrink-0 px-6 sm:!w-auto sm:min-w-[7.5rem]"
+          >
+            Buscar
+          </button>
         </div>
-        <button type="submit" className="btn btn-primary sm:mt-6 sm:w-auto sm:px-8">
-          Buscar
-        </button>
       </form>
 
       {loading ? <p className="text-sm text-muted">Buscando…</p> : null}
