@@ -3,8 +3,13 @@ import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
 import type { PaymentMethod, ShippingMethod } from "@/server/domain/pricing/calculate-totals";
 import type { EmailPort } from "@/server/email/port";
+import type { PaywayPort } from "@/server/payments/payway/port";
 import { assertShippingAddress } from "./address";
 import { generateAccessToken, generateOrderCode } from "./code";
+import {
+  assertInstallmentsAllowed,
+  parseInstallmentsAllowList,
+} from "./installments";
 import { mergeLinesByVariant } from "./merge-lines";
 import { quote, type QuoteLineInput } from "./quote";
 
@@ -16,6 +21,7 @@ export type PlaceOrderInput = {
   paymentMethod: PaymentMethod;
   shippingAddress: Record<string, unknown> | null;
   lines: QuoteLineInput[];
+  installments?: number;
 };
 
 export type PlaceOrderResult = {
@@ -38,11 +44,16 @@ export type PlaceOrderResult = {
   created_at: string;
   updated_at: string;
   cancelled_at: string | null;
+  installments?: number;
+  payment_link: string | null;
+  link_error: "PAYWAY_LINK_FAILED" | "PAYWAY_CONFIG_MISSING" | null;
 };
 
 export type PlaceOrderDeps = {
   db: ServiceClient;
   email: EmailPort;
+  payway: PaywayPort;
+  appBaseUrl: string;
   now?: Date;
 };
 
@@ -60,6 +71,10 @@ function mapRpcError(error: { message: string; code?: string; details?: string }
   throw new DomainError("VALIDATION_ERROR", error.message);
 }
 
+function baseUrl(url: string): string {
+  return url.replace(/\/$/, "");
+}
+
 export async function placeOrder(
   input: PlaceOrderInput,
   deps: PlaceOrderDeps,
@@ -70,6 +85,22 @@ export async function placeOrder(
 
   assertShippingAddress(input.shippingMethod, input.shippingAddress);
   const lines = mergeLinesByVariant(input.lines);
+
+  const { data: settings, error: settingsError } = await deps.db
+    .from("store_settings")
+    .select("payway_installments, transfer_cbu_alias_text")
+    .eq("id", 1)
+    .single();
+
+  if (settingsError || !settings) {
+    throw new DomainError("VALIDATION_ERROR", "Store settings not found");
+  }
+
+  const installments = input.installments ?? 1;
+  const allowList = parseInstallmentsAllowList(
+    (settings as { payway_installments?: number[] | null }).payway_installments,
+  );
+  assertInstallmentsAllowed(installments, allowList);
 
   const priced = await quote(
     {
@@ -98,6 +129,7 @@ export async function placeOrder(
     shipping_cents: priced.shippingCents,
     total_cents: priced.totalCents,
     reservation_expires_at: expiresAt.toISOString(),
+        installments,
     lines: priced.lines.map((l) => ({
       variant_id: l.variantId,
       qty: l.qty,
@@ -123,16 +155,68 @@ export async function placeOrder(
     throw new DomainError("VALIDATION_ERROR", "place_order_tx returned invalid payload");
   }
 
-  const order = data as unknown as PlaceOrderResult;
+  const order = data as unknown as Omit<PlaceOrderResult, "payment_link" | "link_error"> & {
+    installments?: number;
+  };
+
+  let payment_link: string | null = null;
+  let link_error: PlaceOrderResult["link_error"] = null;
+
+  if (order.payment_method === "payway") {
+    const siteTransactionId = order.id;
+    await deps.db
+      .from("orders")
+      .update({
+        payway_site_transaction_id: siteTransactionId,
+        payway_link_attempt: 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", order.id);
+
+    const app = baseUrl(deps.appBaseUrl);
+    const returnUrl = `${app}/pedido?token=${encodeURIComponent(order.access_token)}`;
+
+    try {
+      const link = await deps.payway.createCheckoutLink({
+        siteTransactionId,
+        amountCents: order.total_cents,
+        currency: "ARS",
+    installments,
+        description: `Pedido ${order.code}`,
+        customerEmail: order.email,
+        successUrl: returnUrl,
+        cancelUrl: returnUrl,
+        notificationsUrl: `${app}/api/payway/notifications`,
+        products: priced.lines.map((l) => ({
+          id: l.variantId,
+          quantity: l.qty,
+          valueCents: l.unitPriceCents * l.qty,
+          description: `${l.productName} ${l.color} ${l.size}`.trim(),
+        })),
+      });
+      payment_link = link.paymentLink;
+      if (link.paywayPaymentId) {
+        await deps.db
+          .from("orders")
+          .update({
+            payway_payment_id: link.paywayPaymentId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", order.id);
+      }
+    } catch (e) {
+      if (e instanceof DomainError && e.code === "PAYWAY_CONFIG_MISSING") {
+        link_error = "PAYWAY_CONFIG_MISSING";
+      } else {
+        link_error = "PAYWAY_LINK_FAILED";
+      }
+    }
+  }
 
   let transferCbuAlias = "";
   if (order.payment_method === "transfer") {
-    const { data: settings } = await deps.db
-      .from("store_settings")
-      .select("transfer_cbu_alias_text")
-      .eq("id", 1)
-      .maybeSingle();
-    transferCbuAlias = settings?.transfer_cbu_alias_text ?? "";
+    transferCbuAlias =
+      (settings as { transfer_cbu_alias_text?: string }).transfer_cbu_alias_text ?? "";
   }
 
   try {
@@ -153,5 +237,9 @@ export async function placeOrder(
     // best-effort; order already committed
   }
 
-  return order;
+  return {
+    ...order,
+    payment_link,
+    link_error,
+  };
 }

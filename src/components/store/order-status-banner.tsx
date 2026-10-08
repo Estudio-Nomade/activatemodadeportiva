@@ -47,7 +47,7 @@ export function OrderStatusBanner({
       >
         <p className="text-sm font-bold text-promo">Pendiente de pago</p>
         <p className="mt-1 text-xs leading-relaxed text-muted">
-          Reservamos tu stock 24 h. Pagá y subí el comprobante antes de que venza la
+          Reservamos tu stock 24 h. Completá el pago en Payway antes de que venza la
           reserva
           {until ? (
             <>

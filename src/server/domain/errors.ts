@@ -8,7 +8,11 @@ export type DomainErrorCode =
   | "ORDER_NOT_PENDING"
   | "RESERVATION_EXPIRED"
   | "INVALID_TRANSITION"
-  | "CONFLICT";
+  | "CONFLICT"
+  | "PAYWAY_CONFIG_MISSING"
+  | "PAYWAY_LINK_FAILED"
+  | "PAYWAY_NOTIFICATION_INVALID"
+  | "INSTALLMENTS_NOT_ALLOWED";
 
 export class DomainError extends Error {
   constructor(

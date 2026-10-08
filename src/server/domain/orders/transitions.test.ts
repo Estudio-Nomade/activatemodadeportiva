@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createServiceClient } from "@/server/db/supabase";
 import { placeOrder } from "@/server/domain/checkout/place-order";
 import { consoleEmail } from "@/server/email/console";
+import type { PaywayPort } from "@/server/payments/payway/port";
 import {
   cancelOrder,
   confirmPayment,
@@ -11,6 +12,21 @@ import {
 } from "./transitions";
 
 const VARIANT_L = "33333333-3333-4333-a333-333333333002";
+
+const payway: PaywayPort = {
+  async createCheckoutLink() {
+    return { paymentLink: "https://example.com/pay", paywayPaymentId: "x" };
+  },
+  async getPayment() {
+    return { status: "approved", amountCents: 0, siteTransactionId: "" };
+  },
+};
+
+const placeDeps = {
+  email: consoleEmail,
+  payway,
+  appBaseUrl: "http://localhost:3000",
+};
 
 describe("order transitions", () => {
   beforeAll(async () => {
@@ -33,11 +49,12 @@ describe("order transitions", () => {
         phone: "+54944444444",
         email: "paid@example.com",
         shippingMethod: "pickup",
-        paymentMethod: "transfer",
+        paymentMethod: "payway",
+        installments: 1,
         shippingAddress: null,
         lines: [{ variantId: VARIANT_L, qty: 2 }],
       },
-      { db, email: consoleEmail },
+      { db, ...placeDeps },
     );
 
     const { data: before } = await db
@@ -96,11 +113,12 @@ describe("order transitions", () => {
         phone: "+54955555555",
         email: "cancel@example.com",
         shippingMethod: "pickup",
-        paymentMethod: "cash",
+        paymentMethod: "payway",
+        installments: 1,
         shippingAddress: null,
         lines: [{ variantId: VARIANT_L, qty: 1 }],
       },
-      { db, email: consoleEmail },
+      { db, ...placeDeps },
     );
 
     await confirmPayment(order.id, { db, email: consoleEmail });

@@ -10,7 +10,6 @@ import { formatArsCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
 type Ship = "pickup" | "andreani";
-type Pay = "transfer" | "cash";
 
 type FieldErrors = Partial<
   Record<"customerName" | "phone" | "email" | "line1" | "city" | "postalCode" | "photon", string>
@@ -28,7 +27,7 @@ export default function CheckoutPage() {
   const placeMut = trpc.checkout.placeOrder.useMutation();
 
   const [shippingMethod, setShippingMethod] = useState<Ship>("pickup");
-  const [paymentMethod, setPaymentMethod] = useState<Pay>("transfer");
+  const [installmentsChoice, setInstallmentsChoice] = useState<number | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -42,6 +41,14 @@ export default function CheckoutPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [stockBlock, setStockBlock] = useState(false);
+
+  const installmentOptions = settings.data?.payway_installments?.length
+    ? settings.data.payway_installments
+    : [1];
+  const installments =
+    installmentsChoice != null && installmentOptions.includes(installmentsChoice)
+      ? installmentsChoice
+      : (installmentOptions[0] ?? 1);
 
   const cartInput = useMemo(
     () => lines.map((l) => ({ variantId: l.variantId, qty: l.qty })),
@@ -70,16 +77,16 @@ export default function CheckoutPage() {
       quoteMut.mutate({
         lines: cartInput,
         shippingMethod,
-        paymentMethod,
+        paymentMethod: "payway",
         shippingAddress,
+        installments,
       });
     }, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartInput, shippingMethod, paymentMethod, line1, city, postalCode, line2, province, andreaniReady]);
+  }, [cartInput, shippingMethod, installments, line1, city, postalCode, line2, province, andreaniReady]);
 
   const quote = quoteMut.data;
-  const discBps = settings.data?.payment_discount_bps ?? 1000;
   const freeThreshold = settings.data?.free_shipping_threshold_cents ?? 0;
   const quoteBaseAfterDiscount =
     quote != null ? quote.subtotalCents - quote.discountCents : null;
@@ -123,7 +130,8 @@ export default function CheckoutPage() {
       const order = await placeMut.mutateAsync({
         lines: cartInput,
         shippingMethod,
-        paymentMethod,
+        paymentMethod: "payway",
+        installments,
         customerName: customerName.trim(),
         phone: phone.trim(),
         email: email.trim(),
@@ -133,16 +141,25 @@ export default function CheckoutPage() {
       if (typeof window !== "undefined" && order.access_token) {
         window.sessionStorage.setItem(`order_token_${order.code}`, order.access_token);
       }
+      if (order.payment_link) {
+        window.location.assign(order.payment_link);
+        return;
+      }
+      setFormError(
+        order.link_error
+          ? "No pudimos abrir Payway. Completá el pago desde el seguimiento del pedido."
+          : null,
+      );
       router.push(
-        `/pedido/exito?code=${encodeURIComponent(order.code)}&token=${encodeURIComponent(order.access_token)}`,
+        `/pedido?token=${encodeURIComponent(order.access_token)}`,
       );
     } catch (e) {
       const code = domainCode(e);
       if (code === "STOCK_INSUFFICIENT") {
         setStockBlock(true);
         setFormError("Stock insuficiente. Revisá el carrito.");
-      } else if (code === "INVALID_PAYMENT_SHIPPING_COMBO") {
-        setFormError("Efectivo solo está disponible con retiro en local.");
+      } else if (code === "INSTALLMENTS_NOT_ALLOWED") {
+        setFormError("Cuotas no disponibles. Elegí otra opción.");
       } else if (code === "VALIDATION_ERROR") {
         setFormError(errorMessage(e, "Datos incompletos para el envío."));
       } else setFormError(errorMessage(e));
@@ -229,10 +246,7 @@ export default function CheckoutPage() {
               type="radio"
               name="ship"
               checked={shippingMethod === "andreani"}
-              onChange={() => {
-                setShippingMethod("andreani");
-                setPaymentMethod((p) => (p === "cash" ? "transfer" : p));
-              }}
+              onChange={() => setShippingMethod("andreani")}
             />
             Andreani a domicilio
           </label>
@@ -306,56 +320,24 @@ export default function CheckoutPage() {
 
         <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
           <h2 className="font-bold">Medio de pago</h2>
-          <label className="flex min-h-12 items-center gap-3">
-            <input
-              type="radio"
-              name="pay"
-              checked={paymentMethod === "transfer"}
-              onChange={() => setPaymentMethod("transfer")}
-            />
-            Transferencia (−{discBps / 100}%)
-          </label>
-          <label
-            className={`flex min-h-12 items-center gap-3 ${shippingMethod !== "pickup" ? "opacity-45" : ""}`}
-          >
-            <input
-              type="radio"
-              name="pay"
-              checked={paymentMethod === "cash"}
-              disabled={shippingMethod !== "pickup"}
-              onChange={() => setPaymentMethod("cash")}
-            />
-            Efectivo al retirar (−{discBps / 100}%)
-          </label>
-          {shippingMethod !== "pickup" ? (
-            <p className="rounded-[12px] bg-surface-soft px-3 py-2 text-xs text-muted">
-              Efectivo solo con retiro en local. Con Andreani usá transferencia.
-            </p>
-          ) : null}
-
-          {paymentMethod === "transfer" ? (
-            <div className="space-y-2 rounded-[12px] border border-border bg-accent-soft p-3">
-              <p className="text-sm font-semibold">Datos para transferir</p>
-              <p className="text-sm">
-                {settings.data?.transfer_cbu_alias_text || "CBU/alias (configurar en admin)"}
-              </p>
-              <button
-                type="button"
-                className="btn btn-ghost w-auto px-4"
-                onClick={async () => {
-                  const t = settings.data?.transfer_cbu_alias_text ?? "";
-                  if (t) await navigator.clipboard.writeText(t);
-                }}
-              >
-                Copiar
-              </button>
-              <p className="text-xs text-muted">
-                El comprobante se puede subir después desde el seguimiento del pedido.
-              </p>
-            </div>
-          ) : (
-            <p className="text-xs text-muted">Pagás en efectivo al retirar en el local.</p>
-          )}
+          <p className="text-sm text-muted">
+            Tarjeta u otros medios vía Payway (formulario seguro).
+          </p>
+          <div className="field">
+            <label htmlFor="installments">Cuotas</label>
+            <select
+              id="installments"
+              value={installments}
+              onChange={(e) => setInstallmentsChoice(Number(e.target.value))}
+              className="min-h-12 w-full rounded-[12px] border border-border bg-bg px-3"
+            >
+              {installmentOptions.map((n) => (
+                <option key={n} value={n}>
+                  {n === 1 ? "1 cuota (contado)" : `${n} cuotas`}
+                </option>
+              ))}
+            </select>
+          </div>
         </section>
       </div>
 
@@ -364,8 +346,7 @@ export default function CheckoutPage() {
           <div className="rounded-[16px] border border-accent/30 bg-accent-soft p-4 text-sm">
             <p className="font-bold text-accent">Envío gratis cerca</p>
             <p className="mt-1 text-muted">
-              Te faltan {formatArsCents(needsMoreForFree)} (post descuento) para envío Andreani
-              gratis.
+              Te faltan {formatArsCents(needsMoreForFree)} para envío Andreani gratis.
             </p>
           </div>
         ) : null}
@@ -402,13 +383,12 @@ export default function CheckoutPage() {
                 <span>Subtotal</span>
                 <span>{formatArsCents(quote.subtotalCents)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>
-                  Descuento
-                  {paymentMethod === "cash" ? " (efectivo)" : " (transferencia)"}
-                </span>
-                <span>−{formatArsCents(quote.discountCents)}</span>
-              </div>
+              {quote.discountCents > 0 ? (
+                <div className="flex justify-between">
+                  <span>Descuento</span>
+                  <span>−{formatArsCents(quote.discountCents)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between">
                 <span>Envío {shippingMethod === "pickup" ? "(retiro)" : "(Andreani)"}</span>
                 <span>
@@ -435,7 +415,7 @@ export default function CheckoutPage() {
           disabled={placeMut.isPending || !quote || !andreaniReady}
           onClick={onConfirm}
         >
-          {placeMut.isPending ? "Confirmando…" : "Confirmar pedido"}
+          {placeMut.isPending ? "Redirigiendo a Payway…" : "Pagar con Payway"}
         </button>
         <Link href="/carrito" className="btn btn-ghost">
           Volver al carrito

@@ -12,8 +12,9 @@ Operational rules the API and UI must respect. Server is source of truth.
 Order of operations:
 
 1. **subtotalCents** = Σ (`unitPriceCents * qty`) over lines
-2. **discountCents** = `floor(subtotalCents * paymentDiscountBps / 10_000)`  
-   (`payment_discount_bps` from `store_settings`; applies to transfer/cash policy as configured server-side)
+2. **discountCents** =
+   - `payway` → **0** (no payment-method discount)
+   - legacy `transfer` / `cash` → `floor(subtotalCents * paymentDiscountBps / 10_000)`
 3. **shippingCents**:
    - `pickup` → `0`
    - `andreani` → `0` if `(subtotalCents - discountCents) >= free_shipping_threshold_cents`, else `andreani_fee_cents`
@@ -21,9 +22,18 @@ Order of operations:
 
 ### Payment × shipping combo
 
-- **cash** is only valid with **pickup**. Otherwise `INVALID_PAYMENT_SHIPPING_COMBO`.
+- **New checkout** accepts only **`payway`** (pickup or andreani).
+- Legacy: **cash** is only valid with **pickup**. Otherwise `INVALID_PAYMENT_SHIPPING_COMBO`.
+- **Installments** must be in `store_settings.payway_installments` (or env fallback) → else `INSTALLMENTS_NOT_ALLOWED`.
 
 **Never trust client-computed totals.** Quote and placeOrder recompute on the server.
+
+## Payway hosted checkout
+
+- After `placeOrder` with `payway`, server creates a hosted **payment link** and returns `payment_link` (may be null if Payway fails; order still exists).
+- Buyer pays on Payway; **`POST /api/payway/notifications`** verifies payment via Payway API (amount + status) then runs `confirm_payment_tx`.
+- Do not confirm payment from success_url query params alone.
+- Retry: `checkout.createPaymentLink` with order `access_token` while `pendiente_pago`.
 
 ## Stock
 
@@ -60,7 +70,7 @@ available = stock_on_hand - sum(active reservation qty for variant)
 
 | From | To | Notes |
 |------|-----|--------|
-| `pendiente_pago` | `pago_confirmado`, `cancelado` | |
+| `pendiente_pago` | `pago_confirmado`, `cancelado` | payway: confirm via webhook |
 | `pago_confirmado` | `preparando`, `cancelado` | |
 | `preparando` | `listo_retiro` | only if `shipping_method = pickup` |
 | `preparando` | `enviado` | only if `shipping_method = andreani` |
@@ -83,9 +93,11 @@ Cancel reasons: `admin` | `expired`.
 | `STOCK_INSUFFICIENT` | Not enough available stock |
 | `INVALID_PAYMENT_SHIPPING_COMBO` | cash without pickup |
 | `ORDER_NOT_FOUND` | Unknown code/token/id |
-| `ORDER_NOT_PENDING` | e.g. proof upload when not `pendiente_pago` |
-| `RESERVATION_EXPIRED` | Action after reservation window (when used) |
+| `ORDER_NOT_PENDING` | e.g. proof upload / pay link when not `pendiente_pago` |
+| `RESERVATION_EXPIRED` | Action after reservation window |
 | `INVALID_TRANSITION` | Status machine violation |
 | `CONFLICT` | Concurrent update / conflict |
-
-Domain errors surface as tRPC `BAD_REQUEST` with `cause` mapped into `error.data.domainCode`.
+| `PAYWAY_CONFIG_MISSING` | Payway env not configured |
+| `PAYWAY_LINK_FAILED` | Could not create payment link |
+| `PAYWAY_NOTIFICATION_INVALID` | Bad webhook / amount mismatch |
+| `INSTALLMENTS_NOT_ALLOWED` | Installments not in allow-list |

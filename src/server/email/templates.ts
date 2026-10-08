@@ -77,7 +77,12 @@ function bodyParagraphs(template: EmailTemplate, data: Record<string, unknown>):
           total ? ` por <strong style="color:${TEXT}">${escapeHtml(total)}</strong>` : ""
         }.`,
       );
-      if (paymentMethod === "transfer") {
+      if (paymentMethod === "payway") {
+        out.push(
+          "Completá el pago con tarjeta (u otros medios) en Payway. Tenés 24 h de reserva de stock.",
+        );
+        out.push("Si cerraste la ventana de pago, volvé al seguimiento del pedido y tocá “Pagar con Payway”.");
+      } else if (paymentMethod === "transfer") {
         out.push(
           `Pagá por transferencia${cbu ? ` a <strong style="color:${TEXT}">${escapeHtml(cbu)}</strong>` : " con el CBU/alias de la tienda"}.`,
         );

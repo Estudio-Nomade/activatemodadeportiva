@@ -4,19 +4,13 @@ import { createTRPCRouter, publicProcedure } from "../init";
 export const settingsRouter = createTRPCRouter({
   getPublic: publicProcedure.query(async ({ ctx }) => {
     const full =
-      "season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address";
-    const legacy =
-      "season_label, whatsapp_url_or_phone, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address";
+      "season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address, payway_installments";
 
-    let { data, error } = await ctx.db
+    const { data, error } = await ctx.db
       .from("store_settings")
       .select(full)
       .eq("id", 1)
       .single();
-
-    if (error && /whatsapp_prefill_message/i.test(error.message ?? "")) {
-      ({ data, error } = await ctx.db.from("store_settings").select(legacy).eq("id", 1).single());
-    }
 
     if (error || !data) {
       throw new TRPCError({
@@ -36,7 +30,13 @@ export const settingsRouter = createTRPCRouter({
       free_shipping_threshold_cents: number;
       contact_email: string;
       contact_address: string;
+      payway_installments?: number[] | null;
     };
+
+    const installments =
+      Array.isArray(row.payway_installments) && row.payway_installments.length > 0
+        ? row.payway_installments
+        : [1];
 
     return {
       season_label: row.season_label,
@@ -49,6 +49,7 @@ export const settingsRouter = createTRPCRouter({
       free_shipping_threshold_cents: row.free_shipping_threshold_cents,
       contact_email: row.contact_email,
       contact_address: row.contact_address,
+      payway_installments: installments,
     };
   }),
 });
