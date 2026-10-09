@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ORDER_STATUS_LABEL, useAdminToken } from "@/lib/admin/auth";
+import {
+  ORDER_STATUS_LABEL,
+  paymentMethodLabel,
+  shippingMethodLabel,
+  useAdminToken,
+} from "@/lib/admin/auth";
 import { domainCode, errorMessage } from "@/lib/errors";
 import { formatArsCents } from "@/lib/format/money";
 import { proofMediaKind } from "@/lib/media/proof-kind";
@@ -168,10 +173,10 @@ export default function AdminPedidoDetailPage() {
         <p className="text-muted">{order.phone}</p>
         <p className="text-muted">{order.email}</p>
         <p className="pt-2">
-          Pago: <strong>{order.payment_method}</strong>
+          Pago: <strong>{paymentMethodLabel(order.payment_method)}</strong>
           {order.installments != null ? ` · ${order.installments} cuota(s)` : ""}
           {" · "}
-          Envío: <strong>{order.shipping_method}</strong>
+          Envío: <strong>{shippingMethodLabel(order.shipping_method)}</strong>
         </p>
         {order.payway_payment_id ? (
           <p className="text-xs text-muted">Payway id: {order.payway_payment_id}</p>
