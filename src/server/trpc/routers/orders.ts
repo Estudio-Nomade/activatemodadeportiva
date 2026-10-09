@@ -2,21 +2,12 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
+import { selectOrderByCodeOrToken } from "@/server/domain/orders/order-select";
 import {
   assertProofStoragePath,
   toPublicOrderByCode,
 } from "@/server/domain/orders/public-order";
 import { createTRPCRouter, publicProcedure, rethrowDomain } from "../init";
-
-const orderSelect = `
-  id, code, access_token, status, customer_name, phone, email,
-  shipping_method, payment_method, subtotal_cents, discount_cents,
-  shipping_cents, total_cents, shipping_address, reservation_expires_at,
-  cancel_reason, created_at, updated_at, cancelled_at,
-  installments, payway_payment_id, payway_site_transaction_id,
-  order_items(id, product_name, color, size, unit_price_cents, qty, variant_id, sku),
-  payment_proofs(id, storage_path, uploaded_at)
-` as const;
 
 async function findOrderByCodeOrToken(
   db: ServiceClient,
@@ -26,12 +17,7 @@ async function findOrderByCodeOrToken(
     throw new DomainError("VALIDATION_ERROR", "code or token is required");
   }
 
-  let q = db.from("orders").select(orderSelect);
-
-  if (input.code) q = q.eq("code", input.code);
-  if (input.token) q = q.eq("access_token", input.token);
-
-  const { data, error } = await q.maybeSingle();
+  const { data, error } = await selectOrderByCodeOrToken(db, input, "public");
   if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
   if (!data) throw new DomainError("ORDER_NOT_FOUND", "Order not found");
   return data;
@@ -122,7 +108,7 @@ export const ordersRouter = createTRPCRouter({
         }
 
         try {
-          assertProofStoragePath(order.id, input.storagePath);
+          assertProofStoragePath(String(order.id), input.storagePath);
         } catch {
           throw new DomainError(
             "VALIDATION_ERROR",
@@ -133,7 +119,7 @@ export const ordersRouter = createTRPCRouter({
         const { data, error } = await ctx.db
           .from("payment_proofs")
           .insert({
-            order_id: order.id,
+            order_id: String(order.id),
             storage_path: input.storagePath,
           })
           .select("id, order_id, storage_path, uploaded_at")
