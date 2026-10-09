@@ -4,10 +4,21 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { ORDER_STATUS_LABEL, useAdminToken } from "@/lib/admin/auth";
-import { errorMessage } from "@/lib/errors";
+import { domainCode, errorMessage } from "@/lib/errors";
 import { formatArsCents } from "@/lib/format/money";
 import { proofMediaKind } from "@/lib/media/proof-kind";
+import {
+  canTransition,
+  type OrderStatus,
+} from "@/server/domain/orders/status";
 import { trpc } from "@/lib/trpc/client";
+
+function actionErrorMessage(err: unknown): string {
+  if (domainCode(err) === "INVALID_TRANSITION") {
+    return "Ese paso no aplica en el estado actual del pedido. Seguí el flujo en orden.";
+  }
+  return errorMessage(err);
+}
 
 export default function AdminPedidoDetailPage() {
   const token = useAdminToken();
@@ -48,6 +59,27 @@ export default function AdminPedidoDetailPage() {
     return [a.line1, a.line2, a.city, a.postalCode, a.province].filter(Boolean).join(", ");
   }, [order?.shipping_address]);
 
+  const rawShip = order?.shipping_method;
+  const shippingMethod =
+    rawShip === "andreani" || rawShip === "pickup" ? rawShip : undefined;
+  const status = (order?.status ?? "pendiente_pago") as OrderStatus;
+  const ctx =
+    shippingMethod === "pickup" || shippingMethod === "andreani"
+      ? ({ shippingMethod } as const)
+      : undefined;
+
+  const canConfirmPay =
+    !!order &&
+    order.payment_method !== "payway" &&
+    canTransition(status, "pago_confirmado");
+  const canStartPrep = !!order && canTransition(status, "preparando");
+  const canReadyPickup = !!order && canTransition(status, "listo_retiro", ctx);
+  const canShip = !!order && canTransition(status, "enviado", ctx);
+  const canDeliver = !!order && canTransition(status, "entregado", ctx);
+  const canCancel = !!order && canTransition(status, "cancelado", ctx);
+  const hasNextAction =
+    canConfirmPay || canStartPrep || canReadyPickup || canShip || canDeliver || canCancel;
+
   async function run(fn: () => Promise<unknown>, ok = "OK") {
     setBusy(true);
     setMsg(null);
@@ -59,7 +91,7 @@ export default function AdminPedidoDetailPage() {
       ]);
       setMsg(ok);
     } catch (e) {
-      setMsg(errorMessage(e));
+      setMsg(actionErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -87,6 +119,12 @@ export default function AdminPedidoDetailPage() {
 
   const kind = viewingProof ? proofMediaKind(viewingProof.storage_path) : "other";
   const signedUrl = proofUrlQ.data?.signedUrl;
+  const flowHint =
+    shippingMethod === "pickup"
+      ? "Flujo retiro: pago → preparando → listo retiro → entregado"
+      : shippingMethod === "andreani"
+        ? "Flujo envío: pago → preparando → enviado → entregado"
+        : null;
 
   return (
     <div className="space-y-4">
@@ -121,6 +159,7 @@ export default function AdminPedidoDetailPage() {
             Reserva hasta {new Date(order.reservation_expires_at).toLocaleString("es-AR")}
           </p>
         ) : null}
+        {flowHint ? <p className="mt-3 text-xs text-muted">{flowHint}</p> : null}
       </section>
 
       <section className="space-y-1 rounded-[16px] border border-border bg-surface p-4 text-sm shadow-sm md:p-5">
@@ -200,49 +239,79 @@ export default function AdminPedidoDetailPage() {
         )}
       </section>
 
-      {msg ? <p className="text-sm text-muted">{msg}</p> : null}
+      {msg ? (
+        <p
+          className={`text-sm ${
+            msg.toLowerCase().includes("no aplica") || msg.toLowerCase().includes("error")
+              ? "text-danger"
+              : "text-success"
+          }`}
+        >
+          {msg}
+        </p>
+      ) : null}
 
       <section className="space-y-2 pb-4">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Acciones</h2>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {order.payment_method !== "payway" ? (
-            <Action
-              label="Confirmar pago"
-              primary
-              disabled={busy}
-              onClick={() => run(() => confirmPay.mutateAsync({ id }), "Pago confirmado")}
-            />
-          ) : null}
-          <Action
-            label="Preparando"
-            disabled={busy}
-            onClick={() => run(() => startPrep.mutateAsync({ id }), "En preparación")}
-          />
-          <Action
-            label="Listo retiro"
-            disabled={busy}
-            onClick={() => run(() => readyPickup.mutateAsync({ id }), "Listo para retiro")}
-          />
-          <Action
-            label="Enviado"
-            disabled={busy}
-            onClick={() => run(() => shipped.mutateAsync({ id }), "Marcado enviado")}
-          />
-          <Action
-            label="Entregado"
-            disabled={busy}
-            onClick={() => run(() => delivered.mutateAsync({ id }), "Entregado")}
-          />
-          <Action
-            label="Cancelar"
-            danger
-            disabled={busy}
-            onClick={() => {
-              if (!window.confirm("¿Cancelar pedido y liberar stock?")) return;
-              void run(() => cancel.mutateAsync({ id }), "Cancelado");
-            }}
-          />
-        </div>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted">Próximo paso</h2>
+        {!hasNextAction ? (
+          <p className="rounded-[12px] border border-border bg-surface px-3 py-3 text-sm text-muted">
+            No hay acciones disponibles en este estado.
+          </p>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {canConfirmPay ? (
+              <Action
+                label="Confirmar pago"
+                primary
+                disabled={busy}
+                onClick={() => run(() => confirmPay.mutateAsync({ id }), "Pago confirmado")}
+              />
+            ) : null}
+            {canStartPrep ? (
+              <Action
+                label="Marcar preparando"
+                primary
+                disabled={busy}
+                onClick={() => run(() => startPrep.mutateAsync({ id }), "En preparación")}
+              />
+            ) : null}
+            {canReadyPickup ? (
+              <Action
+                label="Listo para retiro"
+                primary
+                disabled={busy}
+                onClick={() => run(() => readyPickup.mutateAsync({ id }), "Listo para retiro")}
+              />
+            ) : null}
+            {canShip ? (
+              <Action
+                label="Marcar enviado"
+                primary
+                disabled={busy}
+                onClick={() => run(() => shipped.mutateAsync({ id }), "Marcado enviado")}
+              />
+            ) : null}
+            {canDeliver ? (
+              <Action
+                label="Marcar entregado"
+                primary
+                disabled={busy}
+                onClick={() => run(() => delivered.mutateAsync({ id }), "Entregado")}
+              />
+            ) : null}
+            {canCancel ? (
+              <Action
+                label="Cancelar pedido"
+                danger
+                disabled={busy}
+                onClick={() => {
+                  if (!window.confirm("¿Cancelar pedido y liberar stock?")) return;
+                  void run(() => cancel.mutateAsync({ id }), "Cancelado");
+                }}
+              />
+            ) : null}
+          </div>
+        )}
       </section>
 
       {proofOpen && viewingProof ? (
@@ -325,17 +394,19 @@ export default function AdminPedidoDetailPage() {
             ) : null}
 
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={busy}
-                onClick={() => {
-                  setProofOpen(false);
-                  void run(() => confirmPay.mutateAsync({ id }), "Pago confirmado");
-                }}
-              >
-                Confirmar pago
-              </button>
+              {canConfirmPay ? (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={busy}
+                  onClick={() => {
+                    setProofOpen(false);
+                    void run(() => confirmPay.mutateAsync({ id }), "Pago confirmado");
+                  }}
+                >
+                  Confirmar pago
+                </button>
+              ) : null}
               <button type="button" className="btn btn-secondary" onClick={() => setProofOpen(false)}>
                 Cerrar
               </button>

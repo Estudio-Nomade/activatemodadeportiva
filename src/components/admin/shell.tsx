@@ -230,7 +230,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="admin-shell flex h-dvh max-h-dvh flex-col overflow-hidden bg-bg md:h-auto md:max-h-none md:min-h-dvh md:flex-row md:overflow-visible">
+    <div className="admin-shell flex h-dvh max-h-dvh flex-col overflow-hidden bg-bg md:flex-row">
       {/* Desktop sidebar */}
       <aside className="admin-sidebar hidden w-60 shrink-0 flex-col border-r border-border bg-surface md:flex lg:w-64">
         <div
@@ -283,8 +283,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Content column — scrolls; tab bar stays in flow at bottom (not position:fixed) */}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {/* Content column — only this pane scrolls (mobile + desktop) */}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <header className="admin-top sticky top-0 z-20 shrink-0 border-b border-border bg-surface md:static md:z-auto">
           <div
             className="flex items-center gap-3 px-3 py-2.5 sm:px-5 sm:py-3 md:px-6 md:py-4"
