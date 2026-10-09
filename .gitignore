@@ -51,6 +51,9 @@ next-env.d.ts
 # local git worktrees
 .worktrees/
 
+# local code intelligence index (must not ship / break Turbopack)
+.codegraph/
+
 # catch-all env dumps (keep !.env.example above effective)
 .env*.local
 .env.local.*
