@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { selectOrderByIdAdmin } from "@/server/domain/orders/order-select";
 import { assertProofStoragePath } from "@/server/domain/orders/public-order";
 import {
   cancelOrder,
@@ -49,23 +50,7 @@ export const adminOrdersRouter = createTRPCRouter({
   getById: adminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const { data, error } = await ctx.db
-        .from("orders")
-        .select(
-          `
-          id, code, access_token, status, customer_name, phone, email,
-          shipping_method, payment_method, subtotal_cents, discount_cents,
-          shipping_cents, total_cents, shipping_address, reservation_expires_at,
-          cancel_reason, created_at, updated_at, cancelled_at,
-          installments, payway_payment_id, payway_site_transaction_id,
-          order_items(id, product_name, color, size, unit_price_cents, qty, variant_id, sku),
-          payment_proofs(id, storage_path, uploaded_at),
-          stock_reservations(id, variant_id, qty, status, expires_at)
-        `,
-        )
-        .eq("id", input.id)
-        .maybeSingle();
-
+      const { data, error } = await selectOrderByIdAdmin(ctx.db, input.id);
       if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
       if (!data) throw new TRPCError({ code: "NOT_FOUND", message: "Order not found" });
       return data;

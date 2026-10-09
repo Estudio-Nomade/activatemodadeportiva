@@ -83,14 +83,20 @@ const order = await client.checkout.placeOrder.mutate({
 
 ### Payment proof upload
 
+Buyer flow on `/pedido` (transfer + `pendiente_pago`):
+
+1. Choose file (image/PDF) — local preview only.
+2. Tap **Enviar comprobante** → `createProofUploadUrl` → PUT signed URL → `uploadPaymentProof`.
+3. Server inserts `payment_proofs` row and best-effort emails `store_settings.contact_email` (admin ops).
+
 ```ts
 const upload = await client.orders.createProofUploadUrl.mutate({
-  token: accessToken, // or code
+  token, // or code
   fileName: "comprobante.jpg",
 });
-// PUT file to upload.signedUrl (Supabase signed upload)
+// PUT file to upload.signedUrl
 await client.orders.uploadPaymentProof.mutate({
-  token: accessToken,
+  token,
   storagePath: upload.path, // must be payment-proofs/{orderId}/...
 });
 ```

@@ -50,7 +50,9 @@ function TrackInner() {
   const [activeToken, setActiveToken] = useState(initialToken);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingProof, setPendingProof] = useState<File | null>(null);
 
+  const settings = trpc.settings.getPublic.useQuery();
   const byToken = trpc.orders.getByToken.useQuery(
     { token: activeToken },
     { enabled: !!activeToken },
@@ -61,8 +63,18 @@ function TrackInner() {
   );
 
   const order = (byToken.data ?? byCode.data) as TrackOrder | undefined;
-  const loading = byToken.isFetching || byCode.isFetching;
-  const err = byToken.error ?? byCode.error;
+  // Only surface the query that is actually enabled — disabled refetch() can
+  // leave a stale Zod "code too small" error on byCode while token view works.
+  const loading = activeToken
+    ? byToken.isFetching
+    : activeCode
+      ? byCode.isFetching
+      : false;
+  const err = activeToken
+    ? byToken.error
+    : activeCode
+      ? byCode.error
+      : null;
   const notFound =
     !!err && domainCode(err) === "ORDER_NOT_FOUND" && !loading && !order;
   const searched = !!(activeCode || activeToken);
@@ -86,37 +98,62 @@ function TrackInner() {
   async function onLookup(e: React.FormEvent) {
     e.preventDefault();
     setUploadMsg(null);
+    setPendingProof(null);
     setActiveToken("");
     setActiveCode(codeInput.trim());
   }
 
-  async function onUpload(file: File | null) {
-    if (!file || !order) return;
+  async function refreshTrackedOrder() {
+    // refetch() ignores `enabled` — never hit getByCode/getByToken with empty input
+    // (Zod min(1) → "Too small… path: [code|token]" after proof upload).
+    if (activeToken) {
+      await byToken.refetch();
+      return;
+    }
+    if (activeCode) {
+      await byCode.refetch();
+    }
+  }
+
+  function onPickProof(file: File | null) {
+    setUploadMsg(null);
+    setPendingProof(file);
+  }
+
+  async function onSendProof() {
+    if (!pendingProof || !order) return;
+    const orderCode = order.code?.trim() ?? "";
+    if (!tokenForActions && !orderCode) {
+      setUploadMsg("Falta el código o el link del pedido para subir el comprobante.");
+      return;
+    }
     setUploadMsg(null);
     try {
       const up = await createUpload.mutateAsync(
         tokenForActions
-          ? { token: tokenForActions, fileName: file.name }
-          : { code: order.code, fileName: file.name },
+          ? { token: tokenForActions, fileName: pendingProof.name }
+          : { code: orderCode, fileName: pendingProof.name },
       );
       const put = await fetch(up.signedUrl, {
         method: "PUT",
-        headers: { "Content-Type": file.type || "application/octet-stream" },
-        body: file,
+        headers: { "Content-Type": pendingProof.type || "application/octet-stream" },
+        body: pendingProof,
       });
       if (!put.ok) throw new Error("No se pudo subir el archivo");
       await confirmProof.mutateAsync(
         tokenForActions
           ? { token: tokenForActions, storagePath: up.path }
-          : { code: order.code, storagePath: up.path },
+          : { code: orderCode, storagePath: up.path },
       );
-      setUploadMsg("Comprobante subido.");
-      setToast("Comprobante subido correctamente");
-      await Promise.all([byToken.refetch(), byCode.refetch()]);
+      setPendingProof(null);
+      setUploadMsg("Comprobante enviado. Te avisamos cuando confirmemos el pago.");
+      setToast("Comprobante enviado");
+      if (orderCode && !codeInput.trim()) setCodeInput(orderCode);
+      await refreshTrackedOrder();
     } catch (e) {
       const code = domainCode(e);
       if (code === "ORDER_NOT_PENDING") setUploadMsg("El pedido ya no admite comprobante.");
-      else setUploadMsg(errorMessage(e, "Error al subir comprobante"));
+      else setUploadMsg(errorMessage(e, "Error al enviar comprobante"));
     }
   }
 
@@ -217,6 +254,7 @@ function TrackInner() {
 
           <OrderStatusBanner
             status={order.status}
+            paymentMethod={order.payment_method}
             shippingMethod={order.shipping_method}
             reservationExpiresAt={order.reservation_expires_at}
             cancelReason={order.cancel_reason}
@@ -289,24 +327,67 @@ function TrackInner() {
 
           {order.status === "pendiente_pago" && order.payment_method === "transfer" ? (
             <div className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
+              <p className="text-sm font-semibold">Transferencia</p>
+              {settings.data?.transfer_cbu_alias_text ? (
+                <div className="rounded-[12px] border border-border bg-bg px-3 py-2">
+                  <p className="text-xs text-muted">CBU / alias</p>
+                  <p className="font-semibold text-text">{settings.data.transfer_cbu_alias_text}</p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted">
+                  Te compartimos los datos de transferencia por email o WhatsApp si hace falta.
+                </p>
+              )}
               <p className="text-sm font-semibold">Subir comprobante</p>
               <p className="text-xs text-muted">
-                Imagen o PDF. Lo revisamos para confirmar el pago.
+                Elegí imagen o PDF y tocá Enviar. Avisamos a la tienda para revisar el pago.
               </p>
               <label className="flex min-h-12 cursor-pointer flex-col items-center justify-center gap-1 rounded-[12px] border border-dashed border-border bg-surface-soft px-4 py-4 text-sm font-semibold text-accent">
                 <input
                   type="file"
                   accept="image/*,.pdf"
                   className="sr-only"
+                  disabled={createUpload.isPending || confirmProof.isPending}
                   onChange={(e) => {
-                    void onUpload(e.target.files?.[0] ?? null);
+                    onPickProof(e.target.files?.[0] ?? null);
                     e.target.value = "";
                   }}
                 />
-                {createUpload.isPending || confirmProof.isPending
-                  ? "Subiendo…"
-                  : "Elegir archivo"}
+                {pendingProof ? "Cambiar archivo" : "Elegir archivo"}
               </label>
+              {pendingProof ? (
+                <div className="space-y-2 rounded-[12px] border border-border bg-bg px-3 py-3">
+                  <p className="truncate text-sm text-text" title={pendingProof.name}>
+                    {pendingProof.name}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {(pendingProof.size / 1024).toFixed(0)} KB · listo para enviar
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <button
+                      type="button"
+                      className="btn btn-primary !min-h-12 flex-1"
+                      disabled={createUpload.isPending || confirmProof.isPending}
+                      onClick={() => void onSendProof()}
+                    >
+                      {createUpload.isPending || confirmProof.isPending
+                        ? "Enviando…"
+                        : "Enviar comprobante"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary !min-h-12 sm:w-auto"
+                      disabled={createUpload.isPending || confirmProof.isPending}
+                      onClick={() => {
+                        setPendingProof(null);
+                        setUploadMsg(null);
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               {uploadMsg ? (
                 <p
                   className={`text-xs ${
@@ -323,6 +404,15 @@ function TrackInner() {
                   Ya hay {order.payment_proofs!.length} comprobante(s) cargado(s).
                 </p>
               ) : null}
+            </div>
+          ) : null}
+
+          {order.status === "pendiente_pago" && order.payment_method === "cash" ? (
+            <div className="space-y-2 rounded-[16px] border border-border bg-surface p-4">
+              <p className="text-sm font-semibold">Pago en efectivo</p>
+              <p className="text-xs text-muted">
+                Retirás en el local (San Manuel) y pagás ahí. Te confirmamos el pago cuando cobremos.
+              </p>
             </div>
           ) : null}
         </div>

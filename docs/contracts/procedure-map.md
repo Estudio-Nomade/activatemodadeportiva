@@ -84,18 +84,18 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "transfer" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null }` |
+| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "payway" \| "transfer" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null, installments?: positive int }` |
 | Output | `{ lines: { variantId, productId, productName, color, size, unitPriceCents, qty, available }[], subtotalCents, discountCents, shippingCents, totalCents }` |
-| Domain | merges duplicate variant lines; published products only; andreani requires address; stock + combo + pricing |
+| Domain | merges duplicate variant lines; published products only; andreani requires address; **cash requires pickup**; transfer/cash get payment discount; payway discount 0; stock + combo + pricing |
 
 ### `checkout.placeOrder`
 
 | | |
 |--|--|
 | Type | mutation |
-| Input | same as quote + `{ customerName, phone, email }` (andreani requires `shippingAddress` with `line1`, `city`, `postalCode`) |
-| Output | order row including `access_token` (only place this is returned to client besides email) |
-| Domain | merges lines; published only; atomic `place_order_tx`; 24h reserve; email `order_created` |
+| Input | same as quote + `{ customerName, phone, email, installments? }` (andreani requires `shippingAddress` with `line1`, `city`, `postalCode`; cash requires pickup) |
+| Output | order row including `access_token` (only place this is returned to client besides email); for **payway** may include `payment_link` / `link_error` |
+| Domain | merges lines; published only; atomic `place_order_tx`; 24h reserve; email `order_created`; payway creates hosted link after commit |
 
 ---
 
@@ -145,6 +145,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | `{ code? or token?, storagePath }` — path must match `payment-proofs/{orderId}/...` |
 | Output | `{ id, order_id, storage_path, uploaded_at }` |
 | Domain | only `pendiente_pago` |
+| Side effect | best-effort email to `store_settings.contact_email` (`payment_proof_received`) with CTA `/admin/pedidos/{id}`. No mail if contact empty. Proof row still commits if mail fails. |
 
 ---
 

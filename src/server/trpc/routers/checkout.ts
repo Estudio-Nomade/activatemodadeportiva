@@ -10,7 +10,8 @@ const lineSchema = z.object({
 });
 
 const shippingMethodSchema = z.enum(["pickup", "andreani"]);
-const paymentMethodSchema = z.enum(["payway"]);
+/** payway | transfer | cash. Cash requires pickup (PRD). */
+const paymentMethodSchema = z.enum(["payway", "transfer", "cash"]);
 
 const shippingAddressSchema = z
   .object({
@@ -23,6 +24,30 @@ const shippingAddressSchema = z
   })
   .passthrough();
 
+function refineCheckoutCombo(
+  val: {
+    shippingMethod: "pickup" | "andreani";
+    paymentMethod: "payway" | "transfer" | "cash";
+    shippingAddress?: unknown;
+  },
+  ctx: z.RefinementCtx,
+) {
+  if (val.shippingMethod === "andreani" && !val.shippingAddress) {
+    ctx.addIssue({
+      code: "custom",
+      message: "shippingAddress is required for andreani",
+      path: ["shippingAddress"],
+    });
+  }
+  if (val.paymentMethod === "cash" && val.shippingMethod !== "pickup") {
+    ctx.addIssue({
+      code: "custom",
+      message: "Cash payment requires pickup shipping",
+      path: ["paymentMethod"],
+    });
+  }
+}
+
 export const checkoutRouter = createTRPCRouter({
   quote: publicProcedure
     .input(
@@ -34,15 +59,7 @@ export const checkoutRouter = createTRPCRouter({
           shippingAddress: shippingAddressSchema.nullable().optional(),
           installments: z.number().int().positive().optional(),
         })
-        .superRefine((val, ctx) => {
-          if (val.shippingMethod === "andreani" && !val.shippingAddress) {
-            ctx.addIssue({
-              code: "custom",
-              message: "shippingAddress is required for andreani",
-              path: ["shippingAddress"],
-            });
-          }
-        }),
+        .superRefine(refineCheckoutCombo),
     )
     .mutation(async ({ ctx, input }) => {
       try {
@@ -73,15 +90,7 @@ export const checkoutRouter = createTRPCRouter({
           email: z.string().email(),
           shippingAddress: shippingAddressSchema.nullable().optional(),
         })
-        .superRefine((val, ctx) => {
-          if (val.shippingMethod === "andreani" && !val.shippingAddress) {
-            ctx.addIssue({
-              code: "custom",
-              message: "shippingAddress is required for andreani",
-              path: ["shippingAddress"],
-            });
-          }
-        }),
+        .superRefine(refineCheckoutCombo),
     )
     .mutation(async ({ ctx, input }) => {
       try {

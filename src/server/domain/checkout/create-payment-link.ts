@@ -1,5 +1,6 @@
 import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
+import { selectOrderForPaywayLink } from "@/server/domain/orders/order-select";
 import type { PaywayPort } from "@/server/payments/payway/port";
 
 export type CreatePaymentLinkDeps = {
@@ -17,17 +18,25 @@ export async function createPaymentLink(
   input: { token: string },
   deps: CreatePaymentLinkDeps,
 ): Promise<{ payment_link: string }> {
-  const { data: order, error } = await deps.db
-    .from("orders")
-    .select(
-      "id, code, email, status, payment_method, total_cents, access_token, reservation_expires_at, payway_site_transaction_id, payway_link_attempt, installments",
-    )
-    .eq("access_token", input.token)
-    .maybeSingle();
+  const { data: orderRaw, error } = await selectOrderForPaywayLink(deps.db, input.token);
 
-  if (error || !order) {
+  if (error || !orderRaw) {
     throw new DomainError("ORDER_NOT_FOUND", "Order not found");
   }
+
+  const order = orderRaw as {
+    id: string;
+    code: string;
+    email: string;
+    status: string;
+    payment_method: string;
+    total_cents: number;
+    access_token: string;
+    reservation_expires_at: string | null;
+    payway_site_transaction_id?: string | null;
+    payway_link_attempt?: number;
+    installments?: number;
+  };
 
   if (order.status !== "pendiente_pago") {
     throw new DomainError("ORDER_NOT_PENDING", "Order is not pending payment");

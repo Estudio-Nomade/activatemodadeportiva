@@ -20,6 +20,8 @@ export function buildEmailSubject(template: EmailTemplate): string {
       return "Pedido recibido — Activate Moda Deportiva";
     case "payment_confirmed":
       return "Pago confirmado — Activate Moda Deportiva";
+    case "payment_proof_received":
+      return "Comprobante recibido — Activate Moda Deportiva";
     case "ready_pickup":
       return "Listo para retiro — Activate Moda Deportiva";
     case "shipped":
@@ -31,6 +33,20 @@ export function buildEmailSubject(template: EmailTemplate): string {
     default:
       return "Activate Moda Deportiva";
   }
+}
+
+/** Subject with optional order code for admin ops mails. */
+export function buildEmailSubjectWithData(
+  template: EmailTemplate,
+  data: Record<string, unknown> = {},
+): string {
+  if (template === "payment_proof_received") {
+    const code = String(data.code ?? data.orderCode ?? "").trim();
+    return code
+      ? `Comprobante · ${code} — Activate`
+      : "Comprobante recibido — Activate Moda Deportiva";
+  }
+  return buildEmailSubject(template);
 }
 
 function formatMoney(cents: unknown): string {
@@ -48,6 +64,8 @@ function headline(template: EmailTemplate): string {
       return "¡Recibimos tu pedido!";
     case "payment_confirmed":
       return "Pago confirmado";
+    case "payment_proof_received":
+      return "Nuevo comprobante de transferencia";
     case "ready_pickup":
       return "Listo para retiro";
     case "shipped":
@@ -100,6 +118,20 @@ function bodyParagraphs(template: EmailTemplate, data: Record<string, unknown>):
         `Confirmamos el pago de tu pedido <strong style="color:${TEXT}">${safeCode}</strong>. Ya lo preparamos para envío o retiro.`,
       );
       break;
+    case "payment_proof_received": {
+      const customer = escapeHtml(String(data.customerName ?? data.customer_name ?? ""));
+      const total = formatMoney(data.totalCents ?? data.total_cents);
+      out.push(
+        `El cliente subió un comprobante para el pedido <strong style="color:${TEXT}">${safeCode}</strong>${
+          total ? ` (${escapeHtml(total)})` : ""
+        }.`,
+      );
+      if (customer) {
+        out.push(`Cliente: <strong style="color:${TEXT}">${customer}</strong>.`);
+      }
+      out.push("Revisalo en el panel de admin y confirmá el pago si corresponde.");
+      break;
+    }
     case "ready_pickup":
       out.push(
         `Tu pedido <strong style="color:${TEXT}">${safeCode}</strong> está listo para retirar en el local (San Manuel).`,
@@ -137,9 +169,14 @@ export function buildEmailHtml(
 ): string {
   const code = String(data.code ?? data.orderCode ?? "");
   const accessToken = String(data.accessToken ?? data.access_token ?? "");
+  const orderId = String(data.orderId ?? data.order_id ?? "");
   const appUrl = String(data.appUrl ?? process.env.NEXT_PUBLIC_APP_URL ?? "").replace(/\/$/, "");
   const magicLink =
     accessToken && appUrl ? `${appUrl}/pedido?token=${encodeURIComponent(accessToken)}` : "";
+  const adminLink =
+    template === "payment_proof_received" && orderId && appUrl
+      ? `${appUrl}/admin/pedidos/${encodeURIComponent(orderId)}`
+      : "";
   const logoUrl = appUrl ? `${appUrl}/brand/logo.png` : "";
   const title = headline(template);
   const paragraphs = bodyParagraphs(template, data)
@@ -149,11 +186,13 @@ export function buildEmailHtml(
     )
     .join("");
 
-  const cta = magicLink
+  const ctaHref = adminLink || magicLink;
+  const ctaLabel = adminLink ? "Ver en admin" : "Ver pedido";
+  const cta = ctaHref
     ? `<p style="margin:28px 0 8px;text-align:center">
-        <a href="${escapeHtml(magicLink)}" style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:14px 28px;border-radius:999px">Ver pedido</a>
+        <a href="${escapeHtml(ctaHref)}" style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:14px 28px;border-radius:999px">${ctaLabel}</a>
       </p>
-      <p style="margin:0 0 8px;text-align:center;font-size:12px;color:${MUTED}">O copiá este enlace:<br/><a href="${escapeHtml(magicLink)}" style="color:${ACCENT};word-break:break-all">${escapeHtml(magicLink)}</a></p>`
+      <p style="margin:0 0 8px;text-align:center;font-size:12px;color:${MUTED}">O copiá este enlace:<br/><a href="${escapeHtml(ctaHref)}" style="color:${ACCENT};word-break:break-all">${escapeHtml(ctaHref)}</a></p>`
     : code
       ? `<p style="margin:20px 0 0;font-size:14px;color:${MUTED}">Código de pedido: <strong style="color:${TEXT}">${escapeHtml(code)}</strong></p>`
       : "";
