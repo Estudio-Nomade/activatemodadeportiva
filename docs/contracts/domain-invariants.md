@@ -22,10 +22,10 @@ Order of operations:
 
 ### Payment × shipping combo
 
-- **payway** — card / hosted checkout; works with **pickup** or **andreani**. No payment-method discount.
-- **cash** — only with **pickup**. Same product % discount as legacy transfer (`payment_discount_bps`). Otherwise `INVALID_PAYMENT_SHIPPING_COMBO`.
-- **transfer** — still in domain/SQL (legacy); storefront checkout UI may not expose it until re-enabled.
-- **Installments** apply to **payway** only; must be in `store_settings.payway_installments` (or env fallback) → else `INSTALLMENTS_NOT_ALLOWED`. Cash is always 1.
+- **transfer** — CBU/alias + optional proof upload; works with **pickup** or **andreani**. Product % discount (`payment_discount_bps`).
+- **cash** — only with **pickup** (pay at local). Same product % discount. Else `INVALID_PAYMENT_SHIPPING_COMBO`.
+- **payway** — card / hosted checkout; works with **pickup** or **andreani**. **No** payment-method discount.
+- **Installments** apply to **payway** only; must be in `store_settings.payway_installments` (or env fallback) → else `INSTALLMENTS_NOT_ALLOWED`. Transfer/cash always installments = 1.
 
 **Never trust client-computed totals.** Quote and placeOrder recompute on the server.
 

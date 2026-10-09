@@ -10,8 +10,8 @@ const lineSchema = z.object({
 });
 
 const shippingMethodSchema = z.enum(["pickup", "andreani"]);
-/** Payway (card) + cash only with pickup (PRD). Transfer not re-enabled in this change. */
-const paymentMethodSchema = z.enum(["payway", "cash"]);
+/** payway | transfer | cash. Cash requires pickup (PRD). */
+const paymentMethodSchema = z.enum(["payway", "transfer", "cash"]);
 
 const shippingAddressSchema = z
   .object({
@@ -25,7 +25,11 @@ const shippingAddressSchema = z
   .passthrough();
 
 function refineCheckoutCombo(
-  val: { shippingMethod: "pickup" | "andreani"; paymentMethod: "payway" | "cash"; shippingAddress?: unknown },
+  val: {
+    shippingMethod: "pickup" | "andreani";
+    paymentMethod: "payway" | "transfer" | "cash";
+    shippingAddress?: unknown;
+  },
   ctx: z.RefinementCtx,
 ) {
   if (val.shippingMethod === "andreani" && !val.shippingAddress) {

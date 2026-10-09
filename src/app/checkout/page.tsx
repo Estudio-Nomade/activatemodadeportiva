@@ -10,7 +10,7 @@ import { formatArsCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
 type Ship = "pickup" | "andreani";
-type Pay = "payway" | "cash";
+type Pay = "payway" | "transfer" | "cash";
 
 type FieldErrors = Partial<
   Record<"customerName" | "phone" | "email" | "line1" | "city" | "postalCode" | "photon", string>
@@ -18,6 +18,11 @@ type FieldErrors = Partial<
 
 function isEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+
+function discountPctLabel(bps: number | undefined): string {
+  if (!bps || bps <= 0) return "";
+  return ` · ${Math.floor(bps / 100)}% de descuento`;
 }
 
 export default function CheckoutPage() {
@@ -28,7 +33,7 @@ export default function CheckoutPage() {
   const placeMut = trpc.checkout.placeOrder.useMutation();
 
   const [shippingMethod, setShippingMethod] = useState<Ship>("pickup");
-  const [paymentMethod, setPaymentMethod] = useState<Pay>("payway");
+  const [paymentMethod, setPaymentMethod] = useState<Pay>("transfer");
   const [installmentsChoice, setInstallmentsChoice] = useState<number | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
@@ -52,14 +57,14 @@ export default function CheckoutPage() {
       ? installmentsChoice
       : (installmentOptions[0] ?? 1);
 
-  // Cash only with pickup — if shipping is Andreani, force payway for quote/place.
+  // Cash only with pickup. Transfer + Payway work with either shipping method.
   const effectivePayment: Pay =
-    shippingMethod === "pickup" ? paymentMethod : "payway";
+    paymentMethod === "cash" && shippingMethod !== "pickup" ? "transfer" : paymentMethod;
 
   function selectShipping(next: Ship) {
     setShippingMethod(next);
     if (next !== "pickup" && paymentMethod === "cash") {
-      setPaymentMethod("payway");
+      setPaymentMethod("transfer");
     }
   }
 
@@ -346,20 +351,23 @@ export default function CheckoutPage() {
 
         <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
           <h2 className="font-bold">Medio de pago</h2>
+
           <label className="flex min-h-12 items-center gap-3">
             <input
               type="radio"
               name="pay"
-              checked={effectivePayment === "payway"}
-              onChange={() => setPaymentMethod("payway")}
+              checked={effectivePayment === "transfer"}
+              onChange={() => setPaymentMethod("transfer")}
             />
             <span>
-              <span className="font-semibold">Tarjeta / Payway</span>
+              <span className="font-semibold">Transferencia</span>
               <span className="mt-0.5 block text-xs text-muted">
-                Formulario seguro online
+                CBU/alias al confirmar
+                {discountPctLabel(settings.data?.payment_discount_bps)}
               </span>
             </span>
           </label>
+
           {shippingMethod === "pickup" ? (
             <label className="flex min-h-12 items-center gap-3">
               <input
@@ -371,18 +379,32 @@ export default function CheckoutPage() {
               <span>
                 <span className="font-semibold">Efectivo al retirar</span>
                 <span className="mt-0.5 block text-xs text-muted">
-                  Pagás en el local · San Manuel
-                  {settings.data?.payment_discount_bps
-                    ? ` · ${Math.floor(settings.data.payment_discount_bps / 100)}% de descuento`
-                    : ""}
+                  Solo retiro en local · San Manuel
+                  {discountPctLabel(settings.data?.payment_discount_bps)}
                 </span>
               </span>
             </label>
           ) : (
             <p className="text-xs text-muted">
-              Efectivo solo está disponible si elegís retiro en local.
+              Efectivo solo con retiro en local. Con Andreani podés pagar por transferencia o
+              tarjeta.
             </p>
           )}
+
+          <label className="flex min-h-12 items-center gap-3">
+            <input
+              type="radio"
+              name="pay"
+              checked={effectivePayment === "payway"}
+              onChange={() => setPaymentMethod("payway")}
+            />
+            <span>
+              <span className="font-semibold">Tarjeta / Payway</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                Formulario seguro online · sin descuento por transferencia
+              </span>
+            </span>
+          </label>
 
           {effectivePayment === "payway" ? (
             <div className="field border-t border-border pt-3">
@@ -400,11 +422,27 @@ export default function CheckoutPage() {
                 ))}
               </select>
             </div>
-          ) : (
+          ) : null}
+
+          {effectivePayment === "transfer" ? (
+            <div className="space-y-1 border-t border-border pt-3 text-sm text-muted">
+              <p>
+                Al confirmar te mostramos el CBU/alias y podés subir el comprobante desde el
+                seguimiento del pedido.
+              </p>
+              {settings.data?.transfer_cbu_alias_text ? (
+                <p className="rounded-[12px] border border-border bg-bg px-3 py-2 font-semibold text-text">
+                  {settings.data.transfer_cbu_alias_text}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {effectivePayment === "cash" ? (
             <p className="border-t border-border pt-3 text-sm text-muted">
-              El pedido queda reservado. Coordinamos el retiro y el cobro en efectivo en el local.
+              El pedido queda reservado. Pagás en efectivo al retirar en el local.
             </p>
-          )}
+          ) : null}
         </section>
       </div>
 
@@ -454,7 +492,11 @@ export default function CheckoutPage() {
                 <div className="flex justify-between">
                   <span>
                     Descuento
-                    {effectivePayment === "cash" ? " (efectivo)" : ""}
+                    {effectivePayment === "cash"
+                      ? " (efectivo)"
+                      : effectivePayment === "transfer"
+                        ? " (transferencia)"
+                        : ""}
                   </span>
                   <span>−{formatArsCents(quote.discountCents)}</span>
                 </div>
@@ -491,7 +533,9 @@ export default function CheckoutPage() {
               : "Confirmando…"
             : effectivePayment === "payway"
               ? "Pagar con Payway"
-              : "Confirmar pedido (efectivo)"}
+              : effectivePayment === "transfer"
+                ? "Confirmar pedido (transferencia)"
+                : "Confirmar pedido (efectivo)"}
         </button>
         <Link href="/carrito" className="btn btn-ghost">
           Volver al carrito

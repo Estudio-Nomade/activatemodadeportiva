@@ -84,9 +84,9 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "payway" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null, installments?: positive int }` |
+| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "payway" \| "transfer" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null, installments?: positive int }` |
 | Output | `{ lines: { variantId, productId, productName, color, size, unitPriceCents, qty, available }[], subtotalCents, discountCents, shippingCents, totalCents }` |
-| Domain | merges duplicate variant lines; published products only; andreani requires address; **cash requires pickup**; stock + combo + pricing |
+| Domain | merges duplicate variant lines; published products only; andreani requires address; **cash requires pickup**; transfer/cash get payment discount; payway discount 0; stock + combo + pricing |
 
 ### `checkout.placeOrder`
 

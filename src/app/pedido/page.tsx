@@ -51,6 +51,7 @@ function TrackInner() {
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  const settings = trpc.settings.getPublic.useQuery();
   const byToken = trpc.orders.getByToken.useQuery(
     { token: activeToken },
     { enabled: !!activeToken },
@@ -290,6 +291,17 @@ function TrackInner() {
 
           {order.status === "pendiente_pago" && order.payment_method === "transfer" ? (
             <div className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
+              <p className="text-sm font-semibold">Transferencia</p>
+              {settings.data?.transfer_cbu_alias_text ? (
+                <div className="rounded-[12px] border border-border bg-bg px-3 py-2">
+                  <p className="text-xs text-muted">CBU / alias</p>
+                  <p className="font-semibold text-text">{settings.data.transfer_cbu_alias_text}</p>
+                </div>
+              ) : (
+                <p className="text-xs text-muted">
+                  Te compartimos los datos de transferencia por email o WhatsApp si hace falta.
+                </p>
+              )}
               <p className="text-sm font-semibold">Subir comprobante</p>
               <p className="text-xs text-muted">
                 Imagen o PDF. Lo revisamos para confirmar el pago.
