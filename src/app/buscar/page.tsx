@@ -30,6 +30,15 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
     router.replace(href, { scroll: false });
   }
 
+  const products = results.data?.products ?? [];
+  const categories = results.data?.categories ?? [];
+  const hasProducts = products.length > 0;
+  const hasCategories = categories.length > 0;
+  const empty =
+    submitted.length >= 1 && !results.isLoading && !hasProducts && !hasCategories;
+  const onlyEmptyCategories =
+    submitted.length >= 1 && !results.isLoading && !hasProducts && hasCategories;
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8 lg:py-8">
       <form
@@ -71,7 +80,7 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
         <p className="mt-6 text-sm text-muted">Buscando…</p>
       ) : null}
 
-      {submitted && !results.isLoading && (results.data?.length ?? 0) === 0 ? (
+      {empty ? (
         <div className="mt-8 space-y-4">
           <p className="text-sm text-text">
             No encontramos resultados para “{submitted}”.
@@ -90,18 +99,49 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
         </div>
       ) : null}
 
-      {submitted && !results.isLoading && (results.data?.length ?? 0) > 0 ? (
-        <p className="mt-6 text-sm text-muted">
-          {results.data!.length} resultado{results.data!.length === 1 ? "" : "s"} para “
-          {submitted}”
-        </p>
+      {hasCategories ? (
+        <div className="mt-8">
+          <p className="text-sm font-semibold text-text">Categorías</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                href={`/c/${c.slug}`}
+                className="chip uppercase tracking-wide"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+          {onlyEmptyCategories ? (
+            <p className="mt-4 text-sm text-muted">
+              Todavía no hay productos publicados en{" "}
+              {categories.length === 1 ? (
+                <>
+                  “{categories[0]!.name}”. Podés entrar a la categoría o seguir
+                  buscando.
+                </>
+              ) : (
+                "estas categorías. Podés entrar a cada una o seguir buscando."
+              )}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
-        {(results.data ?? []).map((p) => (
-          <ProductCard key={p.id} product={p} soldOut={p.is_sold_out} />
-        ))}
-      </div>
+      {hasProducts ? (
+        <>
+          <p className="mt-6 text-sm text-muted">
+            {products.length} producto{products.length === 1 ? "" : "s"} para “
+            {submitted}”
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+            {products.map((p) => (
+              <ProductCard key={p.id} product={p} soldOut={p.is_sold_out} />
+            ))}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

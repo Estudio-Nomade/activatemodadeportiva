@@ -113,8 +113,10 @@ export function HeaderSearch({ variant, onOpenChange }: HeaderSearchProps) {
   }
 
   const showPanel = open && debounced.length >= 1;
-  const items = (results.data ?? []).slice(0, PANEL_LIMIT);
-  const total = results.data?.length ?? 0;
+  const productHits = results.data?.products ?? [];
+  const categoryHits = results.data?.categories ?? [];
+  const items = productHits.slice(0, PANEL_LIMIT);
+  const total = productHits.length;
   const isMobile = variant === "mobile";
 
   const fieldOpenClass = isMobile
@@ -198,47 +200,84 @@ export function HeaderSearch({ variant, onOpenChange }: HeaderSearchProps) {
         >
           {results.isLoading ? (
             <p className="px-4 py-3 text-sm text-muted">Buscando…</p>
-          ) : items.length === 0 ? (
+          ) : items.length === 0 && categoryHits.length === 0 ? (
             <p className="px-4 py-3 text-sm text-muted">
               No hay resultados para “{debounced}”.
             </p>
           ) : (
-            <ul className="max-h-[min(360px,50vh)] overflow-y-auto py-1">
-              {items.map((p) => {
-                const price = unitPriceCents(p);
-                const imgUrl = primaryProductImageUrl(p.product_images);
-                return (
-                  <li key={p.id}>
-                    <Link
-                      href={`/p/${p.slug}`}
-                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-soft"
-                      onClick={close}
-                    >
-                      <div className="h-12 w-10 shrink-0 overflow-hidden rounded-md bg-surface-soft">
-                        <ProductImage
-                          url={imgUrl}
-                          alt={p.name}
-                          className="h-full w-full"
-                          imgClassName="h-full w-full object-cover"
-                        />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-text">{p.name}</p>
-                        <p className="text-xs font-bold text-text">{formatArsCents(price)}</p>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="max-h-[min(360px,50vh)] overflow-y-auto">
+              {categoryHits.length > 0 ? (
+                <ul className="border-b border-border py-1">
+                  {categoryHits.slice(0, 4).map((c) => (
+                    <li key={c.id}>
+                      <Link
+                        href={`/c/${c.slug}`}
+                        className="flex items-center gap-2 px-3 py-2.5 hover:bg-surface-soft"
+                        onClick={close}
+                      >
+                        <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                          Cat.
+                        </span>
+                        <span className="truncate text-sm font-semibold text-text">
+                          {c.name}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {items.length === 0 && categoryHits.length > 0 ? (
+                <p className="px-4 py-3 text-sm text-muted">
+                  Todavía no hay productos en esta categoría.
+                </p>
+              ) : null}
+              {items.length > 0 ? (
+                <ul className="py-1">
+                  {items.map((p) => {
+                    const price = unitPriceCents(p);
+                    const imgUrl = primaryProductImageUrl(p.product_images);
+                    return (
+                      <li key={p.id}>
+                        <Link
+                          href={`/p/${p.slug}`}
+                          className="flex items-center gap-3 px-3 py-2.5 hover:bg-surface-soft"
+                          onClick={close}
+                        >
+                          <div className="h-12 w-10 shrink-0 overflow-hidden rounded-md bg-surface-soft">
+                            <ProductImage
+                              url={imgUrl}
+                              alt={p.name}
+                              className="h-full w-full"
+                              imgClassName="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold text-text">
+                              {p.name}
+                            </p>
+                            <p className="text-xs font-bold text-text">
+                              {formatArsCents(price)}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </div>
           )}
-          {total > 0 ? (
+          {total > 0 || categoryHits.length > 0 ? (
             <Link
               href={buildSearchHref(debounced)}
               className="block border-t border-border px-4 py-2.5 text-center text-sm font-semibold text-accent hover:bg-surface-soft"
               onClick={close}
             >
-              {total > PANEL_LIMIT ? `Ver todos (${total})` : "Ver todos"}
+              {total > PANEL_LIMIT
+                ? `Ver todos (${total})`
+                : total > 0
+                  ? "Ver todos"
+                  : "Ver en búsqueda"}
             </Link>
           ) : debounced && !results.isLoading ? (
             <Link

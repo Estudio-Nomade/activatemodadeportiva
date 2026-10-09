@@ -61,7 +61,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 |--|--|
 | Type | query |
 | Input | `{ q: string }` (min 1) |
-| Output | published products matching name or category name (deduped) + `product_images` + `is_sold_out: boolean` |
+| Output | `{ products, categories }` — `products`: published products matching name **or** category name/slug (matched categories expand to subtree; deduped) + `product_images` + `is_sold_out`; `categories`: matching category rows `{ id, name, slug, parent_id }` (even when product list is empty) |
 
 ---
 

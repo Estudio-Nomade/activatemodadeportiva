@@ -2,6 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { variantsWithAvailability } from "@/server/domain/catalog/availability";
 import { categoryIdsInSubtree } from "@/server/domain/catalog/category-tree";
+import {
+  categoriesMatchingQuery,
+  productCategoryIdsForSearch,
+} from "@/server/domain/catalog/search-match";
 import { isProductSoldOut } from "@/server/domain/catalog/sold-out";
 import { withImageUrls } from "@/lib/media/product-image";
 import { mapSizeGuide } from "@/lib/media/size-guide";
@@ -171,7 +175,28 @@ export const catalogRouter = createTRPCRouter({
   search: publicProcedure
     .input(z.object({ q: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      const term = `%${input.q}%`;
+      const term = `%${input.q.trim()}%`;
+
+      const { data: allCats, error: allCatsError } = await ctx.db
+        .from("categories")
+        .select("id, name, slug, parent_id, sort_order")
+        .order("sort_order", { ascending: true });
+
+      if (allCatsError) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: allCatsError.message,
+        });
+      }
+
+      const categoryRows = (allCats ?? []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        parent_id: c.parent_id,
+      }));
+      const matchedCategories = categoriesMatchingQuery(categoryRows, input.q);
+      const productCatIds = productCategoryIdsForSearch(categoryRows, matchedCategories);
 
       const { data: byName, error: nameError } = await ctx.db
         .from("products")
@@ -183,23 +208,13 @@ export const catalogRouter = createTRPCRouter({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: nameError.message });
       }
 
-      const { data: categories, error: catError } = await ctx.db
-        .from("categories")
-        .select("id")
-        .ilike("name", term);
-
-      if (catError) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: catError.message });
-      }
-
       let byCategory: NonNullable<typeof byName> = [];
-      const catIds = (categories ?? []).map((c) => c.id);
-      if (catIds.length) {
+      if (productCatIds.length) {
         const { data, error } = await ctx.db
           .from("products")
           .select(PRODUCT_LIST_SELECT)
           .eq("is_published", true)
-          .in("category_id", catIds);
+          .in("category_id", productCatIds);
         if (error) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
         }
@@ -211,7 +226,7 @@ export const catalogRouter = createTRPCRouter({
         if (p) map.set(p.id, p);
       }
       const rows = Array.from(map.values());
-      return Promise.all(
+      const products = await Promise.all(
         rows.map(async (row) => {
           const variants = await variantsWithAvailability(
             ctx.db,
@@ -233,5 +248,15 @@ export const catalogRouter = createTRPCRouter({
           };
         }),
       );
+
+      return {
+        products,
+        categories: matchedCategories.map((c) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          parent_id: c.parent_id,
+        })),
+      };
     }),
 });
