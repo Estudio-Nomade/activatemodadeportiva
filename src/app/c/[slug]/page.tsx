@@ -52,12 +52,12 @@ export default function CategoryPage() {
             <p className="mt-2 text-sm text-muted">
               Todavía no hay artículos publicados en esta categoría.
             </p>
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              <Link href="/" className="btn btn-secondary max-w-[200px]">
+            <div className="mt-5 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+              <Link href="/" className="btn btn-secondary btn-inline">
                 Ir al inicio
               </Link>
-              <Link href="/buscar" className="btn btn-ghost max-w-[200px]">
-                Buscar
+              <Link href="/buscar" className="btn btn-ghost btn-inline">
+                Buscar productos
               </Link>
             </div>
           </div>

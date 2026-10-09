@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
+import { IconSearch } from "@/components/store/icons";
 import { ProductCard } from "@/components/store/product-card";
 import { trpc } from "@/lib/trpc/client";
 
@@ -31,25 +32,39 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8 lg:py-8">
-      <form className="flex gap-2" onSubmit={onSubmit} role="search">
-        <input
-          ref={inputRef}
-          type="search"
-          name="q"
-          className="min-h-12 flex-1 rounded-[12px] border border-border bg-surface px-4 text-base text-text outline-none placeholder:text-muted focus:border-accent"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Calza, medias, remera…"
-          autoComplete="off"
-          aria-label="Buscar productos"
-        />
-        <button type="submit" className="btn btn-primary w-auto shrink-0 px-5 sm:px-6">
+      <form
+        className="page-search mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-2"
+        onSubmit={onSubmit}
+        role="search"
+      >
+        <div className="relative min-w-0 flex-1">
+          <span
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
+            aria-hidden
+          >
+            <IconSearch size={18} />
+          </span>
+          <input
+            ref={inputRef}
+            type="search"
+            name="q"
+            className="min-h-12 w-full rounded-[12px] border border-border bg-surface py-3 pl-11 pr-4 text-base text-text outline-none placeholder:text-muted focus:border-accent"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Calza, medias, remera…"
+            autoComplete="off"
+            aria-label="Buscar productos"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary btn-inline shrink-0 px-6">
           Buscar
         </button>
       </form>
 
       {!submitted ? (
-        <p className="mt-6 text-sm text-muted">Escribí un producto o categoría para buscar.</p>
+        <p className="mx-auto mt-6 max-w-xl text-sm text-muted">
+          Escribí un producto o categoría para buscar.
+        </p>
       ) : null}
 
       {submitted && results.isLoading ? (
@@ -102,8 +117,8 @@ export default function SearchPage() {
     <Suspense
       fallback={
         <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
-          <div className="h-12 animate-pulse rounded-[12px] bg-surface-soft" />
-          <p className="mt-6 text-sm text-muted">Cargando…</p>
+          <div className="mx-auto h-12 max-w-xl animate-pulse rounded-[12px] bg-surface-soft" />
+          <p className="mx-auto mt-6 max-w-xl text-sm text-muted">Cargando…</p>
         </div>
       }
     >
