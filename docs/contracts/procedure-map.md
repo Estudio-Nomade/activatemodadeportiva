@@ -145,6 +145,7 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | Input | `{ code? or token?, storagePath }` — path must match `payment-proofs/{orderId}/...` |
 | Output | `{ id, order_id, storage_path, uploaded_at }` |
 | Domain | only `pendiente_pago` |
+| Side effect | best-effort email to `store_settings.contact_email` (`payment_proof_received`) with CTA `/admin/pedidos/{id}`. No mail if contact empty. Proof row still commits if mail fails. |
 
 ---
 

@@ -7,6 +7,7 @@ import {
   assertProofStoragePath,
   toPublicOrderByCode,
 } from "@/server/domain/orders/public-order";
+import type { EmailPort } from "@/server/email/port";
 import { createTRPCRouter, publicProcedure, rethrowDomain } from "../init";
 
 async function findOrderByCodeOrToken(
@@ -21,6 +22,37 @@ async function findOrderByCodeOrToken(
   if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
   if (!data) throw new DomainError("ORDER_NOT_FOUND", "Order not found");
   return data;
+}
+
+/** Best-effort ops mail when a buyer uploads a transfer proof. */
+async function notifyAdminPaymentProof(
+  db: ServiceClient,
+  email: EmailPort,
+  order: {
+    id: string;
+    code: string;
+    customer_name: string;
+    total_cents: number;
+  },
+) {
+  const { data: settings } = await db
+    .from("store_settings")
+    .select("contact_email")
+    .eq("id", 1)
+    .maybeSingle();
+  const to = String(settings?.contact_email ?? "").trim();
+  if (!to || !to.includes("@")) return;
+
+  await email.send({
+    template: "payment_proof_received",
+    to,
+    data: {
+      orderId: order.id,
+      code: order.code,
+      customerName: order.customer_name,
+      totalCents: order.total_cents,
+    },
+  });
 }
 
 export const ordersRouter = createTRPCRouter({
@@ -128,6 +160,18 @@ export const ordersRouter = createTRPCRouter({
         if (error) {
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
         }
+
+        try {
+          await notifyAdminPaymentProof(ctx.db, ctx.email, {
+            id: String(order.id),
+            code: String(order.code),
+            customer_name: String(order.customer_name ?? ""),
+            total_cents: Number(order.total_cents ?? 0),
+          });
+        } catch {
+          // best-effort; proof row already saved
+        }
+
         return data;
       } catch (e) {
         rethrowDomain(e);

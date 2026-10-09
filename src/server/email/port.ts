@@ -1,6 +1,7 @@
 export type EmailTemplate =
   | "order_created"
   | "payment_confirmed"
+  | "payment_proof_received"
   | "ready_pickup"
   | "shipped"
   | "delivered"

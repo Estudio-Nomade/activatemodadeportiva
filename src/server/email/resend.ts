@@ -1,6 +1,6 @@
 import { Resend } from "resend";
 import type { EmailPort } from "./port";
-import { buildEmailHtml, buildEmailSubject } from "./templates";
+import { buildEmailHtml, buildEmailSubjectWithData } from "./templates";
 
 export function createResendEmail(): EmailPort {
   const apiKey = process.env.RESEND_API_KEY;
@@ -16,7 +16,7 @@ export function createResendEmail(): EmailPort {
       await resend.emails.send({
         from,
         to,
-        subject: buildEmailSubject(template),
+        subject: buildEmailSubjectWithData(template, data),
         html: buildEmailHtml(template, { ...data, appUrl }),
       });
     },
