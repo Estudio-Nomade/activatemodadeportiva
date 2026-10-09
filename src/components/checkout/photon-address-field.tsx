@@ -28,7 +28,7 @@ export function PhotonAddressField({
   disabled,
   error,
   inputId,
-  label = "Buscar dirección (Photon)",
+  label = "Buscar dirección",
 }: Props) {
   const autoId = useId();
   const id = inputId ?? autoId;

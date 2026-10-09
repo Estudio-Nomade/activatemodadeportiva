@@ -312,7 +312,8 @@ export default function CheckoutPage() {
               </div>
               <Field id="province" label="Provincia" value={province} onChange={setProvince} />
               <p className="text-xs text-muted">
-                Buscá con Photon y revisá/ajustá los campos. CP es obligatorio para despacho.
+                Buscá tu dirección y revisá o ajustá los campos. El código postal es obligatorio para
+                el despacho.
               </p>
             </div>
           ) : null}
