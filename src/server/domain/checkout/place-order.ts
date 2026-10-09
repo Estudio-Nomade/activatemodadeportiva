@@ -86,11 +86,20 @@ export async function placeOrder(
   assertShippingAddress(input.shippingMethod, input.shippingAddress);
   const lines = mergeLinesByVariant(input.lines);
 
-  const { data: settings, error: settingsError } = await deps.db
-    .from("store_settings")
-    .select("payway_installments, transfer_cbu_alias_text")
-    .eq("id", 1)
-    .single();
+  const settingsSelect = async (columns: string) =>
+    deps.db.from("store_settings").select(columns).eq("id", 1).single();
+
+  let { data: settings, error: settingsError } = await settingsSelect(
+    "payway_installments, transfer_cbu_alias_text",
+  );
+
+  // Cloud may lag payway migration — still allow transfer/cash checkout.
+  if (
+    settingsError &&
+    (settingsError.message ?? "").toLowerCase().includes("payway_installments")
+  ) {
+    ({ data: settings, error: settingsError } = await settingsSelect("transfer_cbu_alias_text"));
+  }
 
   if (settingsError || !settings) {
     throw new DomainError("VALIDATION_ERROR", "Store settings not found");

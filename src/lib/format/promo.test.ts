@@ -18,7 +18,7 @@ describe("discountPercentFromBps", () => {
 
 describe("formatPromoBarCopy", () => {
   it("builds uppercase discount line from bps", () => {
-    expect(formatPromoBarCopy(1000)).toBe("10% DE DESCUENTO");
+    expect(formatPromoBarCopy(1000)).toBe("10% DE DESCUENTO CON TRANSFERENCIA");
   });
 
   it("returns empty when discount is zero", () => {
