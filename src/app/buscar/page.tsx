@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useEffect, useRef, useState } from "react";
+import { IconSearch } from "@/components/store/icons";
 import { ProductCard } from "@/components/store/product-card";
 import { trpc } from "@/lib/trpc/client";
 
@@ -29,34 +30,57 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
     router.replace(href, { scroll: false });
   }
 
+  const products = results.data?.products ?? [];
+  const categories = results.data?.categories ?? [];
+  const hasProducts = products.length > 0;
+  const hasCategories = categories.length > 0;
+  const empty =
+    submitted.length >= 1 && !results.isLoading && !hasProducts && !hasCategories;
+  const onlyEmptyCategories =
+    submitted.length >= 1 && !results.isLoading && !hasProducts && hasCategories;
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8 lg:py-8">
-      <form className="flex gap-2" onSubmit={onSubmit} role="search">
-        <input
-          ref={inputRef}
-          type="search"
-          name="q"
-          className="min-h-12 flex-1 rounded-[12px] border border-border bg-surface px-4 text-base text-text outline-none placeholder:text-muted focus:border-accent"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Calza, medias, remera…"
-          autoComplete="off"
-          aria-label="Buscar productos"
-        />
-        <button type="submit" className="btn btn-primary w-auto shrink-0 px-5 sm:px-6">
+      <form
+        className="page-search mx-auto flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-2"
+        onSubmit={onSubmit}
+        role="search"
+      >
+        <div className="relative min-w-0 flex-1">
+          <span
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted"
+            aria-hidden
+          >
+            <IconSearch size={18} />
+          </span>
+          <input
+            ref={inputRef}
+            type="search"
+            name="q"
+            className="min-h-12 w-full rounded-[12px] border border-border bg-surface py-3 pl-11 pr-4 text-base text-text outline-none placeholder:text-muted focus:border-accent"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Calza, medias, remera…"
+            autoComplete="off"
+            aria-label="Buscar productos"
+          />
+        </div>
+        <button type="submit" className="btn btn-primary btn-inline shrink-0 px-6">
           Buscar
         </button>
       </form>
 
       {!submitted ? (
-        <p className="mt-6 text-sm text-muted">Escribí un producto o categoría para buscar.</p>
+        <p className="mx-auto mt-6 max-w-xl text-sm text-muted">
+          Escribí un producto o categoría para buscar.
+        </p>
       ) : null}
 
       {submitted && results.isLoading ? (
         <p className="mt-6 text-sm text-muted">Buscando…</p>
       ) : null}
 
-      {submitted && !results.isLoading && (results.data?.length ?? 0) === 0 ? (
+      {empty ? (
         <div className="mt-8 space-y-4">
           <p className="text-sm text-text">
             No encontramos resultados para “{submitted}”.
@@ -75,18 +99,49 @@ function SearchPageInner({ initialQ }: { initialQ: string }) {
         </div>
       ) : null}
 
-      {submitted && !results.isLoading && (results.data?.length ?? 0) > 0 ? (
-        <p className="mt-6 text-sm text-muted">
-          {results.data!.length} resultado{results.data!.length === 1 ? "" : "s"} para “
-          {submitted}”
-        </p>
+      {hasCategories ? (
+        <div className="mt-8">
+          <p className="text-sm font-semibold text-text">Categorías</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                href={`/c/${c.slug}`}
+                className="chip uppercase tracking-wide"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </div>
+          {onlyEmptyCategories ? (
+            <p className="mt-4 text-sm text-muted">
+              Todavía no hay productos publicados en{" "}
+              {categories.length === 1 ? (
+                <>
+                  “{categories[0]!.name}”. Podés entrar a la categoría o seguir
+                  buscando.
+                </>
+              ) : (
+                "estas categorías. Podés entrar a cada una o seguir buscando."
+              )}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
-        {(results.data ?? []).map((p) => (
-          <ProductCard key={p.id} product={p} soldOut={p.is_sold_out} />
-        ))}
-      </div>
+      {hasProducts ? (
+        <>
+          <p className="mt-6 text-sm text-muted">
+            {products.length} producto{products.length === 1 ? "" : "s"} para “
+            {submitted}”
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+            {products.map((p) => (
+              <ProductCard key={p.id} product={p} soldOut={p.is_sold_out} />
+            ))}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -102,8 +157,8 @@ export default function SearchPage() {
     <Suspense
       fallback={
         <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
-          <div className="h-12 animate-pulse rounded-[12px] bg-surface-soft" />
-          <p className="mt-6 text-sm text-muted">Cargando…</p>
+          <div className="mx-auto h-12 max-w-xl animate-pulse rounded-[12px] bg-surface-soft" />
+          <p className="mx-auto mt-6 max-w-xl text-sm text-muted">Cargando…</p>
         </div>
       }
     >
