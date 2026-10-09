@@ -105,11 +105,15 @@ export async function placeOrder(
     throw new DomainError("VALIDATION_ERROR", "Store settings not found");
   }
 
-  const installments = input.installments ?? 1;
-  const allowList = parseInstallmentsAllowList(
-    (settings as { payway_installments?: number[] | null }).payway_installments,
-  );
-  assertInstallmentsAllowed(installments, allowList);
+  // Cash is always single-shot (pay at pickup). Installment allow-list is Payway-only.
+  const installments =
+    input.paymentMethod === "payway" ? (input.installments ?? 1) : 1;
+  if (input.paymentMethod === "payway") {
+    const allowList = parseInstallmentsAllowList(
+      (settings as { payway_installments?: number[] | null }).payway_installments,
+    );
+    assertInstallmentsAllowed(installments, allowList);
+  }
 
   const priced = await quote(
     {
@@ -138,7 +142,7 @@ export async function placeOrder(
     shipping_cents: priced.shippingCents,
     total_cents: priced.totalCents,
     reservation_expires_at: expiresAt.toISOString(),
-        installments,
+    installments,
     lines: priced.lines.map((l) => ({
       variant_id: l.variantId,
       qty: l.qty,

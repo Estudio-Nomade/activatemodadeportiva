@@ -10,6 +10,7 @@ import { formatArsCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
 type Ship = "pickup" | "andreani";
+type Pay = "payway" | "cash";
 
 type FieldErrors = Partial<
   Record<"customerName" | "phone" | "email" | "line1" | "city" | "postalCode" | "photon", string>
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
   const placeMut = trpc.checkout.placeOrder.useMutation();
 
   const [shippingMethod, setShippingMethod] = useState<Ship>("pickup");
+  const [paymentMethod, setPaymentMethod] = useState<Pay>("payway");
   const [installmentsChoice, setInstallmentsChoice] = useState<number | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
@@ -49,6 +51,17 @@ export default function CheckoutPage() {
     installmentsChoice != null && installmentOptions.includes(installmentsChoice)
       ? installmentsChoice
       : (installmentOptions[0] ?? 1);
+
+  // Cash only with pickup — if shipping is Andreani, force payway for quote/place.
+  const effectivePayment: Pay =
+    shippingMethod === "pickup" ? paymentMethod : "payway";
+
+  function selectShipping(next: Ship) {
+    setShippingMethod(next);
+    if (next !== "pickup" && paymentMethod === "cash") {
+      setPaymentMethod("payway");
+    }
+  }
 
   const cartInput = useMemo(
     () => lines.map((l) => ({ variantId: l.variantId, qty: l.qty })),
@@ -77,14 +90,25 @@ export default function CheckoutPage() {
       quoteMut.mutate({
         lines: cartInput,
         shippingMethod,
-        paymentMethod: "payway",
+        paymentMethod: effectivePayment,
         shippingAddress,
-        installments,
+        installments: effectivePayment === "payway" ? installments : 1,
       });
     }, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartInput, shippingMethod, installments, line1, city, postalCode, line2, province, andreaniReady]);
+  }, [
+    cartInput,
+    shippingMethod,
+    effectivePayment,
+    installments,
+    line1,
+    city,
+    postalCode,
+    line2,
+    province,
+    andreaniReady,
+  ]);
 
   const quote = quoteMut.data;
   const freeThreshold = settings.data?.free_shipping_threshold_cents ?? 0;
@@ -130,8 +154,8 @@ export default function CheckoutPage() {
       const order = await placeMut.mutateAsync({
         lines: cartInput,
         shippingMethod,
-        paymentMethod: "payway",
-        installments,
+        paymentMethod: effectivePayment,
+        installments: effectivePayment === "payway" ? installments : 1,
         customerName: customerName.trim(),
         phone: phone.trim(),
         email: email.trim(),
@@ -141,18 +165,17 @@ export default function CheckoutPage() {
       if (typeof window !== "undefined" && order.access_token) {
         window.sessionStorage.setItem(`order_token_${order.code}`, order.access_token);
       }
-      if (order.payment_link) {
+      // Payway hosted link only when paying with card.
+      if (effectivePayment === "payway" && order.payment_link) {
         window.location.assign(order.payment_link);
         return;
       }
-      setFormError(
-        order.link_error
-          ? "No pudimos abrir Payway. Completá el pago desde el seguimiento del pedido."
-          : null,
-      );
-      router.push(
-        `/pedido?token=${encodeURIComponent(order.access_token)}`,
-      );
+      if (effectivePayment === "payway" && order.link_error) {
+        setFormError(
+          "No pudimos abrir Payway. Completá el pago desde el seguimiento del pedido.",
+        );
+      }
+      router.push(`/pedido?token=${encodeURIComponent(order.access_token)}`);
     } catch (e) {
       const code = domainCode(e);
       if (code === "STOCK_INSUFFICIENT") {
@@ -160,6 +183,8 @@ export default function CheckoutPage() {
         setFormError("Stock insuficiente. Revisá el carrito.");
       } else if (code === "INSTALLMENTS_NOT_ALLOWED") {
         setFormError("Cuotas no disponibles. Elegí otra opción.");
+      } else if (code === "INVALID_PAYMENT_SHIPPING_COMBO") {
+        setFormError("Efectivo solo está disponible con retiro en local.");
       } else if (code === "VALIDATION_ERROR") {
         setFormError(errorMessage(e, "Datos incompletos para el envío."));
       } else setFormError(errorMessage(e));
@@ -237,7 +262,7 @@ export default function CheckoutPage() {
               type="radio"
               name="ship"
               checked={shippingMethod === "pickup"}
-              onChange={() => setShippingMethod("pickup")}
+              onChange={() => selectShipping("pickup")}
             />
             Retiro en local · San Manuel (gratis)
           </label>
@@ -246,7 +271,7 @@ export default function CheckoutPage() {
               type="radio"
               name="ship"
               checked={shippingMethod === "andreani"}
-              onChange={() => setShippingMethod("andreani")}
+              onChange={() => selectShipping("andreani")}
             />
             Andreani a domicilio
           </label>
@@ -321,24 +346,65 @@ export default function CheckoutPage() {
 
         <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
           <h2 className="font-bold">Medio de pago</h2>
-          <p className="text-sm text-muted">
-            Tarjeta u otros medios vía Payway (formulario seguro).
-          </p>
-          <div className="field">
-            <label htmlFor="installments">Cuotas</label>
-            <select
-              id="installments"
-              value={installments}
-              onChange={(e) => setInstallmentsChoice(Number(e.target.value))}
-              className="min-h-12 w-full rounded-[12px] border border-border bg-bg px-3"
-            >
-              {installmentOptions.map((n) => (
-                <option key={n} value={n}>
-                  {n === 1 ? "1 cuota (contado)" : `${n} cuotas`}
-                </option>
-              ))}
-            </select>
-          </div>
+          <label className="flex min-h-12 items-center gap-3">
+            <input
+              type="radio"
+              name="pay"
+              checked={effectivePayment === "payway"}
+              onChange={() => setPaymentMethod("payway")}
+            />
+            <span>
+              <span className="font-semibold">Tarjeta / Payway</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                Formulario seguro online
+              </span>
+            </span>
+          </label>
+          {shippingMethod === "pickup" ? (
+            <label className="flex min-h-12 items-center gap-3">
+              <input
+                type="radio"
+                name="pay"
+                checked={effectivePayment === "cash"}
+                onChange={() => setPaymentMethod("cash")}
+              />
+              <span>
+                <span className="font-semibold">Efectivo al retirar</span>
+                <span className="mt-0.5 block text-xs text-muted">
+                  Pagás en el local · San Manuel
+                  {settings.data?.payment_discount_bps
+                    ? ` · ${Math.floor(settings.data.payment_discount_bps / 100)}% de descuento`
+                    : ""}
+                </span>
+              </span>
+            </label>
+          ) : (
+            <p className="text-xs text-muted">
+              Efectivo solo está disponible si elegís retiro en local.
+            </p>
+          )}
+
+          {effectivePayment === "payway" ? (
+            <div className="field border-t border-border pt-3">
+              <label htmlFor="installments">Cuotas</label>
+              <select
+                id="installments"
+                value={installments}
+                onChange={(e) => setInstallmentsChoice(Number(e.target.value))}
+                className="min-h-12 w-full rounded-[12px] border border-border bg-bg px-3"
+              >
+                {installmentOptions.map((n) => (
+                  <option key={n} value={n}>
+                    {n === 1 ? "1 cuota (contado)" : `${n} cuotas`}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <p className="border-t border-border pt-3 text-sm text-muted">
+              El pedido queda reservado. Coordinamos el retiro y el cobro en efectivo en el local.
+            </p>
+          )}
         </section>
       </div>
 
@@ -386,7 +452,10 @@ export default function CheckoutPage() {
               </div>
               {quote.discountCents > 0 ? (
                 <div className="flex justify-between">
-                  <span>Descuento</span>
+                  <span>
+                    Descuento
+                    {effectivePayment === "cash" ? " (efectivo)" : ""}
+                  </span>
                   <span>−{formatArsCents(quote.discountCents)}</span>
                 </div>
               ) : null}
@@ -416,7 +485,13 @@ export default function CheckoutPage() {
           disabled={placeMut.isPending || !quote || !andreaniReady}
           onClick={onConfirm}
         >
-          {placeMut.isPending ? "Redirigiendo a Payway…" : "Pagar con Payway"}
+          {placeMut.isPending
+            ? effectivePayment === "payway"
+              ? "Redirigiendo a Payway…"
+              : "Confirmando…"
+            : effectivePayment === "payway"
+              ? "Pagar con Payway"
+              : "Confirmar pedido (efectivo)"}
         </button>
         <Link href="/carrito" className="btn btn-ghost">
           Volver al carrito

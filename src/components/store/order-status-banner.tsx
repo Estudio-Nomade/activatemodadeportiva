@@ -14,10 +14,12 @@ function formatWhen(iso: string | null | undefined): string | null {
 
 export function OrderStatusBanner({
   status,
+  paymentMethod,
   reservationExpiresAt,
   cancelReason,
 }: {
   status: string;
+  paymentMethod?: string;
   shippingMethod?: string;
   reservationExpiresAt?: string | null;
   cancelReason?: string | null;
@@ -40,23 +42,40 @@ export function OrderStatusBanner({
 
   if (status === "pendiente_pago") {
     const until = formatWhen(reservationExpiresAt);
+    const untilBit = until ? (
+      <>
+        {" "}
+        <span className="font-semibold text-text">({until})</span>
+      </>
+    ) : null;
+
+    const body =
+      paymentMethod === "cash" ? (
+        <>
+          Reservamos tu stock 24 h. Pagás en efectivo al retirar en el local antes de que venza la
+          reserva
+          {untilBit}.
+        </>
+      ) : paymentMethod === "transfer" ? (
+        <>
+          Reservamos tu stock 24 h. Completá la transferencia y subí el comprobante antes de que
+          venza la reserva
+          {untilBit}.
+        </>
+      ) : (
+        <>
+          Reservamos tu stock 24 h. Completá el pago en Payway antes de que venza la reserva
+          {untilBit}.
+        </>
+      );
+
     return (
       <div
         className="rounded-[12px] border border-promo/25 bg-[#FBF0EE] px-4 py-3"
         role="status"
       >
         <p className="text-sm font-bold text-promo">Pendiente de pago</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
-          Reservamos tu stock 24 h. Completá el pago en Payway antes de que venza la
-          reserva
-          {until ? (
-            <>
-              {" "}
-              <span className="font-semibold text-text">({until})</span>
-            </>
-          ) : null}
-          .
-        </p>
+        <p className="mt-1 text-xs leading-relaxed text-muted">{body}</p>
       </div>
     );
   }

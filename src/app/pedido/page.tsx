@@ -217,6 +217,7 @@ function TrackInner() {
 
           <OrderStatusBanner
             status={order.status}
+            paymentMethod={order.payment_method}
             shippingMethod={order.shipping_method}
             reservationExpiresAt={order.reservation_expires_at}
             cancelReason={order.cancel_reason}
@@ -323,6 +324,15 @@ function TrackInner() {
                   Ya hay {order.payment_proofs!.length} comprobante(s) cargado(s).
                 </p>
               ) : null}
+            </div>
+          ) : null}
+
+          {order.status === "pendiente_pago" && order.payment_method === "cash" ? (
+            <div className="space-y-2 rounded-[16px] border border-border bg-surface p-4">
+              <p className="text-sm font-semibold">Pago en efectivo</p>
+              <p className="text-xs text-muted">
+                Retirás en el local (San Manuel) y pagás ahí. Te confirmamos el pago cuando cobremos.
+              </p>
             </div>
           ) : null}
         </div>

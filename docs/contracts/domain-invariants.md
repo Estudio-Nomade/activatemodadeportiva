@@ -22,9 +22,10 @@ Order of operations:
 
 ### Payment × shipping combo
 
-- **New checkout** accepts only **`payway`** (pickup or andreani).
-- Legacy: **cash** is only valid with **pickup**. Otherwise `INVALID_PAYMENT_SHIPPING_COMBO`.
-- **Installments** must be in `store_settings.payway_installments` (or env fallback) → else `INSTALLMENTS_NOT_ALLOWED`.
+- **payway** — card / hosted checkout; works with **pickup** or **andreani**. No payment-method discount.
+- **cash** — only with **pickup**. Same product % discount as legacy transfer (`payment_discount_bps`). Otherwise `INVALID_PAYMENT_SHIPPING_COMBO`.
+- **transfer** — still in domain/SQL (legacy); storefront checkout UI may not expose it until re-enabled.
+- **Installments** apply to **payway** only; must be in `store_settings.payway_installments` (or env fallback) → else `INSTALLMENTS_NOT_ALLOWED`. Cash is always 1.
 
 **Never trust client-computed totals.** Quote and placeOrder recompute on the server.
 

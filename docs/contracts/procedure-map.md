@@ -84,18 +84,18 @@ Auth: `publicProcedure` = no auth. `adminProcedure` = `Authorization: Bearer <su
 | | |
 |--|--|
 | Type | mutation |
-| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "transfer" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null }` |
+| Input | `{ lines: { variantId: uuid, qty: positive int }[], shippingMethod: "pickup" \| "andreani", paymentMethod: "payway" \| "cash", shippingAddress?: { line1, city, postalCode, ... } \| null, installments?: positive int }` |
 | Output | `{ lines: { variantId, productId, productName, color, size, unitPriceCents, qty, available }[], subtotalCents, discountCents, shippingCents, totalCents }` |
-| Domain | merges duplicate variant lines; published products only; andreani requires address; stock + combo + pricing |
+| Domain | merges duplicate variant lines; published products only; andreani requires address; **cash requires pickup**; stock + combo + pricing |
 
 ### `checkout.placeOrder`
 
 | | |
 |--|--|
 | Type | mutation |
-| Input | same as quote + `{ customerName, phone, email }` (andreani requires `shippingAddress` with `line1`, `city`, `postalCode`) |
-| Output | order row including `access_token` (only place this is returned to client besides email) |
-| Domain | merges lines; published only; atomic `place_order_tx`; 24h reserve; email `order_created` |
+| Input | same as quote + `{ customerName, phone, email, installments? }` (andreani requires `shippingAddress` with `line1`, `city`, `postalCode`; cash requires pickup) |
+| Output | order row including `access_token` (only place this is returned to client besides email); for **payway** may include `payment_link` / `link_error` |
+| Domain | merges lines; published only; atomic `place_order_tx`; 24h reserve; email `order_created`; payway creates hosted link after commit |
 
 ---
 
