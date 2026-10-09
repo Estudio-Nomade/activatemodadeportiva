@@ -72,23 +72,25 @@ export default function AdminHomePage() {
       </section>
 
       {pending.length > 0 ? (
-        <div className="flex flex-col gap-3 rounded-[16px] border border-promo/35 bg-promo/10 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-promo/15 text-promo">
-              <IconAlert size={20} />
+        <div className="flex flex-col gap-3 rounded-[16px] border border-promo/35 bg-promo/10 px-3.5 py-3.5 sm:flex-row sm:items-center sm:gap-4 sm:px-4 sm:py-3.5">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-promo/15 text-promo sm:h-10 sm:w-10 sm:rounded-[12px]">
+              <IconAlert size={18} />
             </span>
-            <div>
-              <p className="font-bold text-promo">
-                Hay {pending.length} pedido(s) esperando confirmación de pago
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-bold leading-snug text-promo sm:text-base">
+                {pending.length === 1
+                  ? "1 pedido esperando confirmación de pago"
+                  : `${pending.length} pedidos esperando confirmación de pago`}
               </p>
-              <p className="mt-0.5 text-sm text-muted">
+              <p className="mt-1 text-xs leading-relaxed text-muted sm:text-sm">
                 Revisá comprobantes y confirmá para liberar la preparación.
               </p>
             </div>
           </div>
           <Link
             href="/admin/pedidos?tab=pendientes"
-            className="btn btn-primary w-full shrink-0 sm:w-auto sm:px-5"
+            className="btn btn-primary btn-inline !min-h-11 w-full shrink-0 justify-center px-5 text-sm !text-white sm:!min-h-12 sm:w-auto sm:min-w-[10.5rem] sm:self-center"
           >
             Ver pendientes
           </Link>
