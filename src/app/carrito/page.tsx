@@ -83,11 +83,11 @@ export default function CartPage() {
 
       <div className="sticky bottom-0 mt-6 border-t border-border bg-bg/95 py-4 backdrop-blur md:static md:mt-10 md:rounded-[16px] md:border md:bg-surface md:px-6 md:py-6 md:backdrop-blur-none">
         <div className="mb-3 flex justify-between text-sm md:text-base">
-          <span className="text-muted">Subtotal (sin descuentos/envío)</span>
+          <span className="text-muted">Subtotal</span>
           <strong>{formatArsCents(subtotal)}</strong>
         </div>
         <p className="mb-3 text-xs text-muted md:text-sm">
-          El total final se calcula en el checkout (servidor).
+          El total con descuentos y envío se confirma al iniciar la compra.
         </p>
         <Link href="/checkout" className="btn btn-primary md:max-w-xs">
           Iniciar compra
