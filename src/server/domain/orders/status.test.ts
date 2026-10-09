@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertTransition } from "./status";
+import { assertTransition, canTransition } from "./status";
 import { DomainError } from "../errors";
 
 describe("assertTransition", () => {
@@ -49,5 +49,17 @@ describe("assertTransition", () => {
   it("rejects invalid transitions", () => {
     expect(() => assertTransition("pendiente_pago", "entregado")).toThrow(DomainError);
     expect(() => assertTransition("pago_confirmado", "enviado")).toThrow(DomainError);
+    expect(() => assertTransition("pago_confirmado", "entregado")).toThrow(DomainError);
+  });
+});
+
+describe("canTransition", () => {
+  it("mirrors assertTransition without throwing", () => {
+    expect(canTransition("pago_confirmado", "preparando")).toBe(true);
+    expect(canTransition("pago_confirmado", "entregado")).toBe(false);
+    expect(canTransition("preparando", "listo_retiro", { shippingMethod: "pickup" })).toBe(
+      true,
+    );
+    expect(canTransition("preparando", "enviado", { shippingMethod: "pickup" })).toBe(false);
   });
 });
