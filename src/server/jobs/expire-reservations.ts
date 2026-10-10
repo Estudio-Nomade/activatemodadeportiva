@@ -6,6 +6,7 @@ import {
 import { consoleEmail } from "@/server/email/console";
 import { createResendEmail } from "@/server/email/resend";
 import type { EmailPort } from "@/server/email/port";
+import { resolvePush } from "@/server/push/resolve";
 
 function resolveEmail(): EmailPort {
   if (process.env.RESEND_API_KEY) {
@@ -21,6 +22,7 @@ export async function runExpireReservations(
   return expireReservationsDomain({
     db,
     email: resolveEmail(),
+    push: resolvePush(db),
     now,
   });
 }

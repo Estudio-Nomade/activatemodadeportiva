@@ -396,3 +396,44 @@ Input `{ id }` — `cancel_reason = admin`
 | Type | mutation |
 | Input | partial: `season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address` |
 | Output | updated row |
+
+---
+
+## `admin.push` (admin)
+
+Web Push subscription management for the signed-in admin. Requires `Authorization: Bearer` + `admin_profiles` row. Upserts/deletes rows in `push_subscriptions` scoped to `admin_user_id`.
+
+### `admin.push.getVapidPublicKey`
+
+| | |
+|--|--|
+| Type | query |
+| Input | none |
+| Output | `{ publicKey: string }` |
+| Errors | `PRECONDITION_FAILED` if `VAPID_PUBLIC_KEY` env is missing |
+
+### `admin.push.status`
+
+| | |
+|--|--|
+| Type | query |
+| Input | optional `{ endpoint?: string }` |
+| Output | `{ enabledOnDevice: boolean }` — `false` when no endpoint; otherwise whether this admin has a row for that endpoint |
+
+### `admin.push.subscribe`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ endpoint: url, p256dh: string, auth: string, userAgent?: string (max 512) }` |
+| Output | `{ ok: true }` |
+| Notes | Upsert on `endpoint` conflict; sets `admin_user_id`, keys, optional `user_agent`, `updated_at` |
+
+### `admin.push.unsubscribe`
+
+| | |
+|--|--|
+| Type | mutation |
+| Input | `{ endpoint: string }` |
+| Output | `{ ok: true }` |
+| Notes | Deletes only rows matching `endpoint` **and** current `admin_user_id` |

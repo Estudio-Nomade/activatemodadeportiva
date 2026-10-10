@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Admin",
   description: "Panel Activate — pedidos, catálogo y config",
   robots: { index: false, follow: false },
+  manifest: "/admin/manifest.webmanifest",
   applicationName: "Activate Admin",
   appleWebApp: {
     capable: true,

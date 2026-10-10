@@ -1,5 +1,5 @@
 /* Activate PWA service worker — lightweight offline shell + static cache */
-const CACHE = "activate-pwa-v19-admin-hamburger";
+const CACHE = "activate-pwa-v20-admin-push";
 const PRECACHE = [
   "/",
   "/icons/icon-192.png",
@@ -93,4 +93,70 @@ self.addEventListener("fetch", (event) => {
       }),
     );
   }
+});
+
+/** Same-origin admin path only (mirrors server assertAdminDeepLink). */
+function safeAdminPath(raw) {
+  if (typeof raw !== "string") return "/admin";
+  if (raw.includes("://") || raw.startsWith("//") || raw.includes("..")) return "/admin";
+  if (raw !== "/admin" && !raw.startsWith("/admin/")) return "/admin";
+  try {
+    const u = new URL(raw, self.location.origin);
+    if (u.origin !== self.location.origin) return "/admin";
+    if (u.pathname !== "/admin" && !u.pathname.startsWith("/admin/")) return "/admin";
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return "/admin";
+  }
+}
+
+self.addEventListener("push", (event) => {
+  let data = { title: "Activate Admin", body: "", url: "/admin", tag: "admin" };
+  try {
+    if (event.data) data = { ...data, ...event.data.json() };
+  } catch {
+    /* ignore */
+  }
+  const url = safeAdminPath(data.url);
+  event.waitUntil(
+    self.registration.showNotification(data.title || "Activate Admin", {
+      body: data.body || "",
+      tag: data.tag || "admin",
+      data: { url },
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+    }),
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const path = safeAdminPath(event.notification.data && event.notification.data.url);
+  const targetUrl = new URL(path, self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const adminClient = all.find((c) => {
+        try {
+          const p = new URL(c.url).pathname;
+          return p === "/admin" || p.startsWith("/admin/");
+        } catch {
+          return false;
+        }
+      });
+      const client = adminClient || all[0];
+      if (client && "focus" in client) {
+        await client.focus();
+        if ("navigate" in client) {
+          try {
+            await client.navigate(targetUrl);
+          } catch {
+            /* ignore */
+          }
+        }
+        return;
+      }
+      await self.clients.openWindow(targetUrl);
+    })(),
+  );
 });

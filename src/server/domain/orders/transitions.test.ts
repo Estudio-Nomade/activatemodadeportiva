@@ -1,8 +1,10 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { createServiceClient } from "@/server/db/supabase";
 import { placeOrder } from "@/server/domain/checkout/place-order";
 import { consoleEmail } from "@/server/email/console";
 import type { PaywayPort } from "@/server/payments/payway/port";
+import type { PushPort } from "@/server/push/port";
+import { consolePush } from "@/server/push/console";
 import {
   cancelOrder,
   confirmPayment,
@@ -26,7 +28,14 @@ const placeDeps = {
   email: consoleEmail,
   payway,
   appBaseUrl: "http://localhost:3000",
+  push: consolePush,
 };
+
+const transitionDeps = (db: ReturnType<typeof createServiceClient>, push: PushPort = consolePush) => ({
+  db,
+  email: consoleEmail,
+  push,
+});
 
 describe("order transitions", () => {
   beforeAll(async () => {
@@ -63,7 +72,7 @@ describe("order transitions", () => {
       .eq("id", VARIANT_L)
       .single();
 
-    await confirmPayment(order.id, { db, email: consoleEmail });
+    await confirmPayment(order.id, transitionDeps(db));
 
     const { data: afterOrder } = await db
       .from("orders")
@@ -85,9 +94,9 @@ describe("order transitions", () => {
       .eq("order_id", order.id);
     expect(reservations?.every((r) => r.status === "consumed")).toBe(true);
 
-    await startPreparing(order.id, { db, email: consoleEmail });
-    await markReadyForPickup(order.id, { db, email: consoleEmail });
-    await markDelivered(order.id, { db, email: consoleEmail });
+    await startPreparing(order.id, transitionDeps(db));
+    await markReadyForPickup(order.id, transitionDeps(db));
+    await markDelivered(order.id, transitionDeps(db));
 
     const { data: delivered } = await db
       .from("orders")
@@ -121,7 +130,7 @@ describe("order transitions", () => {
       { db, ...placeDeps },
     );
 
-    await confirmPayment(order.id, { db, email: consoleEmail });
+    await confirmPayment(order.id, transitionDeps(db));
 
     const { data: mid } = await db
       .from("product_variants")
@@ -130,7 +139,7 @@ describe("order transitions", () => {
       .single();
     expect(mid?.stock_on_hand).toBe(startStock - 1);
 
-    await cancelOrder(order.id, "admin", { db, email: consoleEmail });
+    await cancelOrder(order.id, "admin", transitionDeps(db));
 
     const { data: end } = await db
       .from("product_variants")
@@ -146,5 +155,39 @@ describe("order transitions", () => {
       .single();
     expect(cancelled?.status).toBe("cancelado");
     expect(cancelled?.cancel_reason).toBe("admin");
+  });
+
+  it("confirmPayment sends order.payment_confirmed admin push", async () => {
+    const db = createServiceClient();
+    await db
+      .from("product_variants")
+      .update({ stock_on_hand: 5 })
+      .eq("id", VARIANT_L);
+
+    const order = await placeOrder(
+      {
+        customerName: "Push Paid",
+        phone: "+54999999999",
+        email: "pushpaid@example.com",
+        shippingMethod: "pickup",
+        paymentMethod: "payway",
+        installments: 1,
+        shippingAddress: null,
+        lines: [{ variantId: VARIANT_L, qty: 1 }],
+      },
+      { db, ...placeDeps },
+    );
+
+    const sendToAdmins = vi.fn().mockResolvedValue(undefined);
+    const push: PushPort = { sendToAdmins };
+
+    await confirmPayment(order.id, transitionDeps(db, push));
+
+    expect(sendToAdmins).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: "order.payment_confirmed",
+        tag: `order-${order.id}-paid`,
+      }),
+    );
   });
 });

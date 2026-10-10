@@ -1,8 +1,10 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { createServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
 import { consoleEmail } from "@/server/email/console";
 import type { PaywayPort } from "@/server/payments/payway/port";
+import type { PushPort } from "@/server/push/port";
+import { consolePush } from "@/server/push/console";
 import { placeOrder } from "./place-order";
 
 const VARIANT_M = "33333333-3333-4333-a333-333333333001";
@@ -23,6 +25,7 @@ const depsBase = {
   email: consoleEmail,
   payway: paywayOk,
   appBaseUrl: "http://localhost:3000",
+  push: consolePush,
 };
 
 describe("placeOrder", () => {
@@ -183,11 +186,143 @@ describe("placeOrder", () => {
         shippingAddress: null,
         lines: [{ variantId: VARIANT_M, qty: 1 }],
       },
-      { db, email: consoleEmail, payway: paywayFail, appBaseUrl: "http://localhost:3000" },
+      {
+        db,
+        email: consoleEmail,
+        payway: paywayFail,
+        appBaseUrl: "http://localhost:3000",
+        push: consolePush,
+      },
     );
 
     expect(order.status).toBe("pendiente_pago");
     expect(order.payment_link).toBeNull();
     expect(order.link_error).toBe("PAYWAY_LINK_FAILED");
+  });
+
+  it("sends order.created admin push after success", async () => {
+    const db = createServiceClient();
+    await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("product_variants").update({ stock_on_hand: 5 }).eq("id", VARIANT_M);
+
+    const sendToAdmins = vi.fn().mockResolvedValue(undefined);
+    const push: PushPort = { sendToAdmins };
+
+    const order = await placeOrder(
+      {
+        customerName: "Push Buyer",
+        phone: "+54966666666",
+        email: "push@example.com",
+        shippingMethod: "pickup",
+        paymentMethod: "payway",
+        installments: 1,
+        shippingAddress: null,
+        lines: [{ variantId: VARIANT_M, qty: 1 }],
+      },
+      { db, ...depsBase, push },
+    );
+
+    expect(sendToAdmins).toHaveBeenCalled();
+    const created = sendToAdmins.mock.calls.find(
+      (c) => c[0]?.event === "order.created",
+    );
+    expect(created).toBeDefined();
+    expect(created![0]).toMatchObject({
+      event: "order.created",
+      tag: `order-${order.id}-created`,
+    });
+  });
+
+  it("succeeds when admin push rejects", async () => {
+    const db = createServiceClient();
+    await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("product_variants").update({ stock_on_hand: 5 }).eq("id", VARIANT_M);
+
+    const push: PushPort = {
+      sendToAdmins: vi.fn().mockRejectedValue(new Error("push down")),
+    };
+
+    const order = await placeOrder(
+      {
+        customerName: "Push Fail",
+        phone: "+54977777777",
+        email: "pushfail@example.com",
+        shippingMethod: "pickup",
+        paymentMethod: "payway",
+        installments: 1,
+        shippingAddress: null,
+        lines: [{ variantId: VARIANT_M, qty: 1 }],
+      },
+      { db, ...depsBase, push },
+    );
+
+    expect(order.status).toBe("pendiente_pago");
+    expect(order.code).toMatch(/^ACT-/);
+  });
+
+  it("sends stock.low when reservation crosses low-stock threshold", async () => {
+    const db = createServiceClient();
+    await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    // before=5, after=1 → crosses into ≤2
+    await db.from("product_variants").update({ stock_on_hand: 5 }).eq("id", VARIANT_M);
+
+    const sendToAdmins = vi.fn().mockResolvedValue(undefined);
+    const push: PushPort = { sendToAdmins };
+
+    await placeOrder(
+      {
+        customerName: "Low Stock",
+        phone: "+54988888888",
+        email: "low@example.com",
+        shippingMethod: "pickup",
+        paymentMethod: "payway",
+        installments: 1,
+        shippingAddress: null,
+        lines: [{ variantId: VARIANT_M, qty: 4 }],
+      },
+      { db, ...depsBase, push },
+    );
+
+    const low = sendToAdmins.mock.calls.find((c) => c[0]?.event === "stock.low");
+    expect(low).toBeDefined();
+    expect(low![0]).toMatchObject({
+      event: "stock.low",
+      tag: `stock-${VARIANT_M}`,
+    });
+  });
+
+  it("does not send stock.low when already at or below threshold", async () => {
+    const db = createServiceClient();
+    await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("order_items").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    await db.from("orders").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    // already low: available = 2, buy 1 → still low, no edge cross
+    await db.from("product_variants").update({ stock_on_hand: 2 }).eq("id", VARIANT_M);
+
+    const sendToAdmins = vi.fn().mockResolvedValue(undefined);
+    const push: PushPort = { sendToAdmins };
+
+    await placeOrder(
+      {
+        customerName: "Already Low",
+        phone: "+54900000001",
+        email: "alreadylow@example.com",
+        shippingMethod: "pickup",
+        paymentMethod: "payway",
+        installments: 1,
+        shippingAddress: null,
+        lines: [{ variantId: VARIANT_M, qty: 1 }],
+      },
+      { db, ...depsBase, push },
+    );
+
+    expect(sendToAdmins.mock.calls.some((c) => c[0]?.event === "stock.low")).toBe(false);
+    expect(sendToAdmins.mock.calls.some((c) => c[0]?.event === "order.created")).toBe(true);
   });
 });

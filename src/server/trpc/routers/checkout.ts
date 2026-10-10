@@ -109,6 +109,7 @@ export const checkoutRouter = createTRPCRouter({
             db: ctx.db,
             email: ctx.email,
             payway: ctx.payway,
+            push: ctx.push,
             appBaseUrl: ctx.appBaseUrl,
           },
         );

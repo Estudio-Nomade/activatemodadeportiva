@@ -3,6 +3,7 @@ import { createServiceClient } from "@/server/db/supabase";
 import { consoleEmail } from "@/server/email/console";
 import { placeOrder } from "@/server/domain/checkout/place-order";
 import type { PaywayPort } from "@/server/payments/payway/port";
+import { consolePush } from "@/server/push/console";
 import { expireReservations } from "./expire-reservations";
 
 const VARIANT_L = "33333333-3333-4333-a333-333333333002";
@@ -42,7 +43,13 @@ describe("expireReservations", () => {
         shippingAddress: null,
         lines: [{ variantId: VARIANT_L, qty: 1 }],
       },
-      { db, email: consoleEmail, payway, appBaseUrl: "http://localhost:3000" },
+      {
+        db,
+        email: consoleEmail,
+        payway,
+        appBaseUrl: "http://localhost:3000",
+        push: consolePush,
+      },
     );
 
     const past = new Date(Date.now() - 60_000).toISOString();
@@ -58,6 +65,7 @@ describe("expireReservations", () => {
     const result = await expireReservations({
       db,
       email: consoleEmail,
+      push: consolePush,
       now: new Date(),
     });
 
@@ -82,6 +90,7 @@ describe("expireReservations", () => {
     const again = await expireReservations({
       db,
       email: consoleEmail,
+      push: consolePush,
       now: new Date(),
     });
     expect(again.expiredCount).toBe(0);

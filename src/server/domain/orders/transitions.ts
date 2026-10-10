@@ -1,11 +1,15 @@
 import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
+import { paymentConfirmedPayload } from "@/server/domain/push/payloads";
+import { sendAdminPushBestEffort } from "@/server/domain/push/send-best-effort";
 import type { EmailPort } from "@/server/email/port";
+import type { PushPort } from "@/server/push/port";
 import { assertTransition, type OrderStatus } from "./status";
 
 export type TransitionDeps = {
   db: ServiceClient;
   email: EmailPort;
+  push: PushPort;
 };
 
 type OrderRow = {
@@ -100,6 +104,10 @@ export async function confirmPayment(
   if (error) mapRpcError(error);
 
   await sendBestEffort(deps.email, "payment_confirmed", order);
+  await sendAdminPushBestEffort(
+    deps.push,
+    paymentConfirmedPayload({ orderId: order.id, code: order.code }),
+  );
 }
 
 export async function startPreparing(
