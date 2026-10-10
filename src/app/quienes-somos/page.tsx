@@ -115,6 +115,18 @@ export default function QuienesSomosPage() {
             </div>
           ))}
         </div>
+        <p className="mt-5 text-center text-sm leading-relaxed text-muted md:mt-6 md:text-[15px]">
+          Gracias por el diseño de interiores realizado por{" "}
+          <a
+            href="https://www.instagram.com/carolina_martinez_kromos"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-accent underline decoration-accent/30 underline-offset-2 transition-colors hover:text-text hover:decoration-accent"
+          >
+            Carolina Martínez
+          </a>
+          .
+        </p>
       </section>
 
       {/* Values + CTA */}
