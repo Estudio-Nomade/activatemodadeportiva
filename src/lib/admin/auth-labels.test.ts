@@ -17,6 +17,7 @@ describe("paymentMethodLabel", () => {
 describe("shippingMethodLabel", () => {
   it("maps known methods to Spanish", () => {
     expect(shippingMethodLabel("pickup")).toBe("Retiro en local");
-    expect(shippingMethodLabel("andreani")).toBe("Andreani");
+    expect(shippingMethodLabel("andreani")).toBe("Andreani domicilio");
+    expect(shippingMethodLabel("andreani_sucursal")).toBe("Andreani sucursal");
   });
 });

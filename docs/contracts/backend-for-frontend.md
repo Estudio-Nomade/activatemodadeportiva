@@ -81,6 +81,23 @@ const order = await client.checkout.placeOrder.mutate({
 // Keep order.access_token only from placeOrder / email magic link — never from getByCode
 ```
 
+```ts
+const orderBranch = await client.checkout.placeOrder.mutate({
+  lines: [{ variantId: "...", qty: 1 }],
+  shippingMethod: "andreani_sucursal",
+  paymentMethod: "transfer",
+  customerName: "Ana",
+  phone: "+54...",
+  email: "ana@example.com",
+  shippingAddress: {
+    branchName: "Andreani La Plata Centro",
+    line1: "Calle 7 1234",
+    city: "La Plata",
+    postalCode: "1900",
+  },
+});
+```
+
 ### Payment proof upload
 
 Buyer flow on `/pedido` (transfer + `pendiente_pago`):

@@ -16,15 +16,15 @@ Order of operations:
    - `payway` → **0** (no payment-method discount)
    - legacy `transfer` / `cash` → `floor(subtotalCents * paymentDiscountBps / 10_000)`
 3. **shippingCents**:
-   - `pickup` → `0`
-   - `andreani` → `0` if `(subtotalCents - discountCents) >= free_shipping_threshold_cents`, else `andreani_fee_cents`
-4. **totalCents** = `subtotalCents - discountCents + shippingCents`
+    - `pickup` → `0`
+    - `andreani` | `andreani_sucursal` → `0` if `(subtotalCents - discountCents) >= free_shipping_threshold_cents`, else `andreani_fee_cents`
+ 4. **totalCents** = `subtotalCents - discountCents + shippingCents`
 
 ### Payment × shipping combo
 
-- **transfer** — CBU/alias + optional proof upload; works with **pickup** or **andreani**. Product % discount (`payment_discount_bps`).
+- **transfer** — CBU/alias + optional proof upload; works with **pickup**, **andreani**, or **andreani_sucursal**. Product % discount (`payment_discount_bps`).
 - **cash** — only with **pickup** (pay at local). Same product % discount. Else `INVALID_PAYMENT_SHIPPING_COMBO`.
-- **payway** — card / hosted checkout; works with **pickup** or **andreani**. **No** payment-method discount.
+- **payway** — card / hosted checkout; works with **pickup**, **andreani**, or **andreani_sucursal**. **No** payment-method discount.
 - **Installments** apply to **payway** only; must be in `store_settings.payway_installments` (or env fallback) → else `INSTALLMENTS_NOT_ALLOWED`. Transfer/cash always installments = 1.
 
 **Never trust client-computed totals.** Quote and placeOrder recompute on the server.
@@ -53,6 +53,7 @@ available = stock_on_hand - sum(active reservation qty for variant)
 ## Shipping address
 
 - `andreani` requires `shippingAddress` with at least `line1`, `city`, `postalCode`.
+- `andreani_sucursal` requires `shippingAddress` with at least `branchName`, `line1`, `city`, `postalCode`.
 - `pickup` does not require address.
 
 ## Tracking secrets
@@ -74,7 +75,7 @@ available = stock_on_hand - sum(active reservation qty for variant)
 | `pendiente_pago` | `pago_confirmado`, `cancelado` | payway: confirm via webhook |
 | `pago_confirmado` | `preparando`, `cancelado` | |
 | `preparando` | `listo_retiro` | only if `shipping_method = pickup` |
-| `preparando` | `enviado` | only if `shipping_method = andreani` |
+| `preparando` | `enviado` | only if shipping_method is andreani or andreani_sucursal |
 | `preparando` | `cancelado` | |
 | `listo_retiro` | `entregado`, `cancelado` | |
 | `enviado` | `entregado`, `cancelado` | |

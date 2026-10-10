@@ -57,19 +57,34 @@ export default function AdminPedidoDetailPage() {
 
   const address = useMemo(() => {
     const a = order?.shipping_address as
-      | { line1?: string; line2?: string; city?: string; postalCode?: string; province?: string }
+      | {
+          branchName?: string;
+          line1?: string;
+          line2?: string;
+          city?: string;
+          postalCode?: string;
+          province?: string;
+        }
       | null
       | undefined;
     if (!a) return null;
-    return [a.line1, a.line2, a.city, a.postalCode, a.province].filter(Boolean).join(", ");
+    return [a.branchName, a.line1, a.line2, a.city, a.postalCode, a.province]
+      .filter(Boolean)
+      .join(", ");
   }, [order?.shipping_address]);
 
   const rawShip = order?.shipping_method;
   const shippingMethod =
-    rawShip === "andreani" || rawShip === "pickup" ? rawShip : undefined;
+    rawShip === "andreani" ||
+    rawShip === "andreani_sucursal" ||
+    rawShip === "pickup"
+      ? rawShip
+      : undefined;
   const status = (order?.status ?? "pendiente_pago") as OrderStatus;
   const ctx =
-    shippingMethod === "pickup" || shippingMethod === "andreani"
+    shippingMethod === "pickup" ||
+    shippingMethod === "andreani" ||
+    shippingMethod === "andreani_sucursal"
       ? ({ shippingMethod } as const)
       : undefined;
 
@@ -127,7 +142,7 @@ export default function AdminPedidoDetailPage() {
   const flowHint =
     shippingMethod === "pickup"
       ? "Flujo retiro: pago → preparando → listo retiro → entregado"
-      : shippingMethod === "andreani"
+      : shippingMethod === "andreani" || shippingMethod === "andreani_sucursal"
         ? "Flujo envío: pago → preparando → enviado → entregado"
         : null;
 

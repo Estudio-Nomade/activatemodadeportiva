@@ -73,10 +73,10 @@ export function ShippingFeesCopy() {
   return (
     <>
       <p>
-        <strong className="text-text">Andreani a domicilio:</strong>{" "}
+        <strong className="text-text">Andreani a domicilio o sucursal:</strong>{" "}
         {fee > 0 ? (
           <>
-            costo de referencia {formatArsCents(fee)}
+            mismo costo de referencia {formatArsCents(fee)}
             {thr > 0 ? (
               <>
                 . Si el subtotal de productos (después del descuento por medio de pago) llega a{" "}

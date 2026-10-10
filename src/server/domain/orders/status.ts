@@ -9,7 +9,9 @@ export type OrderStatus =
   | "entregado"
   | "cancelado";
 
-export type TransitionCtx = { shippingMethod?: "pickup" | "andreani" };
+export type TransitionCtx = {
+  shippingMethod?: "pickup" | "andreani" | "andreani_sucursal";
+};
 
 export function canTransition(
   from: OrderStatus,
@@ -24,7 +26,11 @@ export function canTransition(
     case "preparando":
       if (to === "cancelado") return true;
       if (to === "listo_retiro") return ctx?.shippingMethod === "pickup";
-      if (to === "enviado") return ctx?.shippingMethod === "andreani";
+      if (to === "enviado")
+        return (
+          ctx?.shippingMethod === "andreani" ||
+          ctx?.shippingMethod === "andreani_sucursal"
+        );
       return false;
     case "listo_retiro":
       return to === "entregado" || to === "cancelado";

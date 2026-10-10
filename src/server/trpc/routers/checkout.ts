@@ -9,7 +9,7 @@ const lineSchema = z.object({
   qty: z.number().int().positive(),
 });
 
-const shippingMethodSchema = z.enum(["pickup", "andreani"]);
+const shippingMethodSchema = z.enum(["pickup", "andreani", "andreani_sucursal"]);
 /** payway | transfer | cash. Cash requires pickup (PRD). */
 const paymentMethodSchema = z.enum(["payway", "transfer", "cash"]);
 
@@ -18,6 +18,7 @@ const shippingAddressSchema = z
     line1: z.string().min(1),
     city: z.string().min(1),
     postalCode: z.string().min(1),
+    branchName: z.string().min(1).optional(),
     line2: z.string().optional(),
     province: z.string().optional(),
     notes: z.string().optional(),
@@ -26,19 +27,34 @@ const shippingAddressSchema = z
 
 function refineCheckoutCombo(
   val: {
-    shippingMethod: "pickup" | "andreani";
+    shippingMethod: "pickup" | "andreani" | "andreani_sucursal";
     paymentMethod: "payway" | "transfer" | "cash";
-    shippingAddress?: unknown;
+    shippingAddress?: { branchName?: string } | null | unknown;
   },
   ctx: z.RefinementCtx,
 ) {
-  if (val.shippingMethod === "andreani" && !val.shippingAddress) {
+  const needsAddress =
+    val.shippingMethod === "andreani" || val.shippingMethod === "andreani_sucursal";
+
+  if (needsAddress && !val.shippingAddress) {
     ctx.addIssue({
       code: "custom",
-      message: "shippingAddress is required for andreani",
+      message: `shippingAddress is required for ${val.shippingMethod}`,
       path: ["shippingAddress"],
     });
   }
+
+  if (val.shippingMethod === "andreani_sucursal" && val.shippingAddress) {
+    const addr = val.shippingAddress as { branchName?: unknown };
+    if (typeof addr.branchName !== "string" || !addr.branchName.trim()) {
+      ctx.addIssue({
+        code: "custom",
+        message: "branchName is required for andreani_sucursal",
+        path: ["shippingAddress", "branchName"],
+      });
+    }
+  }
+
   if (val.paymentMethod === "cash" && val.shippingMethod !== "pickup") {
     ctx.addIssue({
       code: "custom",

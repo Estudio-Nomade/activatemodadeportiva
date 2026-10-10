@@ -9,11 +9,14 @@ import { domainCode, errorMessage } from "@/lib/errors";
 import { formatArsCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
 
-type Ship = "pickup" | "andreani";
+type Ship = "pickup" | "andreani" | "andreani_sucursal";
 type Pay = "payway" | "transfer" | "cash";
 
 type FieldErrors = Partial<
-  Record<"customerName" | "phone" | "email" | "line1" | "city" | "postalCode" | "photon", string>
+  Record<
+    "customerName" | "phone" | "email" | "line1" | "city" | "postalCode" | "photon" | "branchName",
+    string
+  >
 >;
 
 function isEmail(v: string) {
@@ -44,6 +47,7 @@ export default function CheckoutPage() {
   const [postalCode, setPostalCode] = useState("");
   const [line2, setLine2] = useState("");
   const [province, setProvince] = useState("");
+  const [branchName, setBranchName] = useState("");
   const [addressPicked, setAddressPicked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -75,22 +79,33 @@ export default function CheckoutPage() {
 
   const shippingAddress =
     shippingMethod === "andreani"
-      ? {
-          line1,
-          city,
-          postalCode,
-          line2: line2 || undefined,
-          province: province || undefined,
-        }
-      : null;
+      ? { line1, city, postalCode, line2: line2 || undefined, province: province || undefined }
+      : shippingMethod === "andreani_sucursal"
+        ? {
+            branchName,
+            line1,
+            city,
+            postalCode,
+            line2: line2 || undefined,
+            province: province || undefined,
+          }
+        : null;
 
-  const andreaniReady =
-    shippingMethod !== "andreani" ||
-    (line1.trim().length > 0 && city.trim().length > 0 && postalCode.trim().length > 0);
+  const addressReady =
+    shippingMethod === "pickup" ||
+    (shippingMethod === "andreani" &&
+      line1.trim().length > 0 &&
+      city.trim().length > 0 &&
+      postalCode.trim().length > 0) ||
+    (shippingMethod === "andreani_sucursal" &&
+      branchName.trim().length > 0 &&
+      line1.trim().length > 0 &&
+      city.trim().length > 0 &&
+      postalCode.trim().length > 0);
 
   useEffect(() => {
     if (cartInput.length === 0) return;
-    if (!andreaniReady) return;
+    if (!addressReady) return;
     const t = setTimeout(() => {
       quoteMut.mutate({
         lines: cartInput,
@@ -112,15 +127,19 @@ export default function CheckoutPage() {
     postalCode,
     line2,
     province,
-    andreaniReady,
+    branchName,
+    addressReady,
   ]);
 
   const quote = quoteMut.data;
   const freeThreshold = settings.data?.free_shipping_threshold_cents ?? 0;
   const quoteBaseAfterDiscount =
     quote != null ? quote.subtotalCents - quote.discountCents : null;
+  const isAndreaniShip =
+    shippingMethod === "andreani" || shippingMethod === "andreani_sucursal";
+
   const needsMoreForFree =
-    shippingMethod === "andreani" &&
+    isAndreaniShip &&
     freeThreshold > 0 &&
     quoteBaseAfterDiscount != null &&
     quoteBaseAfterDiscount < freeThreshold &&
@@ -142,6 +161,12 @@ export default function CheckoutPage() {
       if (!addressPicked && !photonQuery.trim() && !line1.trim()) {
         next.photon = "Buscá o completá la dirección";
       }
+    }
+    if (shippingMethod === "andreani_sucursal") {
+      if (!branchName.trim()) next.branchName = "Nombre de sucursal requerido";
+      if (!line1.trim()) next.line1 = "Dirección de sucursal requerida";
+      if (!city.trim()) next.city = "Ciudad requerida";
+      if (!postalCode.trim()) next.postalCode = "Código postal requerido";
     }
 
     setFieldErrors(next);
@@ -280,6 +305,15 @@ export default function CheckoutPage() {
             />
             Andreani a domicilio
           </label>
+          <label className="flex min-h-12 items-center gap-3">
+            <input
+              type="radio"
+              name="ship"
+              checked={shippingMethod === "andreani_sucursal"}
+              onChange={() => selectShipping("andreani_sucursal")}
+            />
+            Andreani a sucursal
+          </label>
 
           {shippingMethod === "andreani" ? (
             <div className="mt-2 space-y-3 border-t border-border pt-3">
@@ -347,6 +381,40 @@ export default function CheckoutPage() {
               </p>
             </div>
           ) : null}
+
+          {shippingMethod === "andreani_sucursal" ? (
+            <div className="mt-2 space-y-3 border-t border-border pt-3">
+              <Field
+                id="branchName"
+                label="Nombre de la sucursal Andreani"
+                value={branchName}
+                error={fieldErrors.branchName}
+                onChange={setBranchName}
+              />
+              <Field
+                id="line1"
+                label="Dirección de la sucursal"
+                value={line1}
+                error={fieldErrors.line1}
+                onChange={setLine1}
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field id="city" label="Ciudad" value={city} error={fieldErrors.city} onChange={setCity} />
+                <Field
+                  id="cp"
+                  label="Código postal"
+                  value={postalCode}
+                  error={fieldErrors.postalCode}
+                  onChange={setPostalCode}
+                />
+              </div>
+              <Field id="province" label="Provincia (opcional)" value={province} onChange={setProvince} />
+              <p className="text-xs text-muted">
+                Ingresá los datos de la sucursal Andreani donde querés retirar. El costo es el mismo que
+                envío a domicilio.
+              </p>
+            </div>
+          ) : null}
         </section>
 
         <section className="space-y-3 rounded-[16px] border border-border bg-surface p-4">
@@ -386,8 +454,8 @@ export default function CheckoutPage() {
             </label>
           ) : (
             <p className="text-xs text-muted">
-              Efectivo solo con retiro en local. Con Andreani podés pagar por transferencia o
-              tarjeta.
+              Efectivo solo con retiro en local. Con Andreani (domicilio o sucursal) podés pagar por
+              transferencia o tarjeta.
             </p>
           )}
 
@@ -456,7 +524,7 @@ export default function CheckoutPage() {
           </div>
         ) : null}
 
-        {shippingMethod === "andreani" && quote && quote.shippingCents === 0 && freeThreshold > 0 ? (
+        {isAndreaniShip && quote && quote.shippingCents === 0 && freeThreshold > 0 ? (
           <div className="rounded-[16px] border border-border bg-accent-soft p-4 text-sm text-text">
             ¡Llegaste al umbral! Envío Andreani gratis.
           </div>
@@ -471,8 +539,13 @@ export default function CheckoutPage() {
                 : errorMessage(quoteMut.error, "No se pudo cotizar")}
             </p>
           ) : null}
-          {!andreaniReady && shippingMethod === "andreani" ? (
+          {!addressReady && shippingMethod === "andreani" ? (
             <p className="text-muted">Completá dirección, ciudad y CP para cotizar el envío.</p>
+          ) : null}
+          {!addressReady && shippingMethod === "andreani_sucursal" ? (
+            <p className="text-muted">
+              Completá sucursal, dirección, ciudad y CP para cotizar el envío.
+            </p>
           ) : null}
           {quote ? (
             <>
@@ -502,7 +575,14 @@ export default function CheckoutPage() {
                 </div>
               ) : null}
               <div className="flex justify-between">
-                <span>Envío {shippingMethod === "pickup" ? "(retiro)" : "(Andreani)"}</span>
+                <span>
+                  Envío{" "}
+                  {shippingMethod === "pickup"
+                    ? "(retiro)"
+                    : shippingMethod === "andreani_sucursal"
+                      ? "(Andreani sucursal)"
+                      : "(Andreani)"}
+                </span>
                 <span>
                   {quote.shippingCents === 0 ? "Gratis" : formatArsCents(quote.shippingCents)}
                 </span>
@@ -514,7 +594,7 @@ export default function CheckoutPage() {
             </>
           ) : (
             <p className="text-muted">
-              {andreaniReady ? "Calculando total…" : "Esperando dirección…"}
+              {addressReady ? "Calculando total…" : "Esperando dirección…"}
             </p>
           )}
         </section>
@@ -524,7 +604,7 @@ export default function CheckoutPage() {
         <button
           type="button"
           className="btn btn-primary"
-          disabled={placeMut.isPending || !quote || !andreaniReady}
+          disabled={placeMut.isPending || !quote || !addressReady}
           onClick={onConfirm}
         >
           {placeMut.isPending

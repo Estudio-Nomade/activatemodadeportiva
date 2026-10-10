@@ -7,7 +7,7 @@ export type OrderTimelineStatus =
   | "entregado"
   | "cancelado";
 
-export type OrderTimelineShipping = "pickup" | "andreani" | string;
+export type OrderTimelineShipping = "pickup" | "andreani" | "andreani_sucursal" | string;
 
 type StepState = "done" | "current" | "upcoming";
 

@@ -8,6 +8,7 @@ import {
   orderStatusLabel,
 } from "@/components/store/order-timeline";
 import { formatArsCents } from "@/lib/format/money";
+import { shippingMethodLabel } from "@/lib/shipping/method-labels";
 import { domainCode, errorMessage } from "@/lib/errors";
 import { trpc } from "@/lib/trpc/client";
 
@@ -295,7 +296,7 @@ function TrackInner() {
                   ? "Efectivo"
                   : "Transferencia"}
               {" · "}
-              {order.shipping_method === "pickup" ? "Retiro en local" : "Andreani"}
+              {shippingMethodLabel(order.shipping_method)}
             </p>
           </div>
 

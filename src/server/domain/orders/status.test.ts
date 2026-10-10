@@ -51,6 +51,20 @@ describe("assertTransition", () => {
     expect(() => assertTransition("pago_confirmado", "enviado")).toThrow(DomainError);
     expect(() => assertTransition("pago_confirmado", "entregado")).toThrow(DomainError);
   });
+
+  it("enviado allows andreani_sucursal", () => {
+    expect(() =>
+      assertTransition("preparando", "enviado", { shippingMethod: "andreani_sucursal" }),
+    ).not.toThrow();
+  });
+
+  it("listo_retiro rejects andreani_sucursal", () => {
+    expect(() =>
+      assertTransition("preparando", "listo_retiro", {
+        shippingMethod: "andreani_sucursal",
+      }),
+    ).toThrow(DomainError);
+  });
 });
 
 describe("canTransition", () => {

@@ -98,4 +98,51 @@ describe("calculateTotals", () => {
       }),
     ).toThrow(DomainError);
   });
+
+  it("andreani_sucursal: same fee as andreani under threshold", () => {
+    const home = calculateTotals({
+      lines: [{ unitPriceCents: 1_000_000, qty: 1 }],
+      paymentMethod: "transfer",
+      shippingMethod: "andreani",
+      paymentDiscountBps: 1000,
+      andreaniFeeCents: 450_000,
+      freeShippingThresholdCents: 8_000_000,
+    });
+    const branch = calculateTotals({
+      lines: [{ unitPriceCents: 1_000_000, qty: 1 }],
+      paymentMethod: "transfer",
+      shippingMethod: "andreani_sucursal",
+      paymentDiscountBps: 1000,
+      andreaniFeeCents: 450_000,
+      freeShippingThresholdCents: 8_000_000,
+    });
+    expect(branch.shippingCents).toBe(home.shippingCents);
+    expect(branch.shippingCents).toBe(450_000);
+    expect(branch.totalCents).toBe(home.totalCents);
+  });
+
+  it("andreani_sucursal: free shipping when post-discount base >= threshold", () => {
+    const result = calculateTotals({
+      lines: [{ unitPriceCents: 10_000_000, qty: 1 }],
+      paymentMethod: "transfer",
+      shippingMethod: "andreani_sucursal",
+      paymentDiscountBps: 1000,
+      andreaniFeeCents: 450_000,
+      freeShippingThresholdCents: 8_000_000,
+    });
+    expect(result.shippingCents).toBe(0);
+  });
+
+  it("rejects cash + andreani_sucursal", () => {
+    expect(() =>
+      calculateTotals({
+        lines: [{ unitPriceCents: 100, qty: 1 }],
+        paymentMethod: "cash",
+        shippingMethod: "andreani_sucursal",
+        paymentDiscountBps: 1000,
+        andreaniFeeCents: 450_000,
+        freeShippingThresholdCents: 8_000_000,
+      }),
+    ).toThrow(DomainError);
+  });
 });

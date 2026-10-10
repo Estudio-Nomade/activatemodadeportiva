@@ -127,6 +127,29 @@ describe("placeOrder", () => {
     ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
   });
 
+  it("requires branch address for andreani_sucursal", async () => {
+    const db = createServiceClient();
+    await expect(
+      placeOrder(
+        {
+          customerName: "Branch",
+          phone: "+54933333334",
+          email: "branch@example.com",
+          shippingMethod: "andreani_sucursal",
+          paymentMethod: "payway",
+          installments: 1,
+          shippingAddress: {
+            line1: "Calle 1",
+            city: "La Plata",
+            postalCode: "1900",
+          },
+          lines: [{ variantId: VARIANT_M, qty: 1 }],
+        },
+        { db, ...depsBase },
+      ),
+    ).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+  });
+
   it("snapshots variant sku onto order_items", async () => {
     const db = createServiceClient();
     await db.from("stock_reservations").delete().neq("id", "00000000-0000-0000-0000-000000000000");

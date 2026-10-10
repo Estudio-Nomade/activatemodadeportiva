@@ -27,6 +27,12 @@ describe("buildOrderTimelineSteps", () => {
     expect(steps[3]?.state).toBe("current");
   });
 
+  it("uses enviado label for andreani_sucursal fulfillment", () => {
+    const steps = buildOrderTimelineSteps("enviado", "andreani_sucursal");
+    expect(steps[3]?.label).toBe("Enviado");
+    expect(steps[3]?.state).toBe("current");
+  });
+
   it("marks all done when entregado", () => {
     const steps = buildOrderTimelineSteps("entregado", "pickup");
     expect(steps.every((s) => s.state === "done" || s.state === "current")).toBe(true);

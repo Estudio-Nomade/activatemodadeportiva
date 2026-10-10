@@ -17,7 +17,7 @@ type OrderRow = {
   code: string;
   status: OrderStatus;
   email: string;
-  shipping_method: "pickup" | "andreani";
+  shipping_method: "pickup" | "andreani" | "andreani_sucursal";
   access_token: string;
 };
 

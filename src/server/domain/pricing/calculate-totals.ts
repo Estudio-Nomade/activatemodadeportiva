@@ -1,7 +1,7 @@
 import { DomainError } from "../errors";
 
 export type PaymentMethod = "payway" | "transfer" | "cash";
-export type ShippingMethod = "pickup" | "andreani";
+export type ShippingMethod = "pickup" | "andreani" | "andreani_sucursal";
 
 export type CalculateTotalsInput = {
   lines: { unitPriceCents: number; qty: number }[];

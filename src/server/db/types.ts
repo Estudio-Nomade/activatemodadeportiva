@@ -268,7 +268,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "cancel_reason": "admin"|"expired","order_status": "pendiente_pago"|"pago_confirmado"|"preparando"|"listo_retiro"|"enviado"|"entregado"|"cancelado","payment_method": "transfer"|"cash"|"payway","reservation_status": "active"|"consumed"|"released","shipping_method": "pickup"|"andreani"
+            "cancel_reason": "admin"|"expired","order_status": "pendiente_pago"|"pago_confirmado"|"preparando"|"listo_retiro"|"enviado"|"entregado"|"cancelado","payment_method": "transfer"|"cash"|"payway","reservation_status": "active"|"consumed"|"released","shipping_method": "pickup"|"andreani"|"andreani_sucursal"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -388,7 +388,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "cancel_reason": ["admin", "expired"],"order_status": ["pendiente_pago", "pago_confirmado", "preparando", "listo_retiro", "enviado", "entregado", "cancelado"],"payment_method": ["transfer", "cash", "payway"],"reservation_status": ["active", "consumed", "released"],"shipping_method": ["pickup", "andreani"]
+            "cancel_reason": ["admin", "expired"],"order_status": ["pendiente_pago", "pago_confirmado", "preparando", "listo_retiro", "enviado", "entregado", "cancelado"],"payment_method": ["transfer", "cash", "payway"],"reservation_status": ["active", "consumed", "released"],"shipping_method": ["pickup", "andreani", "andreani_sucursal"]
           }
         }
 } as const
