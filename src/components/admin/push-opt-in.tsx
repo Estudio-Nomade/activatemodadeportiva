@@ -160,10 +160,8 @@ export function AdminPushOptIn() {
       <div>
         <h2 className="text-sm font-semibold text-text">Notificaciones push</h2>
         <p className="mt-1 text-xs text-muted">
-          En iPhone: Safari → Compartir → Agregar a inicio (Activate Admin), abrí esa app e iniciá
-          sesión, después Activar. En local: el service worker solo se registra en producción (
-          <code className="text-[11px]">pnpm build &amp;&amp; pnpm start</code>
-          ).
+          Avisos de pedidos nuevos, pagos y stock bajo. En el celular, instalá la app Admin y
+          después activá acá.
         </p>
       </div>
 
