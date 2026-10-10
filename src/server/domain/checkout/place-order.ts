@@ -1,9 +1,16 @@
 import type { Json } from "@/server/db/types";
 import type { ServiceClient } from "@/server/db/supabase";
 import { DomainError } from "@/server/domain/errors";
+import { crossedLowStockThreshold } from "@/server/domain/push/low-stock";
+import {
+  orderCreatedPayload,
+  stockLowPayload,
+} from "@/server/domain/push/payloads";
+import { sendAdminPushBestEffort } from "@/server/domain/push/send-best-effort";
 import type { PaymentMethod, ShippingMethod } from "@/server/domain/pricing/calculate-totals";
 import type { EmailPort } from "@/server/email/port";
 import type { PaywayPort } from "@/server/payments/payway/port";
+import type { PushPort } from "@/server/push/port";
 import { assertShippingAddress } from "./address";
 import { generateAccessToken, generateOrderCode } from "./code";
 import {
@@ -11,7 +18,7 @@ import {
   parseInstallmentsAllowList,
 } from "./installments";
 import { mergeLinesByVariant } from "./merge-lines";
-import { quote, type QuoteLineInput } from "./quote";
+import { quote, type QuoteLineInput, type QuoteLineResult } from "./quote";
 
 export type PlaceOrderInput = {
   customerName: string;
@@ -53,6 +60,7 @@ export type PlaceOrderDeps = {
   db: ServiceClient;
   email: EmailPort;
   payway: PaywayPort;
+  push: PushPort;
   appBaseUrl: string;
   now?: Date;
 };
@@ -251,9 +259,47 @@ export async function placeOrder(
     // best-effort; order already committed
   }
 
+  await sendAdminPushBestEffort(
+    deps.push,
+    orderCreatedPayload({
+      orderId: order.id,
+      code: order.code,
+      totalCents: order.total_cents,
+      paymentMethod: order.payment_method,
+    }),
+  );
+
+  await notifyLowStockBestEffort(deps, priced.lines);
+
   return {
     ...order,
     payment_link,
     link_error,
   };
+}
+
+async function notifyLowStockBestEffort(
+  deps: PlaceOrderDeps,
+  lines: QuoteLineResult[],
+): Promise<void> {
+  try {
+    for (const line of lines) {
+      const before = line.available;
+      const after = line.available - line.qty;
+      if (!crossedLowStockThreshold(before, after)) continue;
+      await sendAdminPushBestEffort(
+        deps.push,
+        stockLowPayload({
+          productId: line.productId,
+          variantId: line.variantId,
+          productName: line.productName,
+          color: line.color,
+          size: line.size,
+          available: after,
+        }),
+      );
+    }
+  } catch {
+    // best-effort
+  }
 }

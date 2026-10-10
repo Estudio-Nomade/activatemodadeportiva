@@ -1,10 +1,12 @@
 import type { ServiceClient } from "@/server/db/supabase";
 import type { EmailPort } from "@/server/email/port";
+import type { PushPort } from "@/server/push/port";
 import { cancelOrder } from "./transitions";
 
 export type ExpireReservationsDeps = {
   db: ServiceClient;
   email: EmailPort;
+  push: PushPort;
   now?: Date;
 };
 
@@ -35,6 +37,7 @@ export async function expireReservations(
       await cancelOrder(order.id, "expired", {
         db: deps.db,
         email: deps.email,
+        push: deps.push,
       });
       orderIds.push(order.id);
     } catch {

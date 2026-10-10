@@ -103,7 +103,11 @@ export const adminOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await confirmPayment(input.id, { db: ctx.db, email: ctx.email });
+        await confirmPayment(input.id, {
+          db: ctx.db,
+          email: ctx.email,
+          push: ctx.push,
+        });
         return { ok: true as const };
       } catch (e) {
         rethrowDomain(e);
@@ -114,7 +118,11 @@ export const adminOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await startPreparing(input.id, { db: ctx.db, email: ctx.email });
+        await startPreparing(input.id, {
+          db: ctx.db,
+          email: ctx.email,
+          push: ctx.push,
+        });
         return { ok: true as const };
       } catch (e) {
         rethrowDomain(e);
@@ -125,7 +133,11 @@ export const adminOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await markReadyForPickup(input.id, { db: ctx.db, email: ctx.email });
+        await markReadyForPickup(input.id, {
+          db: ctx.db,
+          email: ctx.email,
+          push: ctx.push,
+        });
         return { ok: true as const };
       } catch (e) {
         rethrowDomain(e);
@@ -136,7 +148,11 @@ export const adminOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await markShipped(input.id, { db: ctx.db, email: ctx.email });
+        await markShipped(input.id, {
+          db: ctx.db,
+          email: ctx.email,
+          push: ctx.push,
+        });
         return { ok: true as const };
       } catch (e) {
         rethrowDomain(e);
@@ -147,7 +163,11 @@ export const adminOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await markDelivered(input.id, { db: ctx.db, email: ctx.email });
+        await markDelivered(input.id, {
+          db: ctx.db,
+          email: ctx.email,
+          push: ctx.push,
+        });
         return { ok: true as const };
       } catch (e) {
         rethrowDomain(e);
@@ -158,7 +178,11 @@ export const adminOrdersRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await cancelOrder(input.id, "admin", { db: ctx.db, email: ctx.email });
+        await cancelOrder(input.id, "admin", {
+          db: ctx.db,
+          email: ctx.email,
+          push: ctx.push,
+        });
         return { ok: true as const };
       } catch (e) {
         rethrowDomain(e);

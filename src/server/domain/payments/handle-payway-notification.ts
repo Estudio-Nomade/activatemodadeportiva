@@ -5,6 +5,7 @@ import type { EmailPort } from "@/server/email/port";
 import { paywayAmountToCents } from "@/server/payments/payway/amount";
 import { parsePaywayNotification } from "@/server/payments/payway/parse-notification";
 import type { PaywayPort } from "@/server/payments/payway/port";
+import type { PushPort } from "@/server/push/port";
 
 const APPROVED = new Set(["approved", "accredited"]);
 
@@ -12,6 +13,7 @@ export type HandlePaywayNotificationDeps = {
   db: ServiceClient;
   email: EmailPort;
   payway: PaywayPort;
+  push: PushPort;
 };
 
 export async function handlePaywayNotification(
@@ -93,7 +95,11 @@ export async function handlePaywayNotification(
       })
       .eq("id", order.id);
 
-    await confirmPayment(order.id, { db: deps.db, email: deps.email });
+    await confirmPayment(order.id, {
+      db: deps.db,
+      email: deps.email,
+      push: deps.push,
+    });
     await mark({ processed_at: new Date().toISOString() });
     return { ok: true };
   } catch (e) {

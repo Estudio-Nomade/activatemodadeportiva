@@ -84,6 +84,12 @@ Invalid move → `INVALID_TRANSITION`.
 
 Cancel reasons: `admin` | `expired`.
 
+## Admin Web Push
+
+- Best-effort only (same as email): failures never fail `placeOrder` / `confirmPayment`.
+- Events: order created, payment confirmed, stock low on **checkout reservation** when quote-time `available` crosses into ≤ 2 (`before = line.available`, `after = available - qty`). Admin manual stock edits do **not** push in v1.
+- No customer PII or `access_token` in push payloads.
+
 ## Domain error codes (`data.domainCode`)
 
 | Code | Meaning |

@@ -5,6 +5,7 @@ import { createResendEmail } from "@/server/email/resend";
 import { loadPaywayConfig } from "@/server/payments/payway/config";
 import { createPaywayHttpAdapter } from "@/server/payments/payway/http-adapter";
 import type { PaywayPort } from "@/server/payments/payway/port";
+import { resolvePush } from "@/server/push/resolve";
 import { createSupabaseStorage } from "@/server/storage/supabase-storage";
 import type { StoragePort } from "@/server/storage/port";
 
@@ -41,6 +42,7 @@ export async function createTRPCContext(opts: { headers: Headers }) {
     email: resolveEmail(),
     storage: createSupabaseStorage(db) as StoragePort,
     payway: resolvePayway(),
+    push: resolvePush(db),
     appBaseUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     adminUserId,
   };

@@ -5,6 +5,7 @@ import { ordersRouter } from "./orders";
 import { settingsRouter } from "./settings";
 import { adminCatalogRouter } from "./admin/catalog";
 import { adminOrdersRouter } from "./admin/orders";
+import { adminPushRouter } from "./admin/push";
 import { adminSettingsRouter } from "./admin/settings";
 
 export const appRouter = createTRPCRouter({
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
     catalog: adminCatalogRouter,
     orders: adminOrdersRouter,
     settings: adminSettingsRouter,
+    push: adminPushRouter,
   }),
 });
 

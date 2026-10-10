@@ -187,6 +187,19 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"push_subscriptions": {
+                  Row: {
+                    "admin_user_id": string,"auth": string,"created_at": string,"endpoint": string,"id": string,"p256dh": string,"updated_at": string,"user_agent": string | null
+                  }
+                  Insert: {
+                    "admin_user_id": string,"auth": string,"created_at"?: string,"endpoint": string,"id"?: string,"p256dh": string,"updated_at"?: string,"user_agent"?: string | null
+                  }
+                  Update: {
+                    "admin_user_id"?: string,"auth"?: string,"created_at"?: string,"endpoint"?: string,"id"?: string,"p256dh"?: string,"updated_at"?: string,"user_agent"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"size_guides": {
                   Row: {
                     "id": string,"name": string,"storage_path": string | null

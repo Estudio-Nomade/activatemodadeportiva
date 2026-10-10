@@ -7,6 +7,7 @@ import type { EmailPort } from "@/server/email/port";
 import { createResendEmail } from "@/server/email/resend";
 import { loadPaywayConfig } from "@/server/payments/payway/config";
 import { createPaywayHttpAdapter } from "@/server/payments/payway/http-adapter";
+import { resolvePush } from "@/server/push/resolve";
 
 function resolveEmail(): EmailPort {
   if (process.env.RESEND_API_KEY) return createResendEmail();
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
       db,
       email: resolveEmail(),
       payway,
+      push: resolvePush(db),
     });
     return NextResponse.json({ ok: true });
   } catch (e) {
