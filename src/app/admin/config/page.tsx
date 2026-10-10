@@ -220,17 +220,27 @@ export default function AdminConfigPage() {
           </p>
         </div>
 
-        <fieldset className="field">
-          <legend className="text-sm font-medium text-text">Cuotas Payway permitidas</legend>
-          <div className="mt-2 flex flex-wrap gap-4">
+        <div className="space-y-2">
+          <p className="text-[length:var(--text-caption)] font-semibold leading-[var(--lh-caption)] text-muted">
+            Cuotas Payway permitidas
+          </p>
+          <div className="flex flex-col gap-2">
             {PAYWAY_INSTALLMENT_OPTIONS.map((n) => {
               const checked = form.payway_installments.includes(n);
               const id = `payway_inst_${n}`;
               return (
-                <label key={n} htmlFor={id} className="flex items-center gap-2 text-sm text-text">
+                <label
+                  key={n}
+                  htmlFor={id}
+                  className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-[12px] border border-border bg-surface px-3"
+                >
+                  <span className="text-sm font-semibold text-text">
+                    {n === 1 ? "1 cuota (contado)" : `${n} cuotas`}
+                  </span>
                   <input
                     id={id}
                     type="checkbox"
+                    className="h-4 w-4 shrink-0"
                     checked={checked}
                     onChange={() => {
                       const next = checked
@@ -239,15 +249,14 @@ export default function AdminConfigPage() {
                       patch("payway_installments", next.length ? next : [1]);
                     }}
                   />
-                  {n === 1 ? "1 cuota (contado)" : `${n} cuotas`}
                 </label>
               );
             })}
           </div>
-          <p className="mt-1 text-xs text-muted">
+          <p className="text-xs text-muted">
             Opciones del checkout con tarjeta. Deben estar habilitadas en tu cuenta Payway.
           </p>
-        </fieldset>
+        </div>
 
         <AdminMoneyField
           id="fee"

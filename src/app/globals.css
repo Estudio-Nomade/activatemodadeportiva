@@ -299,7 +299,7 @@ button.btn-ghost.btn-inline {
   color: var(--text-muted);
 }
 
-.field input,
+.field input:not([type="checkbox"]):not([type="radio"]),
 .field select,
 .field textarea {
   width: 100%;
@@ -308,6 +308,16 @@ button.btn-ghost.btn-inline {
   border-radius: var(--radius-md);
   padding: 12px 14px;
   background: var(--surface);
+}
+
+.field input[type="checkbox"],
+.field input[type="radio"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  min-height: 0;
+  padding: 0;
+  flex-shrink: 0;
+  accent-color: var(--accent, #0f766e);
 }
 
 /* Admin money: leave room for the $ prefix inside the field */
