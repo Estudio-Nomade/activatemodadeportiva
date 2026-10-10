@@ -153,6 +153,29 @@ export const ORDER_STATUS_LABEL: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
+/** Buyer-facing ES labels for payment_method enum values. */
+export const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  transfer: "Transferencia",
+  cash: "Efectivo",
+  payway: "Payway",
+};
+
+/** Buyer-facing ES labels for shipping_method enum values. */
+export const SHIPPING_METHOD_LABEL: Record<string, string> = {
+  pickup: "Retiro en local",
+  andreani: "Andreani",
+};
+
+export function paymentMethodLabel(method: string | null | undefined): string {
+  if (!method) return "—";
+  return PAYMENT_METHOD_LABEL[method] ?? method;
+}
+
+export function shippingMethodLabel(method: string | null | undefined): string {
+  if (!method) return "—";
+  return SHIPPING_METHOD_LABEL[method] ?? method;
+}
+
 export const PENDING_STATUSES = ["pendiente_pago"] as const;
 export const IN_PROGRESS_STATUSES = [
   "pago_confirmado",

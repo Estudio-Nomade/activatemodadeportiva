@@ -7,6 +7,8 @@ import {
   IN_PROGRESS_STATUSES,
   ORDER_STATUS_LABEL,
   PENDING_STATUSES,
+  paymentMethodLabel,
+  shippingMethodLabel,
   useAdminToken,
 } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
@@ -109,7 +111,7 @@ function PedidosInner() {
                     {o.customer_name}
                   </p>
                   <p className="mt-0.5 text-xs text-muted">
-                    {o.payment_method} · {o.shipping_method}
+                    {paymentMethodLabel(o.payment_method)} · {shippingMethodLabel(o.shipping_method)}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-2">
