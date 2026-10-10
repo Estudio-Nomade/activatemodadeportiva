@@ -82,4 +82,27 @@ describe("buildEmailHtml", () => {
     expect(html).toContain("Ver en admin");
     expect(html).not.toContain("/pedido?token=");
   });
+
+  it("uses compact on-light logo on an explicit light header cell", () => {
+    const html = buildEmailHtml("order_created", base);
+    expect(html).toContain("https://shop.example/brand/logo-on-light-160.png");
+    expect(html).not.toContain("/brand/logo.png\"");
+    expect(html).not.toContain("/brand/logo-on-light.png\"");
+    // Header <td> specifically — not body/card BG alone
+    expect(html).toContain(
+      'td style="background:#ffffff;padding:16px 24px;text-align:center;border-bottom:1px solid #E5DFD6"',
+    );
+    expect(html).toContain('width="80"');
+    expect(html).toContain('height="80"');
+  });
+
+  it("falls back to dark text wordmark when appUrl missing", () => {
+    const html = buildEmailHtml("order_created", {
+      code: "ACT-1",
+      appUrl: "",
+    });
+    expect(html).not.toContain("<img");
+    expect(html).toContain("ACTIVATE");
+    expect(html).toContain("color:#1A1816");
+  });
 });

@@ -177,7 +177,8 @@ export function buildEmailHtml(
     template === "payment_proof_received" && orderId && appUrl
       ? `${appUrl}/admin/pedidos/${encodeURIComponent(orderId)}`
       : "";
-  const logoUrl = appUrl ? `${appUrl}/brand/logo.png` : "";
+  // Dark mark on light bar — full logo-on-light.png is ~900KB; use 160px email asset.
+  const logoUrl = appUrl ? `${appUrl}/brand/logo-on-light-160.png` : "";
   const title = headline(template);
   const paragraphs = bodyParagraphs(template, data)
     .map(
@@ -205,11 +206,11 @@ export function buildEmailHtml(
     <tr><td align="center">
       <table role="presentation" width="100%" style="max-width:560px;background:#ffffff;border-radius:16px;border:1px solid ${BORDER};overflow:hidden">
         <tr>
-          <td style="background:${ACCENT};padding:18px 24px;text-align:center">
+          <td style="background:#ffffff;padding:16px 24px;text-align:center;border-bottom:1px solid ${BORDER}">
             ${
               logoUrl
-                ? `<img src="${escapeHtml(logoUrl)}" alt="Activate" width="140" height="42" style="display:inline-block;height:42px;width:auto;max-width:160px;object-fit:contain"/>`
-                : `<span style="color:#fff;font-weight:700;letter-spacing:0.14em;font-size:16px">ACTIVATE</span>`
+                ? `<img src="${escapeHtml(logoUrl)}" alt="Activate" width="80" height="80" style="display:inline-block;height:80px;width:80px;border:0"/>`
+                : `<span style="color:${ACCENT};font-weight:700;letter-spacing:0.14em;font-size:16px">ACTIVATE</span>`
             }
           </td>
         </tr>
