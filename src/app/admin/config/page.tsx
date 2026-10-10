@@ -7,6 +7,7 @@ import { useAdminToken } from "@/lib/admin/auth";
 import { errorMessage } from "@/lib/errors";
 import { centsToPesosInput, pesosToCents } from "@/lib/format/money";
 import { trpc } from "@/lib/trpc/client";
+import { PAYWAY_INSTALLMENT_OPTIONS } from "@/server/domain/checkout/installments";
 
 type SettingsDraft = {
   season_label: string;
@@ -20,7 +21,14 @@ type SettingsDraft = {
   free_shipping_threshold_pesos: string;
   contact_email: string;
   contact_address: string;
+  payway_installments: number[];
 };
+
+function installmentsFromRemote(raw: number[] | null | undefined): number[] {
+  const allowed = new Set<number>(PAYWAY_INSTALLMENT_OPTIONS);
+  const picked = (raw ?? []).filter((n) => allowed.has(n));
+  return picked.length ? [...new Set(picked)].sort((a, b) => a - b) : [1];
+}
 
 export default function AdminConfigPage() {
   const token = useAdminToken();
@@ -39,6 +47,7 @@ export default function AdminConfigPage() {
     free_shipping_threshold_pesos: "0",
     contact_email: "",
     contact_address: "",
+    payway_installments: [1],
   });
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -59,6 +68,9 @@ export default function AdminConfigPage() {
           ),
           contact_email: remote.contact_email ?? "",
           contact_address: remote.contact_address ?? "",
+          payway_installments: installmentsFromRemote(
+            (remote as { payway_installments?: number[] | null }).payway_installments,
+          ),
         };
 
   function patch<K extends keyof SettingsDraft>(key: K, value: SettingsDraft[K]) {
@@ -112,6 +124,7 @@ export default function AdminConfigPage() {
               free_shipping_threshold_cents: pesosToCents(form.free_shipping_threshold_pesos),
               contact_email: form.contact_email,
               contact_address: form.contact_address,
+              payway_installments: form.payway_installments,
             },
             {
               onSuccess: async (row) => {
@@ -206,6 +219,35 @@ export default function AdminConfigPage() {
             Ej: 10 = 10% off. Se guarda en bps internamente ({form.payment_discount_bps}).
           </p>
         </div>
+
+        <fieldset className="field">
+          <legend className="text-sm font-medium text-text">Cuotas Payway permitidas</legend>
+          <div className="mt-2 flex flex-wrap gap-4">
+            {PAYWAY_INSTALLMENT_OPTIONS.map((n) => {
+              const checked = form.payway_installments.includes(n);
+              const id = `payway_inst_${n}`;
+              return (
+                <label key={n} htmlFor={id} className="flex items-center gap-2 text-sm text-text">
+                  <input
+                    id={id}
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => {
+                      const next = checked
+                        ? form.payway_installments.filter((x) => x !== n)
+                        : [...form.payway_installments, n].sort((a, b) => a - b);
+                      patch("payway_installments", next.length ? next : [1]);
+                    }}
+                  />
+                  {n === 1 ? "1 cuota (contado)" : `${n} cuotas`}
+                </label>
+              );
+            })}
+          </div>
+          <p className="mt-1 text-xs text-muted">
+            Opciones del checkout con tarjeta. Deben estar habilitadas en tu cuenta Payway.
+          </p>
+        </fieldset>
 
         <AdminMoneyField
           id="fee"

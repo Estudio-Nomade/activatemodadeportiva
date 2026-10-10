@@ -394,7 +394,7 @@ Input `{ id }` — `cancel_reason = admin`
 | | |
 |--|--|
 | Type | mutation |
-| Input | partial: `season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address` |
+| Input | partial: `season_label, whatsapp_url_or_phone, whatsapp_prefill_message, instagram_url, transfer_cbu_alias_text, payment_discount_bps, andreani_fee_cents, free_shipping_threshold_cents, contact_email, contact_address, payway_installments` (array of ints from fixed set `1,3,6`; empty/unknown → normalized to `[1]`) |
 | Output | updated row |
 
 ---

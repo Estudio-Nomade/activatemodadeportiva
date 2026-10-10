@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { assertInstallmentsAllowed, parseInstallmentsAllowList } from "./installments";
+import {
+  assertInstallmentsAllowed,
+  normalizeAdminInstallments,
+  parseInstallmentsAllowList,
+  PAYWAY_INSTALLMENT_OPTIONS,
+} from "./installments";
 import { DomainError } from "../errors";
 
 describe("installments", () => {
@@ -24,5 +29,18 @@ describe("installments", () => {
     } catch (e) {
       expect((e as DomainError).code).toBe("INSTALLMENTS_NOT_ALLOWED");
     }
+  });
+
+  it("admin options are 1, 3, 6", () => {
+    expect(PAYWAY_INSTALLMENT_OPTIONS).toEqual([1, 3, 6]);
+  });
+
+  it("normalizeAdminInstallments keeps fixed set only, sorted unique", () => {
+    expect(normalizeAdminInstallments([3, 1, 3, 99, 9, 6])).toEqual([1, 3, 6]);
+  });
+
+  it("normalizeAdminInstallments defaults empty to [1]", () => {
+    expect(normalizeAdminInstallments([])).toEqual([1]);
+    expect(normalizeAdminInstallments([9, 12])).toEqual([1]);
   });
 });

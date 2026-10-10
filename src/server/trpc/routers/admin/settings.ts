@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
 import { normalizeWhatsappStored } from "@/lib/contact/whatsapp";
+import { normalizeAdminInstallments } from "@/server/domain/checkout/installments";
 import { adminProcedure, createTRPCRouter } from "../../init";
 
 function isMissingPrefillColumn(message: string | undefined): boolean {
@@ -45,6 +46,7 @@ export const adminSettingsRouter = createTRPCRouter({
         free_shipping_threshold_cents: z.number().int().nonnegative().optional(),
         contact_email: z.string().optional(),
         contact_address: z.string().optional(),
+        payway_installments: z.array(z.number().int().positive()).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -72,6 +74,9 @@ export const adminSettingsRouter = createTRPCRouter({
       }
       if (input.contact_email !== undefined) patch.contact_email = input.contact_email;
       if (input.contact_address !== undefined) patch.contact_address = input.contact_address;
+      if (input.payway_installments !== undefined) {
+        patch.payway_installments = normalizeAdminInstallments(input.payway_installments);
+      }
 
       const runUpdate = async (body: TablesUpdate<"store_settings">) =>
         ctx.db.from("store_settings").update(body).eq("id", 1).select("*").single();
