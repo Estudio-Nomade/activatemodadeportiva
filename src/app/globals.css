@@ -730,6 +730,14 @@ button.btn-ghost.btn-inline {
   top: 0;
   height: 100dvh;
   max-height: 100dvh;
+  overflow: hidden;
+}
+
+.admin-shell {
+  /* Keep admin chrome viewport-locked so only .admin-main scrolls */
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 
 .admin-bottom-nav {

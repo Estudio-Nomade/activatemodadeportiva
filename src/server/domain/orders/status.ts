@@ -9,24 +9,12 @@ export type OrderStatus =
   | "entregado"
   | "cancelado";
 
-export function assertTransition(
-  from: OrderStatus,
-  to: OrderStatus,
-  ctx?: { shippingMethod?: "pickup" | "andreani" },
-): void {
-  const allowed = isAllowed(from, to, ctx);
-  if (!allowed) {
-    throw new DomainError(
-      "INVALID_TRANSITION",
-      `Cannot transition from ${from} to ${to}`,
-    );
-  }
-}
+export type TransitionCtx = { shippingMethod?: "pickup" | "andreani" };
 
-function isAllowed(
+export function canTransition(
   from: OrderStatus,
   to: OrderStatus,
-  ctx?: { shippingMethod?: "pickup" | "andreani" },
+  ctx?: TransitionCtx,
 ): boolean {
   switch (from) {
     case "pendiente_pago":
@@ -47,5 +35,18 @@ function isAllowed(
       return false;
     default:
       return false;
+  }
+}
+
+export function assertTransition(
+  from: OrderStatus,
+  to: OrderStatus,
+  ctx?: TransitionCtx,
+): void {
+  if (!canTransition(from, to, ctx)) {
+    throw new DomainError(
+      "INVALID_TRANSITION",
+      `Cannot transition from ${from} to ${to}`,
+    );
   }
 }
