@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import type { TablesUpdate } from "@/server/db/types";
+import { sortVariantsBySize } from "@/server/domain/catalog/sort-variants";
 import { canRemoveProduct, canRemoveVariant } from "@/server/domain/catalog/variant-ops";
 import {
   isUniqueViolation,
@@ -427,6 +428,7 @@ export const adminCatalogRouter = createTRPCRouter({
     if (error) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: error.message });
     return (data ?? []).map((p) => ({
       ...p,
+      product_variants: sortVariantsBySize(p.product_variants ?? []),
       product_images: mapImages(p.product_images),
     }));
   }),

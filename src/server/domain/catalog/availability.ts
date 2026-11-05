@@ -1,4 +1,5 @@
 import type { ServiceClient } from "@/server/db/supabase";
+import { sortVariantsBySize } from "@/server/domain/catalog/sort-variants";
 import { availableStock } from "@/server/domain/stock/availability";
 
 export type VariantWithAvailability = {
@@ -27,7 +28,7 @@ export async function variantsWithAvailability(
     reserved.set(r.variant_id, (reserved.get(r.variant_id) ?? 0) + r.qty);
   }
 
-  return variants.map((v) => ({
+  return sortVariantsBySize(variants).map((v) => ({
     id: v.id,
     color: v.color,
     size: v.size,
