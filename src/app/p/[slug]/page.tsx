@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { IconClose, IconZoom } from "@/components/store/icons";
@@ -39,6 +39,23 @@ export default function ProductPage() {
   const images = useMemo(() => product?.product_images ?? [], [product?.product_images]);
   const [imgIdx, setImgIdx] = useState(0);
   const [zoom, setZoom] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const swipe = {
+    onTouchStart: (e: React.TouchEvent) => {
+      const t = e.touches[0];
+      touchStart.current = { x: t.clientX, y: t.clientY };
+    },
+    onTouchEnd: (e: React.TouchEvent) => {
+      const start = touchStart.current;
+      touchStart.current = null;
+      if (!start || images.length < 2) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - start.x;
+      // Only horizontal swipes; vertical drags keep scrolling the page.
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(t.clientY - start.y)) return;
+      setImgIdx((i) => (i + (dx < 0 ? 1 : -1) + images.length) % images.length);
+    },
+  };
   const main = images[imgIdx];
   const mainUrl = main?.url ?? primaryProductImageUrl(images);
   const sizeGuide = product?.size_guide ?? null;
@@ -99,7 +116,10 @@ export default function ProductPage() {
   return (
     <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 md:grid-cols-2 md:items-start md:gap-10 md:px-6 md:pb-14 lg:gap-14 lg:px-8">
       <div className="-mx-4 md:sticky md:top-24 md:mx-0">
-        <div className="relative aspect-square w-full overflow-hidden bg-surface-soft md:aspect-[4/5] md:rounded-[16px] md:border md:border-border lg:rounded-[20px]">
+        <div
+          className="relative aspect-square w-full touch-pan-y overflow-hidden bg-surface-soft md:aspect-[4/5] md:rounded-[16px] md:border md:border-border lg:rounded-[20px]"
+          {...swipe}
+        >
           <button
             type="button"
             className="absolute inset-0 z-0"
@@ -415,8 +435,9 @@ export default function ProductPage() {
           </div>
           <button
             type="button"
-            className="flex min-h-0 flex-1 items-center justify-center p-4"
+            className="flex min-h-0 flex-1 touch-pan-y items-center justify-center p-4"
             onClick={() => setZoom(false)}
+            {...swipe}
             aria-label="Cerrar"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
